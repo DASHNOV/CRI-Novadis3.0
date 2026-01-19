@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/features/auth/login_screen.dart';
-import 'package:novadis_cri/features/dashboard/dashboard_screen.dart';
+import 'package:novadis_cri/features/dashboard/pages/main_dashboard_page.dart';
+import 'package:novadis_cri/features/dashboard/pages/technician_statistics_page.dart';
+import 'package:novadis_cri/features/dashboard/pages/site_details_page.dart';
 import 'package:novadis_cri/features/cri_form/cri_form_screen.dart';
 import 'package:novadis_cri/features/cri_form/pages/cri_projet_form_page.dart';
 import 'package:novadis_cri/features/cri_form/pages/cri_service_form_page.dart';
@@ -12,6 +14,8 @@ import 'package:novadis_cri/features/admin/admin_screen.dart';
 class AppRouter {
   static const String login = '/login';
   static const String dashboard = '/dashboard';
+  static const String technicianStats = '/dashboard/technician-stats';
+  static const String siteDetails = '/sites/details';
   static const String criForm = '/cri-form';
   static const String criNewProjet = '/cri/new/projet';
   static const String criNewService = '/cri/new/service';
@@ -31,7 +35,22 @@ class AppRouter {
       GoRoute(
         path: dashboard,
         name: 'dashboard',
-        builder: (context, state) => const DashboardScreen(),
+        builder: (context, state) => const MainDashboardPage(),
+      ),
+      // Statistiques techniciens (admin/manager)
+      GoRoute(
+        path: technicianStats,
+        name: 'technician-stats',
+        builder: (context, state) => const TechnicianStatisticsPage(),
+      ),
+      // Détails d'un site
+      GoRoute(
+        path: '$siteDetails/:siteId',
+        name: 'site-details',
+        builder: (context, state) {
+          final siteId = state.pathParameters['siteId'] ?? '';
+          return SiteDetailsPage(siteId: siteId);
+        },
       ),
       GoRoute(
         path: criForm,
