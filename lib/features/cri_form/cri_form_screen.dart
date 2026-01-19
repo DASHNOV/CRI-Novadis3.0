@@ -1,238 +1,192 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
-import 'package:novadis_cri/data/models/cri_model.dart';
-import 'package:novadis_cri/data/local/local_storage_service.dart';
 
-/// Écran de création/édition d'un CRI
-/// Formulaire avec validation pour créer un nouveau compte rendu d'intervention
-class CriFormScreen extends HookWidget {
+/// Écran de sélection du type de CRI à créer
+/// Permet de choisir entre CRI Projet et CRI Service
+class CriFormScreen extends StatelessWidget {
   const CriFormScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final formKey = useMemoized(() => GlobalKey<FormState>());
-    final clientController = useTextEditingController();
-    final siteController = useTextEditingController();
-    final descriptionController = useTextEditingController();
-    final selectedType = useState<String>('Maintenance préventive');
-    final selectedDate = useState<DateTime>(DateTime.now());
-    final isLoading = useState(false);
-    final storageService = useMemoized(() => LocalStorageService());
-
-    final typeInterventions = [
-      'Maintenance préventive',
-      'Maintenance corrective',
-      'Dépannage',
-      'Installation',
-      'Mise en service',
-      'Contrôle',
-      'Autre',
-    ];
-
-    Future<void> selectDate() async {
-      final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: selectedDate.value,
-        firstDate: DateTime(2020),
-        lastDate: DateTime(2030),
-        locale: const Locale('fr', 'FR'),
-      );
-      if (picked != null) {
-        selectedDate.value = picked;
-      }
-    }
-
-    Future<void> handleSubmit() async {
-      if (!formKey.currentState!.validate()) {
-        return;
-      }
-
-      isLoading.value = true;
-
-      // Créer le nouveau CRI
-      final newCri = CriModel(
-        id: storageService.generateId(),
-        client: clientController.text.trim(),
-        site: siteController.text.trim(),
-        typeIntervention: selectedType.value,
-        description: descriptionController.text.trim(),
-        date: selectedDate.value,
-        createdAt: DateTime.now(),
-      );
-
-      // Sauvegarder
-      final success = await storageService.addCri(newCri);
-
-      isLoading.value = false;
-
-      if (context.mounted) {
-        if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('CRI créé avec succès'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          context.pop();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Erreur lors de la création du CRI'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    }
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Nouveau CRI')),
       body: SafeArea(
-        child: Form(
-          key: formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(16.0),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Champ Client
-              TextFormField(
-                controller: clientController,
-                decoration: const InputDecoration(
-                  labelText: 'Client *',
-                  hintText: 'Nom du client',
-                  prefixIcon: Icon(Icons.person_outline),
+              // Header
+              Text(
+                'Quel type de CRI souhaitez-vous créer ?',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Le client est requis';
-                  }
-                  return null;
-                },
-                textCapitalization: TextCapitalization.words,
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-
-              // Champ Site
-              TextFormField(
-                controller: siteController,
-                decoration: const InputDecoration(
-                  labelText: 'Site *',
-                  hintText: 'Localisation du site',
-                  prefixIcon: Icon(Icons.location_on_outlined),
+              const SizedBox(height: 8),
+              Text(
+                'Sélectionnez le formulaire adapté à votre intervention',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Le site est requis';
-                  }
-                  return null;
-                },
-                textCapitalization: TextCapitalization.words,
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 48),
 
-              // Type d'intervention
-              DropdownButtonFormField<String>(
-                value: selectedType.value,
-                decoration: const InputDecoration(
-                  labelText: 'Type d\'intervention *',
-                  prefixIcon: Icon(Icons.build_outlined),
-                ),
-                items: typeInterventions.map((String type) {
-                  return DropdownMenuItem<String>(
-                    value: type,
-                    child: Text(type),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    selectedType.value = newValue;
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Date d'intervention
-              InkWell(
-                onTap: selectDate,
-                child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Date d\'intervention *',
-                    prefixIcon: Icon(Icons.calendar_today_outlined),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        DateFormat('dd/MM/yyyy').format(selectedDate.value),
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      const Icon(Icons.arrow_drop_down),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Description
-              TextFormField(
-                controller: descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description *',
-                  hintText: 'Détails de l\'intervention',
-                  prefixIcon: Icon(Icons.description_outlined),
-                  alignLabelWithHint: true,
-                ),
-                maxLines: 5,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'La description est requise';
-                  }
-                  if (value.trim().length < 10) {
-                    return 'La description doit contenir au moins 10 caractères';
-                  }
-                  return null;
-                },
-                textCapitalization: TextCapitalization.sentences,
+              // CRI Projet Card
+              _CriTypeCard(
+                icon: Icons.folder_outlined,
+                title: 'CRI Projet',
+                description:
+                    'Pour les interventions liées à des projets structurés : installations, migrations, déploiements...',
+                features: const [
+                  'Suivi par phase de projet',
+                  'Numéro de projet (PRJ-YYYY-NNN)',
+                  'Gestion du statut projet',
+                ],
+                color: theme.colorScheme.primary,
+                onTap: () => context.push('/cri/new/projet'),
               ),
               const SizedBox(height: 24),
 
-              // Bouton de soumission
-              ElevatedButton(
-                onPressed: isLoading.value ? null : handleSubmit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: isLoading.value
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                    : const Text(
-                        'Enregistrer le CRI',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+              // CRI Service Card
+              _CriTypeCard(
+                icon: Icons.build_outlined,
+                title: 'CRI Service',
+                description:
+                    'Pour les interventions de maintenance, dépannage ou support technique avec ticket.',
+                features: const [
+                  'Numéro de ticket (TICK-YYYY-NNNNN)',
+                  'Gestion des priorités',
+                  'Satisfaction client',
+                ],
+                color: theme.colorScheme.tertiary,
+                onTap: () => context.push('/cri/new/service'),
               ),
-              const SizedBox(height: 16),
+
+              const Spacer(),
 
               // Note
               Text(
-                '* Champs obligatoires',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
+                'Les deux formulaires incluent : photos, signatures, et sauvegarde hors-ligne',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
                   fontStyle: FontStyle.italic,
                 ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Carte de sélection de type CRI
+class _CriTypeCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+  final List<String> features;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _CriTypeCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.features,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      elevation: 2,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: color.withValues(alpha: 0.3)),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Row(
+            children: [
+              // Icon
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 32),
+              ),
+              const SizedBox(width: 16),
+
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: features.map((feature) {
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.check_circle,
+                              size: 14,
+                              color: color.withValues(alpha: 0.7),
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                feature,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Arrow
+              Icon(
+                Icons.arrow_forward_ios,
+                color: color.withValues(alpha: 0.5),
+                size: 20,
               ),
             ],
           ),

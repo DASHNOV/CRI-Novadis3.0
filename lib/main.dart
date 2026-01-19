@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
 
 void main() {
-  runApp(const NovadisApp());
+  runApp(const ProviderScope(child: NovadisApp()));
 }
 
 class NovadisApp extends StatelessWidget {
