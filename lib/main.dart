@@ -1,0 +1,35 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:novadis_cri/core/config/app_router.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
+
+void main() {
+  runApp(const NovadisApp());
+}
+
+class NovadisApp extends StatelessWidget {
+  const NovadisApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      title: 'Novadis CRI',
+      debugShowCheckedModeBanner: false,
+
+      // Configuration du thème
+      theme: AppTheme.lightTheme,
+
+      // Configuration du routeur
+      routerConfig: AppRouter.router,
+
+      // Localisation en français
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('fr', 'FR')],
+      locale: const Locale('fr', 'FR'),
+    );
+  }
+}
