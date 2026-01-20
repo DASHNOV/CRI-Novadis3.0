@@ -31,8 +31,8 @@ class LoginScreen extends HookWidget {
       isLoading.value = false;
 
       if (context.mounted) {
-        // Navigation vers le dashboard
-        context.go(AppRouter.dashboard);
+        // Navigation vers la page d'accueil
+        context.go(AppRouter.home);
       }
     }
 

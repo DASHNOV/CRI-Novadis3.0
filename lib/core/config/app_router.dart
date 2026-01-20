@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/features/auth/login_screen.dart';
+import 'package:novadis_cri/features/home/home_page.dart';
 import 'package:novadis_cri/features/dashboard/pages/main_dashboard_page.dart';
 import 'package:novadis_cri/features/dashboard/pages/technician_statistics_page.dart';
 import 'package:novadis_cri/features/dashboard/pages/site_details_page.dart';
@@ -13,6 +14,7 @@ import 'package:novadis_cri/features/admin/admin_screen.dart';
 /// Utilise GoRouter pour la navigation
 class AppRouter {
   static const String login = '/login';
+  static const String home = '/home';
   static const String dashboard = '/dashboard';
   static const String technicianStats = '/dashboard/technician-stats';
   static const String siteDetails = '/sites/details';
@@ -31,6 +33,11 @@ class AppRouter {
         path: login,
         name: 'login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: home,
+        name: 'home',
+        builder: (context, state) => const HomePage(),
       ),
       GoRoute(
         path: dashboard,
