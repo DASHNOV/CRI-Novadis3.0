@@ -25,7 +25,7 @@ class CriServiceFormPage extends ConsumerStatefulWidget {
 class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
   final _formKey = GlobalKey<FormBuilderState>();
   int _currentStep = 0;
-  bool _autoSaveEnabled = true;
+  final bool _autoSaveEnabled = true;
 
   @override
   void initState() {

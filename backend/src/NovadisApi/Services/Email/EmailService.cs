@@ -1,0 +1,166 @@
+using System.Net;
+using System.Net.Mail;
+
+namespace NovadisApi.Services.Email
+{
+    public interface IEmailService
+    {
+        Task SendAuthCodeEmailAsync(string toEmail, string code, string magicLink);
+        Task SendWelcomeEmailAsync(string toEmail, string firstName);
+        Task SendEmailAsync(string toEmail, string subject, string htmlBody);
+    }
+
+    public class EmailService : IEmailService
+    {
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<EmailService> _logger;
+
+        public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
+        {
+            _configuration = configuration;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Envoie un email avec le code d'authentification et le magic link
+        /// </summary>
+        public async Task SendAuthCodeEmailAsync(string toEmail, string code, string magicLink)
+        {
+            var subject = "Votre code de connexion Novadis CRI";
+            
+            var htmlBody = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                   color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+        .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+        .code-box {{ background: white; border: 2px dashed #667eea; padding: 20px; 
+                     text-align: center; font-size: 32px; font-weight: bold; 
+                     letter-spacing: 8px; margin: 20px 0; border-radius: 8px; }}
+        .button {{ display: inline-block; background: #667eea; color: white; 
+                   padding: 15px 30px; text-decoration: none; border-radius: 5px; 
+                   margin: 20px 0; font-weight: bold; }}
+        .footer {{ text-align: center; color: #888; font-size: 12px; margin-top: 30px; }}
+        .warning {{ background: #fff3cd; border-left: 4px solid #ffc107; 
+                    padding: 15px; margin: 20px 0; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>🔐 Connexion à Novadis CRI</h1>
+        </div>
+        <div class='content'>
+            <p>Bonjour,</p>
+            <p>Vous avez demandé à vous connecter à l'application Novadis CRI.</p>
+            
+            <h3>Option 1 : Connexion rapide (recommandé)</h3>
+            <p style='text-align: center;'>
+                <a href='{magicLink}' class='button'>🚀 Se connecter directement</a>
+            </p>
+            
+            <h3>Option 2 : Code de vérification</h3>
+            <p>Si le bouton ne fonctionne pas, entrez ce code dans l'application :</p>
+            <div class='code-box'>{code}</div>
+            
+            <div class='warning'>
+                <strong>⚠️ Sécurité :</strong>
+                <ul>
+                    <li>Ce code expire dans <strong>10 minutes</strong></li>
+                    <li>Ne partagez jamais ce code avec personne</li>
+                    <li>Novadis ne vous demandera jamais ce code par téléphone</li>
+                </ul>
+            </div>
+            
+            <p>Si vous n'avez pas demandé cette connexion, ignorez cet email.</p>
+        </div>
+        <div class='footer'>
+            <p>© {DateTime.Now.Year} Novadis - Application CRI</p>
+            <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+            await SendEmailAsync(toEmail, subject, htmlBody);
+        }
+
+        /// <summary>
+        /// Envoie un email de bienvenue
+        /// </summary>
+        public async Task SendWelcomeEmailAsync(string toEmail, string firstName)
+        {
+            var subject = "Bienvenue sur Novadis CRI";
+            
+            var htmlBody = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+</head>
+<body style='font-family: Arial, sans-serif;'>
+    <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+        <h2 style='color: #667eea;'>Bienvenue {firstName} ! 👋</h2>
+        <p>Votre compte Novadis CRI a été créé avec succès.</p>
+        <p>Vous pouvez maintenant vous connecter à l'application mobile pour gérer vos Comptes Rendus d'Intervention.</p>
+        <p>Pour toute question, contactez votre responsable.</p>
+        <p style='margin-top: 30px; color: #888; font-size: 12px;'>
+            © {DateTime.Now.Year} Novadis
+        </p>
+    </div>
+</body>
+</html>";
+
+            await SendEmailAsync(toEmail, subject, htmlBody);
+        }
+
+        /// <summary>
+        /// Méthode générique d'envoi d'email
+        /// </summary>
+        public async Task SendEmailAsync(string toEmail, string subject, string htmlBody)
+        {
+            try
+            {
+                var smtpHost = _configuration["Email:SmtpHost"] 
+                    ?? throw new InvalidOperationException("SMTP Host not configured");
+                var smtpPort = int.Parse(_configuration["Email:SmtpPort"] ?? "587");
+                var smtpUsername = _configuration["Email:Username"] 
+                    ?? throw new InvalidOperationException("SMTP Username not configured");
+                var smtpPassword = _configuration["Email:Password"] 
+                    ?? throw new InvalidOperationException("SMTP Password not configured");
+                var fromEmail = _configuration["Email:FromAddress"] ?? smtpUsername;
+                var fromName = _configuration["Email:FromName"] ?? "Novadis CRI";
+
+                using var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(fromEmail, fromName),
+                    Subject = subject,
+                    Body = htmlBody,
+                    IsBodyHtml = true
+                };
+
+                mailMessage.To.Add(toEmail);
+
+                using var smtpClient = new SmtpClient(smtpHost, smtpPort)
+                {
+                    Credentials = new NetworkCredential(smtpUsername, smtpPassword),
+                    EnableSsl = true
+                };
+
+                await smtpClient.SendMailAsync(mailMessage);
+
+                _logger.LogInformation("Email sent successfully to {Email}", toEmail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send email to {Email}", toEmail);
+                throw;
+            }
+        }
+    }
+}

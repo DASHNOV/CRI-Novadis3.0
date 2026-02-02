@@ -1,0 +1,20 @@
+﻿Analyzing frontend...                                           
+
+   info - The private field _autoSaveEnabled could be 'final' - lib\features\cri_form\pages\cri_projet_form_page.dart:26:8 - prefer_final_fields
+   info - The private field _autoSaveEnabled could be 'final' - lib\features\cri_form\pages\cri_service_form_page.dart:28:8 - prefer_final_fields
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\photo_picker.dart:188:50 - deprecated_member_use
+   info - Unnecessary use of multiple underscores - lib\features\cri_form\widgets\photo_picker.dart:221:37 - unnecessary_underscores
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\photo_picker.dart:272:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\photo_picker.dart:338:63 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\priority_chip.dart:43:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\priority_chip.dart:49:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\priority_chip.dart:124:26 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\priority_chip.dart:183:22 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\priority_chip.dart:185:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\signature_pad.dart:193:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\signature_pad.dart:194:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\signature_pad.dart:199:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\signature_pad.dart:305:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\cri_form\widgets\signature_pad.dart:386:48 - deprecated_member_use
+   info - Library names are not necessary - lib\features\cri_form\widgets\widgets.dart:2:9 - unnecessary_library_name
+

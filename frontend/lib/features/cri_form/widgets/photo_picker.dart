@@ -185,7 +185,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
               color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: theme.colorScheme.outline.withOpacity(0.3),
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
                 style: BorderStyle.solid,
               ),
             ),
@@ -218,7 +218,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
               scrollDirection: Axis.horizontal,
               itemCount:
                   _photos.length + (canAddMore && widget.enabled ? 1 : 0),
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, index) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 // Bouton d'ajout à la fin
                 if (index == _photos.length) {
@@ -269,7 +269,7 @@ class _PhotoThumbnail extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -335,7 +335,9 @@ class _AddPhotoButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.3),
+          ),
         ),
         child: isLoading
             ? const Center(child: CircularProgressIndicator())

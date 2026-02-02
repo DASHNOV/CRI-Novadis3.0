@@ -1,0 +1,40 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace NovadisApi.Models
+{
+    [Table("AuthAttempts")]
+    public class AuthAttempt
+    {
+        [Key]
+        public Guid Id { get; set; } = Guid.NewGuid();
+
+        [Required]
+        [EmailAddress]
+        [MaxLength(255)]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        public string CodeHash { get; set; } = string.Empty;
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime ExpiresAt { get; set; }
+
+        [MaxLength(45)]
+        public string? IpAddress { get; set; }
+
+        public bool IsUsed { get; set; } = false;
+
+        public int FailedAttempts { get; set; } = 0;
+
+        /// <summary>
+        /// ⚠️ CODE EN CLAIR - UNIQUEMENT POUR LE DÉVELOPPEMENT
+        /// À SUPPRIMER EN PRODUCTION
+        /// </summary>
+#if DEBUG
+        [MaxLength(10)]
+        public string? PlainCode { get; set; }
+#endif
+    }
+}

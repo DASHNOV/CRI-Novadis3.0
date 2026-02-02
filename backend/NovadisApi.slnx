@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NovadisApi.Tests/NovadisApi.Tests.csproj" />
+    <Project Path="src/NovadisApi/NovadisApi.csproj" />
+  </Folder>
+</Solution>

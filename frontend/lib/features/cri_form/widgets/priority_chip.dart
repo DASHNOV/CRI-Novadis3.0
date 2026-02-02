@@ -40,13 +40,13 @@ class PriorityChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? color : color.withOpacity(0.1),
+          color: isSelected ? color : color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: color, width: isSelected ? 2 : 1),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: color.withOpacity(0.3),
+                    color: color.withValues(alpha: 0.3),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -121,7 +121,7 @@ class PriorityBadge extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.4),
+            color: color.withValues(alpha: 0.4),
             blurRadius: 4,
             spreadRadius: 1,
           ),
@@ -180,9 +180,9 @@ class PriorityIndicator extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
