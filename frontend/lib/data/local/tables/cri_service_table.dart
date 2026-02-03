@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 /// Table Drift pour les CRI Service
 /// Contient tous les champs des 8 sections du formulaire
+@DataClassName('CriService')
 class CriServiceTable extends Table {
   // Clé primaire
   TextColumn get id => text()();
@@ -21,6 +22,7 @@ class CriServiceTable extends Table {
   TextColumn get address => text().nullable()();
   TextColumn get clientContact => text().nullable()();
   TextColumn get phone => text().nullable()();
+  TextColumn get email => text().nullable()();
 
   // Section 3: Demande
   TextColumn get requestType => text()(); // Enum value
@@ -52,7 +54,6 @@ class CriServiceTable extends Table {
   TextColumn get technicianName => text()();
   TextColumn get technicianSignature => text().nullable()(); // Base64 or path
   TextColumn get clientSignature => text().nullable()(); // Base64 or path
-  TextColumn get clientSatisfaction => text().nullable()(); // Enum value
 
   // Métadonnées
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -135,40 +136,6 @@ enum ResolutionStatus {
     return ResolutionStatus.values.firstWhere(
       (e) => e.name == value || e.label == value,
       orElse: () => ResolutionStatus.nonResolu,
-    );
-  }
-}
-
-/// Niveau de satisfaction client
-enum ClientSatisfaction {
-  tresSatisfait('Très satisfait'),
-  satisfait('Satisfait'),
-  neutre('Neutre'),
-  insatisfait('Insatisfait'),
-  tresInsatisfait('Très insatisfait');
-
-  final String label;
-  const ClientSatisfaction(this.label);
-
-  int get rating {
-    switch (this) {
-      case ClientSatisfaction.tresSatisfait:
-        return 5;
-      case ClientSatisfaction.satisfait:
-        return 4;
-      case ClientSatisfaction.neutre:
-        return 3;
-      case ClientSatisfaction.insatisfait:
-        return 2;
-      case ClientSatisfaction.tresInsatisfait:
-        return 1;
-    }
-  }
-
-  static ClientSatisfaction fromString(String value) {
-    return ClientSatisfaction.values.firstWhere(
-      (e) => e.name == value || e.label == value,
-      orElse: () => ClientSatisfaction.neutre,
     );
   }
 }

@@ -64,25 +64,63 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
     }
   }
 
+  /// Valide tous les champs du formulaire, y compris ceux hors FormBuilder
+  String? _validateCompleteForm() {
+    final state = ref.read(criProjetFormProvider);
+    final cri = state.currentCri;
+
+    if (cri == null) {
+      return 'Erreur: formulaire non initialisé';
+    }
+
+    // Vérifier la signature technicien
+    if (cri.technicianSignature == null || cri.technicianSignature!.isEmpty) {
+      return 'La signature du technicien est requise';
+    }
+
+    // Vérifier la signature client
+    if (cri.clientSignature == null || cri.clientSignature!.isEmpty) {
+      return 'La signature du client est requise';
+    }
+
+    return null; // Tout est OK
+  }
+
   Future<void> _submit() async {
-    if (_formKey.currentState?.saveAndValidate() ?? false) {
-      final success = await ref.read(criProjetFormProvider.notifier).submit();
-      if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('CRI Projet enregistré avec succès'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        context.pop();
-      }
-    } else {
+    // D'abord valider les champs FormBuilder
+    if (!(_formKey.currentState?.saveAndValidate() ?? false)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Veuillez corriger les erreurs'),
+          content: Text('Veuillez corriger les erreurs dans le formulaire'),
           backgroundColor: Colors.orange,
         ),
       );
+      return;
+    }
+
+    // Ensuite valider les champs personnalisés (signatures)
+    final customValidationError = _validateCompleteForm();
+    if (customValidationError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(customValidationError),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
+    // Tout est valide, soumettre
+    final success = await ref.read(criProjetFormProvider.notifier).submit();
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('CRI Projet enregistré avec succès'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      context.pop();
     }
   }
 
@@ -185,11 +223,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text('Date d\'intervention *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderDateTimePicker(
             name: 'interventionDate',
             initialValue: state.currentCri?.interventionDate ?? DateTime.now(),
             decoration: const InputDecoration(
-              labelText: 'Date d\'intervention *',
+              hintText: 'Date d\'intervention',
               prefixIcon: Icon(Icons.calendar_today),
             ),
             inputType: InputType.date,
@@ -209,50 +249,65 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
           Row(
             children: [
               Expanded(
-                child: FormBuilderDateTimePicker(
-                  name: 'startTime',
-                  initialValue: state.currentCri?.startTime ?? DateTime.now(),
-                  decoration: const InputDecoration(
-                    labelText: 'Heure début *',
-                    prefixIcon: Icon(Icons.access_time),
-                  ),
-                  inputType: InputType.time,
-                  format: DateFormat('HH:mm'),
-                  validator: FormBuilderValidators.required(
-                    errorText: 'Requise',
-                  ),
-                  onChanged: (value) {
-                    if (value != null) {
-                      ref
-                          .read(criProjetFormProvider.notifier)
-                          .updateGeneralInfo(startTime: value);
-                    }
-                  },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Heure début *', style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 8),
+                    FormBuilderDateTimePicker(
+                      name: 'startTime',
+                      initialValue:
+                          state.currentCri?.startTime ?? DateTime.now(),
+                      decoration: const InputDecoration(
+                        hintText: 'Heure début',
+                        prefixIcon: Icon(Icons.access_time),
+                      ),
+                      inputType: InputType.time,
+                      format: DateFormat('HH:mm'),
+                      validator: FormBuilderValidators.required(
+                        errorText: 'Requise',
+                      ),
+                      onChanged: (value) {
+                        if (value != null) {
+                          ref
+                              .read(criProjetFormProvider.notifier)
+                              .updateGeneralInfo(startTime: value);
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: FormBuilderDateTimePicker(
-                  name: 'endTime',
-                  initialValue:
-                      state.currentCri?.endTime ??
-                      DateTime.now().add(const Duration(hours: 1)),
-                  decoration: const InputDecoration(
-                    labelText: 'Heure fin *',
-                    prefixIcon: Icon(Icons.access_time_filled),
-                  ),
-                  inputType: InputType.time,
-                  format: DateFormat('HH:mm'),
-                  validator: FormBuilderValidators.required(
-                    errorText: 'Requise',
-                  ),
-                  onChanged: (value) {
-                    if (value != null) {
-                      ref
-                          .read(criProjetFormProvider.notifier)
-                          .updateGeneralInfo(endTime: value);
-                    }
-                  },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Heure fin *', style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 8),
+                    FormBuilderDateTimePicker(
+                      name: 'endTime',
+                      initialValue:
+                          state.currentCri?.endTime ??
+                          DateTime.now().add(const Duration(hours: 1)),
+                      decoration: const InputDecoration(
+                        hintText: 'Heure fin',
+                        prefixIcon: Icon(Icons.access_time_filled),
+                      ),
+                      inputType: InputType.time,
+                      format: DateFormat('HH:mm'),
+                      validator: FormBuilderValidators.required(
+                        errorText: 'Requise',
+                      ),
+                      onChanged: (value) {
+                        if (value != null) {
+                          ref
+                              .read(criProjetFormProvider.notifier)
+                              .updateGeneralInfo(endTime: value);
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -283,11 +338,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text('Nom du client *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'clientName',
             initialValue: state.currentCri?.clientName ?? '',
             decoration: const InputDecoration(
-              labelText: 'Nom du client *',
+              hintText: 'Nom du client',
               prefixIcon: Icon(Icons.business),
             ),
             validator: FormBuilderValidators.required(errorText: 'Nom requis'),
@@ -299,11 +356,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Text('Site *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'site',
             initialValue: state.currentCri?.site ?? '',
             decoration: const InputDecoration(
-              labelText: 'Site *',
+              hintText: 'Site',
               prefixIcon: Icon(Icons.location_on),
             ),
             validator: FormBuilderValidators.required(errorText: 'Site requis'),
@@ -315,18 +374,20 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Text('Adresse *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'address',
             initialValue: state.currentCri?.address ?? '',
             decoration: const InputDecoration(
-              labelText: 'Adresse *',
+              hintText: 'Adresse',
               prefixIcon: Icon(Icons.home),
             ),
             validator: FormBuilderValidators.required(
               errorText: 'Adresse requise',
             ),
             textCapitalization: TextCapitalization.sentences,
-            maxLines: 3,
+            maxLines: 2,
             onChanged: (value) {
               ref
                   .read(criProjetFormProvider.notifier)
@@ -334,11 +395,70 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Ville *', style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 8),
+                    FormBuilderTextField(
+                      name: 'ville',
+                      initialValue: state.currentCri?.ville ?? '',
+                      decoration: const InputDecoration(
+                        hintText: 'Ville',
+                        prefixIcon: Icon(Icons.location_city),
+                      ),
+                      validator: FormBuilderValidators.required(
+                        errorText: 'Ville requise',
+                      ),
+                      onChanged: (value) {
+                        ref
+                            .read(criProjetFormProvider.notifier)
+                            .updateClientInfo(ville: value);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Département *', style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 8),
+                    FormBuilderTextField(
+                      name: 'departement',
+                      initialValue: state.currentCri?.departement ?? '',
+                      decoration: const InputDecoration(
+                        hintText: 'Département',
+                        prefixIcon: Icon(Icons.map),
+                      ),
+                      validator: FormBuilderValidators.required(
+                        errorText: 'Requis',
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        ref
+                            .read(criProjetFormProvider.notifier)
+                            .updateClientInfo(departement: value);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text('Contact client *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'clientContact',
             initialValue: state.currentCri?.clientContact ?? '',
             decoration: const InputDecoration(
-              labelText: 'Contact client *',
+              hintText: 'Contact client',
               prefixIcon: Icon(Icons.person),
             ),
             validator: FormBuilderValidators.required(
@@ -355,43 +475,57 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
           Row(
             children: [
               Expanded(
-                child: FormBuilderTextField(
-                  name: 'phone',
-                  initialValue: state.currentCri?.phone ?? '',
-                  decoration: const InputDecoration(
-                    labelText: 'Téléphone *',
-                    prefixIcon: Icon(Icons.phone),
-                  ),
-                  keyboardType: TextInputType.phone,
-                  validator: FormBuilderValidators.compose([
-                    FormBuilderValidators.required(
-                      errorText: 'Téléphone requis',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Téléphone *', style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 8),
+                    FormBuilderTextField(
+                      name: 'phone',
+                      initialValue: state.currentCri?.phone ?? '',
+                      decoration: const InputDecoration(
+                        hintText: 'Téléphone',
+                        prefixIcon: Icon(Icons.phone),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: FormBuilderValidators.compose([
+                        FormBuilderValidators.required(
+                          errorText: 'Téléphone requis',
+                        ),
+                        CriFormValidators.frenchPhone(),
+                      ]),
+                      onChanged: (value) {
+                        ref
+                            .read(criProjetFormProvider.notifier)
+                            .updateClientInfo(phone: value);
+                      },
                     ),
-                    CriFormValidators.frenchPhone(),
-                  ]),
-                  onChanged: (value) {
-                    ref
-                        .read(criProjetFormProvider.notifier)
-                        .updateClientInfo(phone: value);
-                  },
+                  ],
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: FormBuilderTextField(
-                  name: 'email',
-                  initialValue: state.currentCri?.email ?? '',
-                  decoration: const InputDecoration(
-                    labelText: 'Email *',
-                    prefixIcon: Icon(Icons.email),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: CriFormValidators.email(required: true),
-                  onChanged: (value) {
-                    ref
-                        .read(criProjetFormProvider.notifier)
-                        .updateClientInfo(email: value);
-                  },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Email *', style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 8),
+                    FormBuilderTextField(
+                      name: 'email',
+                      initialValue: state.currentCri?.email ?? '',
+                      decoration: const InputDecoration(
+                        hintText: 'Email',
+                        prefixIcon: Icon(Icons.email),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: CriFormValidators.email(required: true),
+                      onChanged: (value) {
+                        ref
+                            .read(criProjetFormProvider.notifier)
+                            .updateClientInfo(email: value);
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -411,11 +545,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text('Nom du projet *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'projectName',
             initialValue: state.currentCri?.projectName ?? '',
             decoration: const InputDecoration(
-              labelText: 'Nom du projet *',
+              hintText: 'Nom du projet',
               prefixIcon: Icon(Icons.folder),
             ),
             validator: FormBuilderValidators.required(errorText: 'Nom requis'),
@@ -427,11 +563,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Text('Numéro de projet *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'projectNumber',
             initialValue: state.currentCri?.projectNumber ?? '',
             decoration: InputDecoration(
-              labelText: 'Numéro de projet *',
+              hintText: 'Numéro de projet',
               prefixIcon: const Icon(Icons.tag),
               helperText: 'Format: PRJ-YYYY-NNN',
               suffixIcon: Tooltip(
@@ -450,11 +588,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Text('Phase du projet *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderDropdown<ProjectPhase>(
             name: 'projectPhase',
             initialValue: state.currentCri?.projectPhase ?? ProjectPhase.etude,
             decoration: const InputDecoration(
-              labelText: 'Phase du projet *',
+              hintText: 'Phase du projet',
               prefixIcon: Icon(Icons.timeline),
             ),
             items: ProjectPhase.values.map((phase) {
@@ -483,14 +623,16 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text('Type d\'intervention *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderDropdown<ProjetInterventionType>(
             name: 'interventionType',
             initialValue:
                 state.currentCri?.interventionType ??
                 ProjetInterventionType.installationMateriel,
             decoration: const InputDecoration(
-              labelText: 'Type d\'intervention *',
-              prefixIcon: Icon(Icons.build),
+              hintText: 'Type d\'intervention',
+              prefixIcon: Icon(Icons.category),
             ),
             items: ProjetInterventionType.values.map((type) {
               return DropdownMenuItem(value: type, child: Text(type.label));
@@ -504,11 +646,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Text('Description des travaux *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'workDescription',
             initialValue: state.currentCri?.workDescription ?? '',
             decoration: const InputDecoration(
-              labelText: 'Description des travaux *',
+              hintText: 'Description des travaux',
               prefixIcon: Icon(Icons.description),
               alignLabelWithHint: true,
             ),
@@ -528,11 +672,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Text('Matériels utilisés', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'materialsUsed',
             initialValue: state.currentCri?.materialsUsed ?? '',
             decoration: const InputDecoration(
-              labelText: 'Matériels utilisés',
+              hintText: 'Matériels utilisés',
               prefixIcon: Icon(Icons.inventory),
               alignLabelWithHint: true,
             ),
@@ -545,11 +691,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Text('Problèmes rencontrés', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'problemsEncountered',
             initialValue: state.currentCri?.problemsEncountered ?? '',
             decoration: const InputDecoration(
-              labelText: 'Problèmes rencontrés',
+              hintText: 'Problèmes rencontrés',
               prefixIcon: Icon(Icons.warning_amber),
               alignLabelWithHint: true,
             ),
@@ -562,11 +710,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Text('Solutions apportées', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'solutionsProvided',
             initialValue: state.currentCri?.solutionsProvided ?? '',
             decoration: const InputDecoration(
-              labelText: 'Solutions apportées',
+              hintText: 'Solutions apportées',
               prefixIcon: Icon(Icons.lightbulb_outline),
               alignLabelWithHint: true,
             ),
@@ -576,6 +726,39 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
               ref
                   .read(criProjetFormProvider.notifier)
                   .updateInterventionInfo(solutionsProvided: value);
+            },
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Durée intervention (minutes)',
+            style: theme.textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          FormBuilderTextField(
+            name: 'interventionDurationMinutes',
+            initialValue:
+                state.currentCri?.interventionDurationMinutes.toString() ??
+                '60',
+            decoration: InputDecoration(
+              hintText: '60',
+              prefixIcon: const Icon(Icons.timer),
+              suffixText: 'min',
+              helperText: 'Calculé automatiquement, modifiable',
+              helperStyle: TextStyle(color: theme.colorScheme.outline),
+            ),
+            keyboardType: TextInputType.number,
+            validator: FormBuilderValidators.numeric(
+              errorText: 'Nombre invalide',
+            ),
+            onChanged: (value) {
+              final duration = int.tryParse(value ?? '');
+              if (duration != null) {
+                ref
+                    .read(criProjetFormProvider.notifier)
+                    .updateInterventionInfo(
+                      interventionDurationMinutes: duration,
+                    );
+              }
             },
           ),
         ],
@@ -593,11 +776,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text('Actions à faire', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'actionsToDo',
             initialValue: state.currentCri?.actionsToDo ?? '',
             decoration: const InputDecoration(
-              labelText: 'Actions à faire',
+              hintText: 'Actions à faire',
               prefixIcon: Icon(Icons.checklist),
               alignLabelWithHint: true,
             ),
@@ -610,11 +795,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Text('Prochaine intervention', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderDateTimePicker(
             name: 'nextInterventionDate',
             initialValue: state.currentCri?.nextInterventionDate,
             decoration: const InputDecoration(
-              labelText: 'Prochaine intervention',
+              hintText: 'Prochaine intervention',
               prefixIcon: Icon(Icons.event),
             ),
             inputType: InputType.date,
@@ -626,12 +813,14 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Text('Statut du projet *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderDropdown<ProjectStatus>(
             name: 'projectStatus',
             initialValue:
                 state.currentCri?.projectStatus ?? ProjectStatus.enCours,
             decoration: const InputDecoration(
-              labelText: 'Statut du projet *',
+              hintText: 'Statut du projet',
               prefixIcon: Icon(Icons.flag),
             ),
             items: ProjectStatus.values.map((status) {
@@ -668,11 +857,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 24),
+          Text('Nom du technicien *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'technicianName',
             initialValue: state.currentCri?.technicianName ?? '',
             decoration: const InputDecoration(
-              labelText: 'Nom du technicien *',
+              hintText: 'Nom du technicien',
               prefixIcon: Icon(Icons.person),
             ),
             enabled: false, // Pré-rempli
@@ -698,11 +889,13 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Text('Commentaires client', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'clientComments',
             initialValue: state.currentCri?.clientComments ?? '',
             decoration: const InputDecoration(
-              labelText: 'Commentaires client',
+              hintText: 'Commentaires client',
               prefixIcon: Icon(Icons.comment),
               alignLabelWithHint: true,
             ),

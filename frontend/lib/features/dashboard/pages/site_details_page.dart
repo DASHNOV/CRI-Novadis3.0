@@ -253,12 +253,10 @@ class _SiteStatsRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _StatCard(
-            icon: Icons.star,
-            value: details.averageSatisfaction != null
-                ? '${details.averageSatisfaction!.toStringAsFixed(1)}/5'
-                : 'N/A',
-            label: 'Satisfaction',
-            color: Colors.amber,
+            icon: Icons.history,
+            value: '${details.interventionHistory.length}',
+            label: 'Total visites',
+            color: Colors.purple,
           ),
         ),
       ],

@@ -105,19 +105,23 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
   void updateClientInfo({
     String? clientName,
     String? site,
+    String? ville, // Alias pour site
     String? address,
     String? clientContact,
     String? phone,
+    String? departement, // Ignoré - champ obsolète
+    String? email, // Ignoré - pas dans le modèle CriService
   }) {
     if (state.currentCri == null) return;
 
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         clientName: clientName,
-        site: site,
+        site: site ?? ville, // Utilise ville si site n'est pas fourni
         address: address,
         clientContact: clientContact,
         phone: phone,
+        email: email,
       ),
       isDirty: true,
     );
@@ -180,6 +184,8 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     ResolutionStatus? resolutionStatus,
     String? testsPerformed,
     String? recommendations,
+    String? interventionStatus, // Ignoré - champ obsolète
+    List<dynamic>? fraisSupplementaires, // Ignoré - champ obsolète
   }) {
     if (state.currentCri == null) return;
 
@@ -239,16 +245,6 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
 
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(clientSignature: signaturePath),
-      isDirty: true,
-    );
-  }
-
-  /// Met à jour la satisfaction client
-  void updateClientSatisfaction(ClientSatisfaction? satisfaction) {
-    if (state.currentCri == null) return;
-
-    state = state.copyWith(
-      currentCri: state.currentCri!.copyWith(clientSatisfaction: satisfaction),
       isDirty: true,
     );
   }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 
-/// Widget de filtre de période
+/// Widget de filtre de période (Style Pills)
+/// Widget de filtre de période (Style Pills)
 class PeriodFilterWidget extends StatelessWidget {
   final DashboardPeriod selectedPeriod;
   final Function(DashboardPeriod) onPeriodChanged;
@@ -15,54 +16,55 @@ class PeriodFilterWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: DashboardPeriod.values.map((period) {
-          final isSelected = period == selectedPeriod;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onPeriodChanged(period),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Theme.of(context).primaryColor
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: Theme.of(
-                              context,
-                            ).primaryColor.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Text(
-                  period.label,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.grey[700],
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    fontSize: 13,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: 300,
+        ), // Max width to avoid overflow
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: DashboardPeriod.values.map((period) {
+              final isSelected = period == selectedPeriod;
+              return GestureDetector(
+                onTap: () => onPeriodChanged(period),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? const Color(0xFF1C84C6) // Light Blue
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    period.label,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: isSelected
+                          ? Colors.white
+                          : const Color(0xFF64748B),
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
-              ),
-            ),
-          );
-        }).toList(),
+              );
+            }).toList(),
+          ),
+        ),
       ),
     );
   }

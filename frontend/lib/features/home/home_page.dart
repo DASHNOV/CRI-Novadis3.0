@@ -168,14 +168,15 @@ class HomePage extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
+
         Row(
           children: [
             Expanded(
               child: _ActionCard(
-                icon: Icons.analytics_outlined,
-                label: 'Statistiques',
-                color: Colors.purple,
-                onTap: () => context.push(AppRouter.technicianStats),
+                icon: Icons.folder_outlined,
+                label: 'Documents',
+                color: Colors.green,
+                onTap: () => context.push(AppRouter.documents),
               ),
             ),
             const SizedBox(width: 12),

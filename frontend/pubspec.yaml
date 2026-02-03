@@ -62,6 +62,12 @@ dependencies:
   flutter_secure_storage: ^10.0.0
   hooks_riverpod: ^2.6.1
   cached_network_image: ^3.4.1
+  pdf: ^3.11.1
+  csv: ^6.0.0
+  share_plus: ^10.1.2
+  open_file: ^3.5.8
+  permission_handler: ^11.3.1
+  flutter_dotenv: ^5.2.1
 
 dev_dependencies:
   flutter_test:
@@ -88,9 +94,10 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/images/
+    - assets/logos/
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

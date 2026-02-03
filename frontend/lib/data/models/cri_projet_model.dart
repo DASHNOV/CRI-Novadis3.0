@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
+import 'package:novadis_cri/data/local/app_database.dart';
 
 /// Modèle de données pour un CRI Projet
 class CriProjetModel {
@@ -81,10 +82,19 @@ class CriProjetModel {
     this.isDraft = true,
   });
 
+  /// Alias pour 'site' (ancien nom: ville)
+  String get ville => site;
+
+  /// Champ obsolète - retourne une chaîne vide
+  String get departement => '';
+
   /// Calcule la durée de l'intervention en minutes
   int get durationMinutes {
     return endTime.difference(startTime).inMinutes;
   }
+
+  /// Alias pour durationMinutes
+  int get interventionDurationMinutes => durationMinutes;
 
   /// Formate la durée en heures et minutes
   String get formattedDuration {
@@ -197,6 +207,43 @@ class CriProjetModel {
       'syncStatus': syncStatus,
       'isDraft': isDraft,
     };
+  }
+
+  factory CriProjetModel.fromDb(CriProjet db) {
+    return CriProjetModel(
+      id: db.id,
+      interventionDate: db.interventionDate,
+      startTime: db.startTime,
+      endTime: db.endTime,
+      clientName: db.clientName,
+      site: db.site,
+      address: db.address,
+      clientContact: db.clientContact,
+      phone: db.phone,
+      email: db.email,
+      projectName: db.projectName,
+      projectNumber: db.projectNumber,
+      projectPhase: ProjectPhase.fromString(db.projectPhase),
+      interventionType: ProjetInterventionType.fromString(db.interventionType),
+      workDescription: db.workDescription,
+      materialsUsed: db.materialsUsed,
+      problemsEncountered: db.problemsEncountered,
+      solutionsProvided: db.solutionsProvided,
+      actionsToDo: db.actionsToDo,
+      nextInterventionDate: db.nextInterventionDate,
+      projectStatus: ProjectStatus.fromString(db.projectStatus),
+      photos: db.photos != null
+          ? List<String>.from(jsonDecode(db.photos!))
+          : [],
+      technicianName: db.technicianName,
+      technicianSignature: db.technicianSignature,
+      clientSignature: db.clientSignature,
+      clientComments: db.clientComments,
+      createdAt: db.createdAt,
+      updatedAt: db.updatedAt,
+      syncStatus: db.syncStatus,
+      isDraft: db.isDraft,
+    );
   }
 
   /// Crée depuis un Map

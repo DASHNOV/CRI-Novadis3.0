@@ -202,8 +202,6 @@ class _CriCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
-  static final _dateFormat = DateFormat('dd/MM/yyyy');
-
   const _CriCard({
     required this.cri,
     required this.onTap,
@@ -267,7 +265,7 @@ class _CriCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    _dateFormat.format(cri.date),
+                    DateFormat('dd/MM/yyyy').format(cri.date),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],

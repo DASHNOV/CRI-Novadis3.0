@@ -119,11 +119,6 @@ class DashboardRepository {
       ),
       standardDeviation: 0, // Simplifié pour la démo
       punctualityRate: 85, // Mock pour la démo
-      averageSatisfaction: _kpiCalculator.calculateSatisfactionScore(
-        services,
-        technicianName,
-        period,
-      ),
       firstTimeFixRate: _kpiCalculator.calculateFirstTimeFixRate(
         services,
         technicianName,
@@ -232,18 +227,6 @@ class DashboardRepository {
       address = siteProjets.first.address;
     }
 
-    // Calcul de la satisfaction moyenne
-    double? avgSatisfaction;
-    final satisfactionScores = siteServices
-        .where((s) => s.clientSatisfaction != null)
-        .map((s) => s.clientSatisfaction!.rating)
-        .toList();
-    if (satisfactionScores.isNotEmpty) {
-      avgSatisfaction =
-          satisfactionScores.reduce((a, b) => a + b) /
-          satisfactionScores.length;
-    }
-
     // Calcul du temps moyen de résolution
     double? avgResolutionTime;
     if (allInterventions.isNotEmpty) {
@@ -259,7 +242,6 @@ class DashboardRepository {
       address: address,
       totalInterventions: allInterventions.length,
       averageResolutionTime: avgResolutionTime,
-      averageSatisfaction: avgSatisfaction,
       interventionHistory: allInterventions,
     );
   }
@@ -321,15 +303,7 @@ class DashboardRepository {
 
     final requestTypes = ServiceRequestType.values;
     final priorities = ServicePriority.values;
-    final resolutions = [
-      ResolutionStatus.resolu,
-      ResolutionStatus.resolu,
-      ResolutionStatus.resolu,
-      ResolutionStatus.partiellementResolu,
-      ResolutionStatus.nonResolu,
-      ResolutionStatus.escaladeNiveau2,
-    ];
-    final satisfactions = ClientSatisfaction.values;
+    final resolutions = [ResolutionStatus.escaladeNiveau2];
 
     // Générer 100 interventions sur les 6 derniers mois
     for (int i = 0; i < 100; i++) {
@@ -373,7 +347,6 @@ class DashboardRepository {
           recommendations: i % 2 == 0 ? 'Recommandations #$i' : null,
           additionalInterventionRequired: i % 7 == 0,
           technicianName: technician,
-          clientSatisfaction: satisfactions[i % satisfactions.length],
           createdAt: interventionDate,
           isDraft: false,
           syncStatus: 'synced',

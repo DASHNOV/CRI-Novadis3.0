@@ -154,7 +154,6 @@ void main() {
             clientName: 'Client Test',
             priority: ServicePriority.haute,
             additionalInterventionRequired: true,
-            clientSatisfaction: ClientSatisfaction.satisfait,
           );
 
       final json = original.toJson();
@@ -167,20 +166,6 @@ void main() {
         restored.additionalInterventionRequired,
         equals(original.additionalInterventionRequired),
       );
-      expect(restored.clientSatisfaction, equals(original.clientSatisfaction));
-    });
-
-    test('handles null satisfaction in JSON', () {
-      final model = CriServiceModel.empty(
-        id: 'test-id',
-        technicianName: 'John Doe',
-      );
-
-      final json = model.toJson();
-      expect(json['clientSatisfaction'], isNull);
-
-      final restored = CriServiceModel.fromJson(json);
-      expect(restored.clientSatisfaction, isNull);
     });
   });
 
@@ -217,16 +202,6 @@ void main() {
         ResolutionStatus.escaladeNiveau2.label,
         equals('Escaladé niveau 2'),
       );
-    });
-  });
-
-  group('ClientSatisfaction enum', () {
-    test('has correct ratings', () {
-      expect(ClientSatisfaction.tresSatisfait.rating, equals(5));
-      expect(ClientSatisfaction.satisfait.rating, equals(4));
-      expect(ClientSatisfaction.neutre.rating, equals(3));
-      expect(ClientSatisfaction.insatisfait.rating, equals(2));
-      expect(ClientSatisfaction.tresInsatisfait.rating, equals(1));
     });
   });
 }

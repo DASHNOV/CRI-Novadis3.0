@@ -75,15 +75,13 @@ class _TypeDistributionChartWidgetState
               height: widget.horizontal ? widget.data.length * 50.0 : 200,
               child: widget.data.isEmpty
                   ? _buildEmptyState()
-                  : RepaintBoundary(
-                      child: AnimatedBuilder(
-                        animation: _animation,
-                        builder: (context, child) {
-                          return widget.horizontal
-                              ? _buildHorizontalChart()
-                              : _buildVerticalChart();
-                        },
-                      ),
+                  : AnimatedBuilder(
+                      animation: _animation,
+                      builder: (context, child) {
+                        return widget.horizontal
+                            ? _buildHorizontalChart()
+                            : _buildVerticalChart();
+                      },
                     ),
             ),
             if (widget.data.isNotEmpty) ...[

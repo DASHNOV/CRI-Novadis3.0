@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 /// Table Drift pour les CRI Projet
 /// Contient tous les champs des 6 sections du formulaire
+@DataClassName('CriProjet')
 class CriProjetTable extends Table {
   // Clé primaire
   TextColumn get id => text()();

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:novadis_cri/data/local/tables/cri_service_table.dart';
+import 'package:novadis_cri/data/local/app_database.dart';
 
 /// Modèle de données pour un CRI Service
 class CriServiceModel {
@@ -17,6 +18,7 @@ class CriServiceModel {
   final String? address;
   final String? clientContact;
   final String? phone;
+  final String? email;
 
   // Section 3: Demande
   final ServiceRequestType requestType;
@@ -47,7 +49,6 @@ class CriServiceModel {
   final String technicianName;
   final String? technicianSignature;
   final String? clientSignature;
-  final ClientSatisfaction? clientSatisfaction;
 
   // Métadonnées
   final DateTime createdAt;
@@ -66,6 +67,7 @@ class CriServiceModel {
     this.address,
     this.clientContact,
     this.phone,
+    this.email,
     required this.requestType,
     required this.priority,
     required this.requestDescription,
@@ -84,12 +86,32 @@ class CriServiceModel {
     required this.technicianName,
     this.technicianSignature,
     this.clientSignature,
-    this.clientSatisfaction,
     required this.createdAt,
     this.updatedAt,
     this.syncStatus = 'pending',
     this.isDraft = true,
   });
+
+  /// Alias pour 'site' (ancien nom: ville)
+  String get ville => site;
+
+  /// Champ obsolète - retourne une chaîne vide
+  String get departement => '';
+
+  /// Champ obsolète - retourne une liste vide
+  List<String> get fraisSupplementaires => [];
+
+  /// Champ utilisé dans le PDF - par défaut 'Terminée'
+  String get interventionStatus => 'Terminée';
+
+  /// Champ utilisé dans le PDF - par défaut 'Hors contrat'
+  String get contratType => 'Hors contrat';
+
+  /// Champ utilisé dans le PDF - par défaut 'Vidéo'
+  String get systemType => 'Vidéo';
+
+  /// Champ utilisé dans le PDF - par défaut liste vide
+  List<dynamic> get piecesDetachees => [];
 
   /// Calcule la durée à partir des heures de début et fin
   static int calculateDuration(DateTime startTime, DateTime endTime) {
@@ -118,6 +140,7 @@ class CriServiceModel {
     String? address,
     String? clientContact,
     String? phone,
+    String? email,
     ServiceRequestType? requestType,
     ServicePriority? priority,
     String? requestDescription,
@@ -136,7 +159,6 @@ class CriServiceModel {
     String? technicianName,
     String? technicianSignature,
     String? clientSignature,
-    ClientSatisfaction? clientSatisfaction,
     DateTime? createdAt,
     DateTime? updatedAt,
     String? syncStatus,
@@ -153,6 +175,7 @@ class CriServiceModel {
       address: address ?? this.address,
       clientContact: clientContact ?? this.clientContact,
       phone: phone ?? this.phone,
+      email: email ?? this.email,
       requestType: requestType ?? this.requestType,
       priority: priority ?? this.priority,
       requestDescription: requestDescription ?? this.requestDescription,
@@ -173,7 +196,6 @@ class CriServiceModel {
       technicianName: technicianName ?? this.technicianName,
       technicianSignature: technicianSignature ?? this.technicianSignature,
       clientSignature: clientSignature ?? this.clientSignature,
-      clientSatisfaction: clientSatisfaction ?? this.clientSatisfaction,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       syncStatus: syncStatus ?? this.syncStatus,
@@ -194,6 +216,7 @@ class CriServiceModel {
       'address': address,
       'clientContact': clientContact,
       'phone': phone,
+      'email': email,
       'requestType': requestType.name,
       'priority': priority.name,
       'requestDescription': requestDescription,
@@ -212,12 +235,51 @@ class CriServiceModel {
       'technicianName': technicianName,
       'technicianSignature': technicianSignature,
       'clientSignature': clientSignature,
-      'clientSatisfaction': clientSatisfaction?.name,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       'syncStatus': syncStatus,
       'isDraft': isDraft,
     };
+  }
+
+  factory CriServiceModel.fromDb(CriService db) {
+    return CriServiceModel(
+      id: db.id,
+      interventionDate: db.interventionDate,
+      startTime: db.startTime,
+      endTime: db.endTime,
+      ticketNumber: db.ticketNumber,
+      clientName: db.clientName,
+      site: db.site,
+      address: db.address,
+      clientContact: db.clientContact,
+      phone: db.phone,
+      email: db.email,
+      requestType: ServiceRequestType.fromString(db.requestType),
+      priority: ServicePriority.fromString(db.priority),
+      requestDescription: db.requestDescription,
+      diagnosticPerformed: db.diagnosticPerformed,
+      identifiedCause: db.identifiedCause,
+      actionsPerformed: db.actionsPerformed,
+      replacedParts: db.replacedParts,
+      interventionDurationMinutes: db.interventionDurationMinutes,
+      resolutionStatus: ResolutionStatus.fromString(db.resolutionStatus),
+      testsPerformed: db.testsPerformed,
+      recommendations: db.recommendations,
+      additionalInterventionRequired: db.additionalInterventionRequired,
+      followUpDate: db.followUpDate,
+      followUpComments: db.followUpComments,
+      photos: db.photos != null
+          ? List<String>.from(jsonDecode(db.photos!))
+          : [],
+      technicianName: db.technicianName,
+      technicianSignature: db.technicianSignature,
+      clientSignature: db.clientSignature,
+      createdAt: db.createdAt,
+      updatedAt: db.updatedAt,
+      syncStatus: db.syncStatus,
+      isDraft: db.isDraft,
+    );
   }
 
   /// Crée depuis un Map
@@ -233,6 +295,7 @@ class CriServiceModel {
       address: json['address'] as String?,
       clientContact: json['clientContact'] as String?,
       phone: json['phone'] as String?,
+      email: json['email'] as String?,
       requestType: ServiceRequestType.fromString(json['requestType'] as String),
       priority: ServicePriority.fromString(json['priority'] as String),
       requestDescription: json['requestDescription'] as String,
@@ -258,9 +321,6 @@ class CriServiceModel {
       technicianName: json['technicianName'] as String,
       technicianSignature: json['technicianSignature'] as String?,
       clientSignature: json['clientSignature'] as String?,
-      clientSatisfaction: json['clientSatisfaction'] != null
-          ? ClientSatisfaction.fromString(json['clientSatisfaction'] as String)
-          : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'] as String)

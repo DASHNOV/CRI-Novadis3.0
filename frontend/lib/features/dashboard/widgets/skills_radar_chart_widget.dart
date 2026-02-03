@@ -72,13 +72,11 @@ class _SkillsRadarChartWidgetState extends State<SkillsRadarChartWidget>
               height: 250,
               child: widget.data.isEmpty
                   ? _buildEmptyState()
-                  : RepaintBoundary(
-                      child: AnimatedBuilder(
-                        animation: _animation,
-                        builder: (context, child) {
-                          return _buildRadarChart();
-                        },
-                      ),
+                  : AnimatedBuilder(
+                      animation: _animation,
+                      builder: (context, child) {
+                        return _buildRadarChart();
+                      },
                     ),
             ),
             if (widget.topCategoryInsight != null) ...[

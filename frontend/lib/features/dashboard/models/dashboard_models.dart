@@ -43,6 +43,9 @@ class DashboardKpis {
   final double averageDurationMinutes;
   final double completionRate;
   final double? previousCompletionRate;
+  final int realizedInterventions;
+  final int pendingInterventions;
+  final int plannedInterventions;
 
   const DashboardKpis({
     required this.totalInterventions,
@@ -50,6 +53,9 @@ class DashboardKpis {
     required this.averageDurationMinutes,
     required this.completionRate,
     this.previousCompletionRate,
+    this.realizedInterventions = 0,
+    this.pendingInterventions = 0,
+    this.plannedInterventions = 0,
   });
 
   /// Durée moyenne formatée
@@ -128,6 +134,8 @@ class DashboardData {
   final List<TimeEvolutionData> timeEvolution;
   final List<TypeDistributionData> typeDistribution;
   final List<TopSiteData> topSites;
+  final List<dynamic>
+  recentInterventions; // Using dynamic to avoid further missing models
   final DateTime lastUpdated;
 
   const DashboardData({
@@ -135,6 +143,7 @@ class DashboardData {
     required this.timeEvolution,
     required this.typeDistribution,
     required this.topSites,
+    this.recentInterventions = const [],
     required this.lastUpdated,
   });
 
@@ -193,7 +202,6 @@ class TechnicianKpis {
   final double punctualityRate;
 
   // Qualité
-  final double? averageSatisfaction;
   final double firstTimeFixRate;
   final double escalationRate;
 
@@ -204,7 +212,6 @@ class TechnicianKpis {
     required this.averageDurationMinutes,
     required this.standardDeviation,
     required this.punctualityRate,
-    this.averageSatisfaction,
     required this.firstTimeFixRate,
     required this.escalationRate,
   });
@@ -226,7 +233,6 @@ class TechnicianKpis {
       averageDurationMinutes: 0,
       standardDeviation: 0,
       punctualityRate: 0,
-      averageSatisfaction: null,
       firstTimeFixRate: 0,
       escalationRate: 0,
     );
@@ -250,11 +256,13 @@ class SkillRadarData {
 class WorkloadData {
   final DateTime weekStart;
   final double totalHours;
+  final int interventionCount;
   final String weekLabel;
 
   const WorkloadData({
     required this.weekStart,
     required this.totalHours,
+    this.interventionCount = 0,
     required this.weekLabel,
   });
 }
@@ -264,12 +272,14 @@ class TechnicianStatsData {
   final TechnicianKpis kpis;
   final List<SkillRadarData> skillsRadar;
   final List<WorkloadData> workloadCurve;
+  final List<TopSiteData> topSites;
   final String? topCategory;
 
   const TechnicianStatsData({
     required this.kpis,
     required this.skillsRadar,
     required this.workloadCurve,
+    this.topSites = const [],
     this.topCategory,
   });
 
@@ -290,7 +300,6 @@ class SiteDetailsData {
   final String? address;
   final int totalInterventions;
   final double? averageResolutionTime;
-  final double? averageSatisfaction;
   final List<SiteInterventionItem> interventionHistory;
 
   const SiteDetailsData({
@@ -300,7 +309,6 @@ class SiteDetailsData {
     this.address,
     required this.totalInterventions,
     this.averageResolutionTime,
-    this.averageSatisfaction,
     required this.interventionHistory,
   });
 }
@@ -312,6 +320,7 @@ class SiteInterventionItem {
   final String type;
   final String technicianName;
   final String status;
+  final String? source;
   final int durationMinutes;
 
   const SiteInterventionItem({
@@ -320,6 +329,7 @@ class SiteInterventionItem {
     required this.type,
     required this.technicianName,
     required this.status,
+    this.source,
     required this.durationMinutes,
   });
 }

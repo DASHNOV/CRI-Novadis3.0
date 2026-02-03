@@ -91,17 +91,19 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
   void updateClientInfo({
     String? clientName,
     String? site,
+    String? ville, // Alias pour site
     String? address,
     String? clientContact,
     String? phone,
     String? email,
+    String? departement, // Ignoré - champ obsolète
   }) {
     if (state.currentCri == null) return;
 
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         clientName: clientName,
-        site: site,
+        site: site ?? ville, // Utilise ville si site n'est pas fourni
         address: address,
         clientContact: clientContact,
         phone: phone,
@@ -136,6 +138,8 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     String? materialsUsed,
     String? problemsEncountered,
     String? solutionsProvided,
+    int?
+    interventionDurationMinutes, // Ignoré - calculé à partir de startTime/endTime
   }) {
     if (state.currentCri == null) return;
 

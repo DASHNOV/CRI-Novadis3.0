@@ -250,17 +250,13 @@ class TechnicianStatisticsPage extends ConsumerWidget {
     score += (stats.kpis.firstTimeFixRate / 100) * 25;
     factors++;
 
-    // Satisfaction
-    if (stats.kpis.averageSatisfaction != null) {
-      score += (stats.kpis.averageSatisfaction! / 5) * 25;
-      factors++;
-    }
-
     // Ponctualité
-    score += (stats.kpis.punctualityRate / 100) * 25;
+    score += (stats.kpis.punctualityRate / 100) * 33.3;
     factors++;
 
-    final finalScore = factors > 0 ? score : 0;
+    final finalScore = factors > 0
+        ? (score * 1.33)
+        : 0; // Ajuster le score sur 100
 
     Color scoreColor;
     String scoreLabel;
@@ -331,7 +327,7 @@ class TechnicianStatisticsPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Basé sur: complétion, résolution premier passage, satisfaction client et ponctualité',
+                    'Basé sur: complétion, résolution premier passage et ponctualité',
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],

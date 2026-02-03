@@ -358,34 +358,6 @@ class KpiCalculatorService {
     return total / technicianCounts.length;
   }
 
-  /// Calcule le score de satisfaction moyen
-  double calculateSatisfactionScore(
-    List<CriServiceModel> services,
-    String? technicianName,
-    DashboardPeriod period,
-  ) {
-    final startDate = period.startDate;
-    final endDate = period.endDate;
-    final scores = <int>[];
-
-    for (final service in services) {
-      if (service.interventionDate.isAfter(startDate) &&
-          service.interventionDate.isBefore(
-            endDate.add(const Duration(days: 1)),
-          )) {
-        if (technicianName == null ||
-            service.technicianName == technicianName) {
-          if (service.clientSatisfaction != null) {
-            scores.add(service.clientSatisfaction!.rating);
-          }
-        }
-      }
-    }
-
-    if (scores.isEmpty) return 0;
-    return scores.reduce((a, b) => a + b) / scores.length;
-  }
-
   /// Calcule le taux de résolution au premier passage
   double calculateFirstTimeFixRate(
     List<CriServiceModel> services,

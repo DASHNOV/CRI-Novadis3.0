@@ -198,17 +198,5 @@ void main() {
       expect(state.currentCri!.followUpDate, isNotNull);
       expect(state.currentCri!.followUpComments, equals('Need to check again'));
     });
-
-    test('updateClientSatisfaction sets satisfaction level', () {
-      notifier.initNewForm(technicianName: 'Test');
-
-      notifier.updateClientSatisfaction(ClientSatisfaction.tresSatisfait);
-
-      final state = container.read(criServiceFormProvider);
-      expect(
-        state.currentCri!.clientSatisfaction,
-        equals(ClientSatisfaction.tresSatisfait),
-      );
-    });
   });
 }

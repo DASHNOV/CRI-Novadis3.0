@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:novadis_cri/features/dashboard/config/chart_config.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 
-/// Widget de carte KPI avec animation
-class KpiCard extends StatefulWidget {
+/// Widget de carte KPI compacte et épurée
+class KpiCard extends StatelessWidget {
   final String title;
   final String value;
   final String? subtitle;
@@ -27,148 +27,90 @@ class KpiCard extends StatefulWidget {
   });
 
   @override
-  State<KpiCard> createState() => _KpiCardState();
-}
-
-class _KpiCardState extends State<KpiCard> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: ChartConfig.animationDuration,
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(KpiCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value) {
-      _controller.reset();
-      _controller.forward();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: Opacity(opacity: _fadeAnimation.value, child: child),
-        );
-      },
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: InkWell(
-          onTap: widget.onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: widget.isLoading ? _buildLoadingSkeleton() : _buildContent(),
-          ),
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
+      ),
+      color: Colors.white,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: isLoading ? _buildLoadingSkeleton() : _buildContent(context),
         ),
       ),
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: widget.iconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(widget.icon, color: widget.iconColor, size: 24),
+              child: Icon(icon, color: iconColor, size: 20),
             ),
-            if (widget.trendValue != null) _buildTrendIndicator(),
+            if (trendValue != null) _buildTrendIndicator(),
           ],
         ),
-        const SizedBox(height: 12),
-        TweenAnimationBuilder<double>(
-          tween: Tween<double>(begin: 0, end: 1),
-          duration: const Duration(milliseconds: 600),
-          builder: (context, value, child) {
-            return Text(
-              widget.value,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            );
-          },
+        const Spacer(),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppTheme.darkBlue,
+            fontSize: 24,
+          ),
         ),
         const SizedBox(height: 4),
         Text(
-          widget.title,
+          title,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
+            fontSize: 13,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-        if (widget.subtitle != null) ...[
-          const SizedBox(height: 2),
-          Text(
-            widget.subtitle!,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
-          ),
-        ],
       ],
     );
   }
 
   Widget _buildTrendIndicator() {
-    final isPositive = widget.trendPositive ?? (widget.trendValue! > 0);
+    final isPositive = trendPositive ?? (trendValue! > 0);
     final color = isPositive
-        ? ChartConfig.trendUpColor
-        : ChartConfig.trendDownColor;
+        ? const Color(0xFF10B981)
+        : const Color(0xFFEF4444); // Green / Red
     final icon = isPositive ? Icons.arrow_upward : Icons.arrow_downward;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
+          Icon(icon, size: 12, color: color),
           const SizedBox(width: 2),
           Text(
-            '${widget.trendValue!.abs().toStringAsFixed(1)}%',
+            '${trendValue!.abs().toStringAsFixed(1)}%',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
               color: color,
             ),
@@ -181,31 +123,30 @@ class _KpiCardState extends State<KpiCard> with SingleTickerProviderStateMixin {
   Widget _buildLoadingSkeleton() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Container(
-          width: 44,
-          height: 44,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(12),
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(8),
           ),
         ),
-        const SizedBox(height: 12),
+        const Spacer(),
         Container(
           width: 80,
-          height: 28,
+          height: 24,
+          margin: const EdgeInsets.only(bottom: 8),
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: Colors.grey[100],
             borderRadius: BorderRadius.circular(4),
           ),
         ),
-        const SizedBox(height: 8),
         Container(
-          width: 100,
-          height: 16,
+          width: 60,
+          height: 14,
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: Colors.grey[100],
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -225,7 +166,7 @@ class KpiGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Adapter le nombre de colonnes selon la largeur
+        // Pour tablettes/desktop
         int columns = crossAxisCount;
         if (constraints.maxWidth > 600) {
           columns = 4;
@@ -236,9 +177,9 @@ class KpiGrid extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.1,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.3, // Carte plus rectangulaire
           ),
           itemCount: cards.length,
           itemBuilder: (context, index) {

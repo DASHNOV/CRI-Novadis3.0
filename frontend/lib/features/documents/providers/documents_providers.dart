@@ -1,0 +1,204 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/local/local_storage_service.dart';
+import '../../export/providers/export_providers.dart';
+import '../../export/models/exported_document_model.dart';
+
+/// Modèle unifié pour les rapports d'intervention (CRI)
+class CriReportModel {
+  final String id;
+  final String clientName;
+  final String siteName;
+  final String nIntervention;
+  final DateTime date;
+  final bool isProjet;
+
+  CriReportModel({
+    required this.id,
+    required this.clientName,
+    required this.siteName,
+    required this.nIntervention,
+    required this.date,
+    required this.isProjet,
+  });
+}
+
+/// Provider pour récupérer tous les rapports d'intervention disponibles (Service, Projet et Mock)
+final availableReportsProvider = FutureProvider<List<CriReportModel>>((
+  ref,
+) async {
+  final database = ref.watch(databaseProvider);
+  final localStorage = LocalStorageService();
+
+  // On ne récupère que les rapports qui ne sont plus des brouillons (validés/soumis)
+  final serviceReports = await (database.select(
+    database.criServiceTable,
+  )..where((tbl) => tbl.isDraft.equals(false))).get();
+  final projetReports = await (database.select(
+    database.criProjetTable,
+  )..where((tbl) => tbl.isDraft.equals(false))).get();
+  final legacyReports = await localStorage.getAllCri();
+
+  final List<CriReportModel> allReports = [];
+
+  // Convertir les rapports Service
+  for (final report in serviceReports) {
+    allReports.add(
+      CriReportModel(
+        id: report.id,
+        clientName: report.clientName,
+        siteName: report.site,
+        nIntervention: report.ticketNumber,
+        date: report.interventionDate,
+        isProjet: false,
+      ),
+    );
+  }
+
+  // Convertir les rapports Projet
+  for (final report in projetReports) {
+    allReports.add(
+      CriReportModel(
+        id: report.id,
+        clientName: report.clientName,
+        siteName: report.site,
+        nIntervention: report.projectNumber,
+        date: report.interventionDate,
+        isProjet: true,
+      ),
+    );
+  }
+
+  // Convertir les rapports "Legacy" (Mock)
+  for (final report in legacyReports) {
+    allReports.add(
+      CriReportModel(
+        id: report.id,
+        clientName: report.client,
+        siteName: report.site,
+        nIntervention: 'CRI-${report.id}',
+        date: report.date,
+        isProjet: false,
+      ),
+    );
+  }
+
+  // Trier par date la plus récente
+  allReports.sort((a, b) => b.date.compareTo(a.date));
+
+  return allReports;
+});
+
+/// Provider pour les documents groupés par date
+final documentsGroupedByDateProvider =
+    FutureProvider<Map<String, List<ExportedDocumentModel>>>((ref) async {
+      final documentsAsync = await ref.watch(exportedDocumentsProvider.future);
+
+      final Map<String, List<ExportedDocumentModel>> grouped = {
+        'Aujourd\'hui': [],
+        'Hier': [],
+        'Cette semaine': [],
+        'Ce mois': [],
+        'Plus ancien': [],
+      };
+
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final yesterday = today.subtract(const Duration(days: 1));
+      final weekAgo = today.subtract(const Duration(days: 7));
+      final monthAgo = DateTime(now.year, now.month - 1, now.day);
+
+      for (final doc in documentsAsync) {
+        final model = ExportedDocumentModel(
+          id: doc.id,
+          criId: doc.criId,
+          filename: doc.filename,
+          filePath: doc.filePath,
+          fileType: DocumentFileType.fromString(doc.fileType),
+          fileSize: doc.fileSize,
+          exportType: ExportType.fromString(doc.exportType),
+          metadata: doc.metadata != null ? {'raw': doc.metadata} : null,
+          createdAt: doc.createdAt,
+          sharedAt: doc.sharedAt,
+        );
+
+        final docDate = DateTime(
+          doc.createdAt.year,
+          doc.createdAt.month,
+          doc.createdAt.day,
+        );
+
+        if (docDate == today) {
+          grouped['Aujourd\'hui']!.add(model);
+        } else if (docDate == yesterday) {
+          grouped['Hier']!.add(model);
+        } else if (docDate.isAfter(weekAgo)) {
+          grouped['Cette semaine']!.add(model);
+        } else if (docDate.isAfter(monthAgo)) {
+          grouped['Ce mois']!.add(model);
+        } else {
+          grouped['Plus ancien']!.add(model);
+        }
+      }
+
+      // Supprimer les groupes vides
+      grouped.removeWhere((key, value) => value.isEmpty);
+
+      return grouped;
+    });
+
+/// Provider pour les statistiques des documents
+final documentStatsProvider = FutureProvider<DocumentStats>((ref) async {
+  final documents = await ref.watch(exportedDocumentsProvider.future);
+
+  var totalSize = 0;
+  var pdfCount = 0;
+  var csvCount = 0;
+  var sharedCount = 0;
+
+  for (final doc in documents) {
+    totalSize += doc.fileSize;
+    if (doc.fileType.toLowerCase() == 'pdf') {
+      pdfCount++;
+    } else if (doc.fileType.toLowerCase() == 'csv') {
+      csvCount++;
+    }
+    if (doc.sharedAt != null) {
+      sharedCount++;
+    }
+  }
+
+  return DocumentStats(
+    totalDocuments: documents.length,
+    totalSize: totalSize,
+    pdfCount: pdfCount,
+    csvCount: csvCount,
+    sharedCount: sharedCount,
+  );
+});
+
+/// Statistiques des documents
+class DocumentStats {
+  final int totalDocuments;
+  final int totalSize;
+  final int pdfCount;
+  final int csvCount;
+  final int sharedCount;
+
+  DocumentStats({
+    required this.totalDocuments,
+    required this.totalSize,
+    required this.pdfCount,
+    required this.csvCount,
+    required this.sharedCount,
+  });
+
+  String get formattedTotalSize {
+    if (totalSize < 1024) {
+      return '$totalSize B';
+    } else if (totalSize < 1024 * 1024) {
+      return '${(totalSize / 1024).toStringAsFixed(1)} KB';
+    } else {
+      return '${(totalSize / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+  }
+}

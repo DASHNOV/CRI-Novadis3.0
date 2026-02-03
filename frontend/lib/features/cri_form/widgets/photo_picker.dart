@@ -218,7 +218,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
               scrollDirection: Axis.horizontal,
               itemCount:
                   _photos.length + (canAddMore && widget.enabled ? 1 : 0),
-              separatorBuilder: (_, index) => const SizedBox(width: 8),
+              separatorBuilder: (context, index) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 // Bouton d'ajout à la fin
                 if (index == _photos.length) {
