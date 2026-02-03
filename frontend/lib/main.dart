@@ -4,7 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
 
+import 'package:flutter/scheduler.dart';
+
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SchedulerBinding.instance.addTimingsCallback((timings) {
+    for (final timing in timings) {
+      final duration = timing.totalSpan.inMilliseconds;
+      if (duration > 16) {
+        debugPrint('⚠️ Slow frame: ${duration}ms');
+      }
+    }
+  });
+
   runApp(const ProviderScope(child: NovadisApp()));
 }
 

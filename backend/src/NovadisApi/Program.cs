@@ -71,17 +71,19 @@ builder.Services.AddAuthorization(options =>
 // ========================================
 // 3️⃣ CONFIGURATION CORS
 // ========================================
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("NovadisPolicy", policy =>
-    {
-        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
-            ?? new[] { "*" };
-
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+builder.Services.AddCors(options => {
+    options.AddPolicy("DevCorsPolicy", policy => {
+        policy
+            .WithOrigins(
+                "http://localhost:50900",      // Expo Web
+                "http://localhost:8081",       // Expo Metro Bundler
+                "http://localhost:19006",      // Expo Web (autre port)
+                "http://10.0.2.2:50900",       // Android Emulator
+                "http://192.168.1.10:50900"    // Device Physique (IP à adapter)
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
@@ -158,6 +160,12 @@ if (builder.Environment.IsProduction())
 // ========================================
 // 7️⃣ CONSTRUCTION DE L'APPLICATION
 // ========================================
+// ✅ Configuration réseau pour développement
+if (builder.Environment.IsDevelopment())
+{
+    builder.WebHost.UseUrls("http://0.0.0.0:5245", "https://0.0.0.0:7245");
+}
+
 var app = builder.Build();
 
 // ========================================
@@ -178,8 +186,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-// CORS (DOIT être avant Authentication)
-app.UseCors("NovadisPolicy");
+// ✅ Activer CORS (AVANT UseAuthorization)
+app.UseCors("DevCorsPolicy");
 
 // Authentication & Authorization
 app.UseAuthentication();

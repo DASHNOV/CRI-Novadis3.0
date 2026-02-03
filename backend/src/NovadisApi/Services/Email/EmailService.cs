@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Mail;
+using Microsoft.AspNetCore.Hosting;
 
 namespace NovadisApi.Services.Email
 {
@@ -14,11 +15,13 @@ namespace NovadisApi.Services.Email
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<EmailService> _logger;
+        private readonly IWebHostEnvironment _env;
 
-        public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
+        public EmailService(IConfiguration configuration, ILogger<EmailService> logger, IWebHostEnvironment env)
         {
             _configuration = configuration;
             _logger = logger;
+            _env = env;
         }
 
         /// <summary>
@@ -126,8 +129,15 @@ namespace NovadisApi.Services.Email
         {
             try
             {
-                var smtpHost = _configuration["Email:SmtpHost"] 
-                    ?? throw new InvalidOperationException("SMTP Host not configured");
+                var smtpHost = _configuration["Email:SmtpHost"];
+                if (string.IsNullOrEmpty(smtpHost))
+                {
+                    _logger.LogWarning("⚠️ SMTP not configured. Mocking email send to {Email}", toEmail);
+                    _logger.LogInformation("📧 Email Subject: {Subject}", subject);
+                    _logger.LogInformation("📝 Email Body: {Body}", htmlBody); 
+                    return;
+                }
+
                 var smtpPort = int.Parse(_configuration["Email:SmtpPort"] ?? "587");
                 var smtpUsername = _configuration["Email:Username"] 
                     ?? throw new InvalidOperationException("SMTP Username not configured");
@@ -159,6 +169,17 @@ namespace NovadisApi.Services.Email
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send email to {Email}", toEmail);
+
+                // En développement, si l'envoi échoue (SMTP mal configuré, firewall, etc.), 
+                // on loggue le body pour permettre au dév de continuer.
+                if (_env.IsDevelopment())
+                {
+                     _logger.LogWarning("⚠️ [DEV MODE] Email sending failed but suppressed. Mocking email content.");
+                     _logger.LogInformation("📧 Email Subject: {Subject}", subject);
+                     _logger.LogInformation("📝 Email Body: {Body}", htmlBody);
+                     return; // On ne throw PAS l'exception pour que le login réussisse
+                }
+                
                 throw;
             }
         }

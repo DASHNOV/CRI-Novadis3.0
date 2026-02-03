@@ -74,11 +74,13 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
               height: 200,
               child: widget.data.isEmpty
                   ? _buildEmptyState()
-                  : AnimatedBuilder(
-                      animation: _animation,
-                      builder: (context, child) {
-                        return LineChart(_buildChartData());
-                      },
+                  : RepaintBoundary(
+                      child: AnimatedBuilder(
+                        animation: _animation,
+                        builder: (context, child) {
+                          return LineChart(_buildChartData());
+                        },
+                      ),
                     ),
             ),
           ],

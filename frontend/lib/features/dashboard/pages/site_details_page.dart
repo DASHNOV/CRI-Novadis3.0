@@ -339,11 +339,12 @@ class _TimelineItem extends StatelessWidget {
   final SiteInterventionItem intervention;
   final bool isLast;
 
+  static final _dateFormat = DateFormat('dd/MM/yyyy', 'fr_FR');
+
   const _TimelineItem({required this.intervention, required this.isLast});
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd/MM/yyyy', 'fr_FR');
     final statusColor = _getStatusColor(intervention.status);
 
     return IntrinsicHeight(
@@ -394,7 +395,7 @@ class _TimelineItem extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          dateFormat.format(intervention.date),
+                          _dateFormat.format(intervention.date),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],
