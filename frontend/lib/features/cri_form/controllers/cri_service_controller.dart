@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:novadis_cri/data/models/cri_service_model.dart';
+import 'package:novadis_cri/data/local/app_database.dart';
+import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 import 'package:novadis_cri/data/local/tables/cri_service_table.dart';
 
 /// État du formulaire CRI Service
@@ -43,8 +45,11 @@ class CriServiceFormState {
 /// Notifier pour gérer l'état du formulaire CRI Service
 class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
   final Uuid _uuid = const Uuid();
+  final AppDatabase _db;
+  final CriRemoteRepository _remoteRepo;
 
-  CriServiceFormNotifier() : super(const CriServiceFormState());
+  CriServiceFormNotifier(this._db, this._remoteRepo)
+    : super(const CriServiceFormState());
 
   /// Initialise un nouveau formulaire
   void initNewForm({required String technicianName}) {
@@ -56,22 +61,28 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     state = CriServiceFormState(currentCri: newCri, isDirty: false);
   }
 
-  /// Charge un CRI existant pour édition
+  /// Charge un CRI existant
   Future<void> loadCri(String id) async {
     state = state.copyWith(isLoading: true);
-
     try {
-      // TODO: Implémenter le chargement depuis Drift
-      state = state.copyWith(isLoading: false);
+      final dbCri = await _db.getCriServiceById(id);
+      if (dbCri != null) {
+        state = state.copyWith(
+          currentCri: CriServiceModel.fromDb(dbCri),
+          isLoading: false,
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'CRI introuvable localement',
+        );
+      }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Erreur lors du chargement: $e',
-      );
+      state = state.copyWith(isLoading: false, errorMessage: 'Erreur: $e');
     }
   }
 
-  /// Met à jour les informations générales (Section 1)
+  /// Mises à jour des sections
   void updateGeneralInfo({
     DateTime? interventionDate,
     DateTime? startTime,
@@ -79,45 +90,32 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     String? ticketNumber,
   }) {
     if (state.currentCri == null) return;
-
-    // Calcule automatiquement la durée si les heures changent
-    int? newDuration;
-    final newStartTime = startTime ?? state.currentCri!.startTime;
-    final newEndTime = endTime ?? state.currentCri!.endTime;
-
-    if (startTime != null || endTime != null) {
-      newDuration = CriServiceModel.calculateDuration(newStartTime, newEndTime);
-    }
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         interventionDate: interventionDate,
         startTime: startTime,
         endTime: endTime,
         ticketNumber: ticketNumber,
-        interventionDurationMinutes: newDuration,
       ),
       isDirty: true,
     );
   }
 
-  /// Met à jour les informations client (Section 2)
   void updateClientInfo({
     String? clientName,
     String? site,
-    String? ville, // Alias pour site
+    String? ville,
     String? address,
     String? clientContact,
     String? phone,
-    String? departement, // Ignoré - champ obsolète
-    String? email, // Ignoré - pas dans le modèle CriService
+    String? email,
+    String? departement,
   }) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         clientName: clientName,
-        site: site ?? ville, // Utilise ville si site n'est pas fourni
+        site: site ?? ville,
         address: address,
         clientContact: clientContact,
         phone: phone,
@@ -127,14 +125,12 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
-  /// Met à jour les informations de demande (Section 3)
   void updateRequestInfo({
     ServiceRequestType? requestType,
     ServicePriority? priority,
     String? requestDescription,
   }) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         requestType: requestType,
@@ -145,13 +141,11 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
-  /// Met à jour le diagnostic (Section 4)
   void updateDiagnosticInfo({
     String? diagnosticPerformed,
     String? identifiedCause,
   }) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         diagnosticPerformed: diagnosticPerformed,
@@ -161,14 +155,12 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
-  /// Met à jour les informations d'intervention (Section 5)
   void updateInterventionInfo({
     String? actionsPerformed,
     String? replacedParts,
     int? interventionDurationMinutes,
   }) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         actionsPerformed: actionsPerformed,
@@ -179,16 +171,14 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
-  /// Met à jour le résultat (Section 6)
   void updateResultInfo({
     ResolutionStatus? resolutionStatus,
     String? testsPerformed,
     String? recommendations,
-    String? interventionStatus, // Ignoré - champ obsolète
-    List<dynamic>? fraisSupplementaires, // Ignoré - champ obsolète
+    String? interventionStatus,
+    List<dynamic>? fraisSupplementaires,
   }) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         resolutionStatus: resolutionStatus,
@@ -199,14 +189,12 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
-  /// Met à jour les informations de suivi (Section 7)
   void updateFollowUpInfo({
     bool? additionalInterventionRequired,
     DateTime? followUpDate,
     String? followUpComments,
   }) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         additionalInterventionRequired: additionalInterventionRequired,
@@ -217,20 +205,16 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
-  /// Met à jour les photos
   void updatePhotos(List<String> photos) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(photos: photos),
       isDirty: true,
     );
   }
 
-  /// Met à jour la signature du technicien
   void updateTechnicianSignature(String? signaturePath) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         technicianSignature: signaturePath,
@@ -239,94 +223,75 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
-  /// Met à jour la signature du client
   void updateClientSignature(String? signaturePath) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(clientSignature: signaturePath),
       isDirty: true,
     );
   }
 
-  /// Sauvegarde le brouillon
+  /// Sauvegarde brouillon
   Future<bool> saveDraft() async {
     if (state.currentCri == null) return false;
-
     state = state.copyWith(isSaving: true);
-
     try {
       final updatedCri = state.currentCri!.copyWith(
         updatedAt: DateTime.now(),
         isDraft: true,
       );
-
-      // TODO: Sauvegarder dans Drift
-      // await _database.saveCriService(updatedCri);
-
+      await _db.updateCriService(updatedCri.toDb());
       state = state.copyWith(
         currentCri: updatedCri,
         isSaving: false,
         isDirty: false,
         lastAutoSave: DateTime.now(),
       );
-
       return true;
     } catch (e) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: 'Erreur lors de la sauvegarde: $e',
-      );
+      state = state.copyWith(isSaving: false, errorMessage: 'Erreur: $e');
       return false;
     }
   }
 
-  /// Soumet le formulaire final
+  /// Soumission
   Future<bool> submit() async {
     if (state.currentCri == null) return false;
-
     state = state.copyWith(isSaving: true);
-
     try {
       final submittedCri = state.currentCri!.copyWith(
         updatedAt: DateTime.now(),
         isDraft: false,
-        syncStatus: 'pending',
+        syncStatus: 'synced',
       );
 
-      // TODO: Sauvegarder dans Drift et ajouter à la file de sync
-      // await _database.saveCriService(submittedCri);
-      // await _syncQueue.add(submittedCri);
+      await _db.updateCriService(submittedCri.toDb());
+      await _remoteRepo.saveCriService(submittedCri);
 
       state = state.copyWith(
         currentCri: submittedCri,
         isSaving: false,
         isDirty: false,
       );
-
       return true;
     } catch (e) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: 'Erreur lors de la soumission: $e',
+        errorMessage: 'Erreur submition: $e',
       );
       return false;
     }
   }
 
-  /// Réinitialise le formulaire
-  void reset() {
-    state = const CriServiceFormState();
-  }
-
-  /// Efface le message d'erreur
-  void clearError() {
-    state = state.copyWith(errorMessage: null);
-  }
+  void reset() => state = const CriServiceFormState();
+  void clearError() => state = state.copyWith(errorMessage: null);
 }
 
-/// Provider pour le contrôleur de formulaire CRI Service
+/// Providers
 final criServiceFormProvider =
-    StateNotifierProvider<CriServiceFormNotifier, CriServiceFormState>(
-      (ref) => CriServiceFormNotifier(),
-    );
+    StateNotifierProvider<CriServiceFormNotifier, CriServiceFormState>((ref) {
+      return CriServiceFormNotifier(
+        ref.read(appDatabaseProvider),
+        ref.read(criRemoteRepositoryProvider),
+      );
+    });

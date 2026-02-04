@@ -30,6 +30,9 @@ namespace NovadisApi.Models
         [MaxLength(255)]
         public string? ClientAddress { get; set; }
 
+        [MaxLength(255)]
+        public string? ClientSite { get; set; }
+
         [MaxLength(20)]
         public string? ClientPhone { get; set; }
 
@@ -45,6 +48,9 @@ namespace NovadisApi.Models
 
         [MaxLength(50)]
         public string Status { get; set; } = "Draft"; // Draft, Submitted, Validated
+
+        // ✅ Champ pour stocker toutes les données spécifiques (JSON)
+        public string? Data { get; set; }
 
         public string? TechnicianSignature { get; set; } // Base64
 

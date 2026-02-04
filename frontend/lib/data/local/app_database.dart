@@ -4,12 +4,19 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'tables/cri_service_table.dart';
 import 'tables/cri_projet_table.dart';
 import 'tables/exported_document_table.dart';
 
 part 'app_database.g.dart';
+
+final appDatabaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase();
+  ref.onDispose(() => db.close());
+  return db;
+});
 
 @DriftDatabase(tables: [CriServiceTable, CriProjetTable, ExportedDocumentTable])
 class AppDatabase extends _$AppDatabase {

@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
+import 'package:novadis_cri/features/auth/data/auth_service.dart';
 
 /// Écran de connexion
-/// Authentification mock avec navigation vers le dashboard
-class LoginScreen extends HookWidget {
+/// Authentification par email avec code de vérification
+class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final emailController = useTextEditingController();
     final isLoading = useState(false);
+    final authService = ref.watch(authServiceProvider);
 
     void handleLogin() async {
-      // Validation simple
-      if (emailController.text.isEmpty) {
+      final email = emailController.text.trim();
+      if (email.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Veuillez entrer votre email'),
@@ -25,14 +28,21 @@ class LoginScreen extends HookWidget {
         return;
       }
 
-      // Simule une connexion
       isLoading.value = true;
-      await Future.delayed(const Duration(seconds: 1));
-      isLoading.value = false;
-
-      if (context.mounted) {
-        // Navigation vers la page d'accueil
-        context.go(AppRouter.home);
+      try {
+        await authService.login(email);
+        if (context.mounted) {
+          // Utilise push pour permettre de revenir en arrière
+          context.push('${AppRouter.verifyOtp}?email=$email');
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          );
+        }
+      } finally {
+        isLoading.value = false;
       }
     }
 
@@ -75,8 +85,9 @@ class LoginScreen extends HookWidget {
                   controller: emailController,
                   decoration: const InputDecoration(
                     labelText: 'Email',
-                    hintText: 'exemple@novadis.com',
+                    hintText: 'exemple@novadis.fr',
                     prefixIcon: Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.done,
@@ -91,6 +102,9 @@ class LoginScreen extends HookWidget {
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: isLoading.value
                       ? const SizedBox(
@@ -104,22 +118,21 @@ class LoginScreen extends HookWidget {
                           ),
                         )
                       : const Text(
-                          'Se connecter',
+                          'Recevoir un code par email',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // Note
                 Text(
-                  'Mode démonstration - Aucune authentification requise',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[500],
-                    fontStyle: FontStyle.italic,
-                  ),
+                  'Un code de vérification vous sera envoyé par email pour vous connecter en toute sécurité.',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                 ),
               ],

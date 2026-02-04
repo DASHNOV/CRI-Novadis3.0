@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:novadis_cri/data/models/cri_projet_model.dart';
+import 'package:novadis_cri/data/local/app_database.dart';
+import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
 
 /// État du formulaire CRI Projet
@@ -43,8 +45,11 @@ class CriProjetFormState {
 /// Notifier pour gérer l'état du formulaire CRI Projet
 class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
   final Uuid _uuid = const Uuid();
+  final AppDatabase _db;
+  final CriRemoteRepository _remoteRepo;
 
-  CriProjetFormNotifier() : super(const CriProjetFormState());
+  CriProjetFormNotifier(this._db, this._remoteRepo)
+    : super(const CriProjetFormState());
 
   /// Initialise un nouveau formulaire
   void initNewForm({required String technicianName}) {
@@ -58,9 +63,19 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     state = state.copyWith(isLoading: true);
 
     try {
-      // TODO: Implémenter le chargement depuis Drift
-      // Pour l'instant, crée un nouveau formulaire
-      state = state.copyWith(isLoading: false);
+      final dbCri = await _db.getCriProjetById(id);
+      if (dbCri != null) {
+        state = state.copyWith(
+          currentCri: CriProjetModel.fromDb(dbCri),
+          isLoading: false,
+        );
+      } else {
+        // Todo: Load from remote if not in local
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'CRI introuvable localement',
+        );
+      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -69,14 +84,13 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     }
   }
 
-  /// Met à jour les informations générales (Section 1)
+  /// Met à jour les informations générales
   void updateGeneralInfo({
     DateTime? interventionDate,
     DateTime? startTime,
     DateTime? endTime,
   }) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         interventionDate: interventionDate,
@@ -87,23 +101,22 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     );
   }
 
-  /// Met à jour les informations client (Section 2)
+  /// Met à jour les informations client
   void updateClientInfo({
     String? clientName,
     String? site,
-    String? ville, // Alias pour site
+    String? ville,
     String? address,
     String? clientContact,
     String? phone,
     String? email,
-    String? departement, // Ignoré - champ obsolète
+    String? departement,
   }) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         clientName: clientName,
-        site: site ?? ville, // Utilise ville si site n'est pas fourni
+        site: site ?? ville,
         address: address,
         clientContact: clientContact,
         phone: phone,
@@ -113,14 +126,13 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     );
   }
 
-  /// Met à jour les informations projet (Section 3)
+  /// Met à jour les informations projet
   void updateProjectInfo({
     String? projectName,
     String? projectNumber,
     ProjectPhase? projectPhase,
   }) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         projectName: projectName,
@@ -131,18 +143,16 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     );
   }
 
-  /// Met à jour les informations d'intervention (Section 4)
+  /// Met à jour les interventions
   void updateInterventionInfo({
     ProjetInterventionType? interventionType,
     String? workDescription,
     String? materialsUsed,
     String? problemsEncountered,
     String? solutionsProvided,
-    int?
-    interventionDurationMinutes, // Ignoré - calculé à partir de startTime/endTime
+    int? interventionDurationMinutes,
   }) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         interventionType: interventionType,
@@ -155,14 +165,13 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     );
   }
 
-  /// Met à jour les informations de suivi (Section 5)
+  /// Met à jour les informations de suivi
   void updateFollowUpInfo({
     String? actionsToDo,
     DateTime? nextInterventionDate,
     ProjectStatus? projectStatus,
   }) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         actionsToDo: actionsToDo,
@@ -173,20 +182,16 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     );
   }
 
-  /// Met à jour les photos
   void updatePhotos(List<String> photos) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(photos: photos),
       isDirty: true,
     );
   }
 
-  /// Met à jour la signature du technicien
   void updateTechnicianSignature(String? signaturePath) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         technicianSignature: signaturePath,
@@ -195,20 +200,16 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     );
   }
 
-  /// Met à jour la signature du client
   void updateClientSignature(String? signaturePath) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(clientSignature: signaturePath),
       isDirty: true,
     );
   }
 
-  /// Met à jour les commentaires du client
   void updateClientComments(String? comments) {
     if (state.currentCri == null) return;
-
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(clientComments: comments),
       isDirty: true,
@@ -218,7 +219,6 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
   /// Sauvegarde le brouillon
   Future<bool> saveDraft() async {
     if (state.currentCri == null) return false;
-
     state = state.copyWith(isSaving: true);
 
     try {
@@ -227,8 +227,7 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
         isDraft: true,
       );
 
-      // TODO: Sauvegarder dans Drift
-      // await _database.saveCriProjet(updatedCri);
+      await _db.updateCriProjet(updatedCri.toDb());
 
       state = state.copyWith(
         currentCri: updatedCri,
@@ -236,69 +235,60 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
         isDirty: false,
         lastAutoSave: DateTime.now(),
       );
-
       return true;
     } catch (e) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: 'Erreur lors de la sauvegarde: $e',
-      );
+      state = state.copyWith(isSaving: false, errorMessage: 'Erreur: $e');
       return false;
     }
   }
 
-  /// Soumet le formulaire final
+  /// Soumet le formulaire
   Future<bool> submit() async {
     if (state.currentCri == null) return false;
-
     state = state.copyWith(isSaving: true);
 
     try {
       final submittedCri = state.currentCri!.copyWith(
         updatedAt: DateTime.now(),
         isDraft: false,
-        syncStatus: 'pending',
+        syncStatus: 'synced',
       );
 
-      // TODO: Sauvegarder dans Drift et ajouter à la file de sync
-      // await _database.saveCriProjet(submittedCri);
-      // await _syncQueue.add(submittedCri);
+      // 1. Sauvegarder localement
+      await _db.updateCriProjet(submittedCri.toDb());
+
+      // 2. Envoyer au serveur
+      await _remoteRepo.saveCriProjet(submittedCri);
 
       state = state.copyWith(
         currentCri: submittedCri,
         isSaving: false,
         isDirty: false,
       );
-
       return true;
     } catch (e) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: 'Erreur lors de la soumission: $e',
+        errorMessage: 'Erreur submition: $e',
       );
       return false;
     }
   }
 
-  /// Réinitialise le formulaire
-  void reset() {
-    state = const CriProjetFormState();
-  }
-
-  /// Efface le message d'erreur
-  void clearError() {
-    state = state.copyWith(errorMessage: null);
-  }
+  void reset() => state = const CriProjetFormState();
+  void clearError() => state = state.copyWith(errorMessage: null);
 }
 
-/// Provider pour le contrôleur de formulaire CRI Projet
+/// Providers
 final criProjetFormProvider =
-    StateNotifierProvider<CriProjetFormNotifier, CriProjetFormState>(
-      (ref) => CriProjetFormNotifier(),
-    );
+    StateNotifierProvider<CriProjetFormNotifier, CriProjetFormState>((ref) {
+      return CriProjetFormNotifier(
+        ref.read(appDatabaseProvider),
+        ref.read(criRemoteRepositoryProvider),
+      );
+    });
 
-/// Provider pour le nom du technicien courant
-/// TODO: À implémenter avec l'authentification
 final currentTechnicianNameProvider = Provider<String>((ref) {
-  return 'Technicien Test'; // Valeur par défaut
+  // Todo: Get from Auth state if possible
+  return 'Technicien';
 });

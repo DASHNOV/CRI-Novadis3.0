@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
 import 'package:novadis_cri/data/local/app_database.dart';
+import 'package:drift/drift.dart';
 
 /// Modèle de données pour un CRI Projet
 class CriProjetModel {
@@ -207,6 +208,42 @@ class CriProjetModel {
       'syncStatus': syncStatus,
       'isDraft': isDraft,
     };
+  }
+
+  /// Convertit pour insertion dans la base Drift
+  CriProjetTableCompanion toDb() {
+    return CriProjetTableCompanion(
+      id: Value(id),
+      interventionDate: Value(interventionDate),
+      startTime: Value(startTime),
+      endTime: Value(endTime),
+      clientName: Value(clientName),
+      site: Value(site),
+      address: Value(address),
+      clientContact: Value(clientContact),
+      phone: Value(phone),
+      email: Value(email),
+      projectName: Value(projectName),
+      projectNumber: Value(projectNumber),
+      projectPhase: Value(projectPhase.name),
+      interventionType: Value(interventionType.name),
+      workDescription: Value(workDescription),
+      materialsUsed: Value(materialsUsed),
+      problemsEncountered: Value(problemsEncountered),
+      solutionsProvided: Value(solutionsProvided),
+      actionsToDo: Value(actionsToDo),
+      nextInterventionDate: Value(nextInterventionDate),
+      projectStatus: Value(projectStatus.name),
+      photos: Value(jsonEncode(photos)),
+      technicianName: Value(technicianName),
+      technicianSignature: Value(technicianSignature),
+      clientSignature: Value(clientSignature),
+      clientComments: Value(clientComments),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      syncStatus: Value(syncStatus),
+      isDraft: Value(isDraft),
+    );
   }
 
   factory CriProjetModel.fromDb(CriProjet db) {

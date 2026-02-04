@@ -1,0 +1,140 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using NovadisApi.Data;
+using NovadisApi.Models;
+using NovadisApi.Models.DTOs;
+using System.Security.Claims;
+
+namespace NovadisApi.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class CRIController : ControllerBase
+    {
+        private readonly NovadisDbContext _context;
+        private readonly ILogger<CRIController> _logger;
+
+        public CRIController(NovadisDbContext context, ILogger<CRIController> logger)
+        {
+            _context = context;
+            _logger = logger;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<ApiResponse<IEnumerable<CRIForm>>>> GetMyCRIs()
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Unauthorized(ApiResponse<IEnumerable<CRIForm>>.ErrorResponse("Utilisateur non identifié"));
+
+            var cris = await _context.CRIForms
+                .Where(c => c.TechnicianId == userId)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+
+            return Ok(ApiResponse<IEnumerable<CRIForm>>.SuccessResponse(cris));
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ApiResponse<CRIForm>>> GetCRI(Guid id)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Unauthorized(ApiResponse<CRIForm>.ErrorResponse("Utilisateur non identifié"));
+
+            var cri = await _context.CRIForms
+                .Include(c => c.Photos)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (cri == null)
+                return NotFound(ApiResponse<CRIForm>.ErrorResponse("CRI introuvable"));
+
+            // Les admins peuvent tout voir, les techniciens seulement les leurs
+            if (cri.TechnicianId != userId && !User.IsInRole("Admin"))
+                return Forbid();
+
+            return Ok(ApiResponse<CRIForm>.SuccessResponse(cri));
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<ApiResponse<CRIForm>>> CreateCRI([FromBody] CRIForm cri)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Unauthorized(ApiResponse<CRIForm>.ErrorResponse("Utilisateur non identifié"));
+
+            cri.Id = cri.Id == Guid.Empty ? Guid.NewGuid() : cri.Id;
+            cri.TechnicianId = userId;
+            cri.CreatedAt = DateTime.UtcNow;
+
+            _context.CRIForms.Add(cri);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetCRI), new { id = cri.Id }, ApiResponse<CRIForm>.SuccessResponse(cri));
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<ApiResponse<CRIForm>>> UpdateCRI(Guid id, [FromBody] CRIForm criUpdate)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Unauthorized(ApiResponse<CRIForm>.ErrorResponse("Utilisateur non identifié"));
+
+            var cri = await _context.CRIForms.FindAsync(id);
+
+            if (cri == null)
+                return NotFound(ApiResponse<CRIForm>.ErrorResponse("CRI introuvable"));
+
+            if (cri.TechnicianId != userId && !User.IsInRole("Admin"))
+                return Forbid();
+
+            // Mise à jour des champs (à affiner selon les besoins)
+            cri.InterventionType = criUpdate.InterventionType;
+            cri.Category = criUpdate.Category;
+            cri.InterventionDate = criUpdate.InterventionDate;
+            cri.ClientName = criUpdate.ClientName;
+            cri.ClientAddress = criUpdate.ClientAddress;
+            cri.ClientPhone = criUpdate.ClientPhone;
+            cri.ClientEmail = criUpdate.ClientEmail;
+            cri.WorkDescription = criUpdate.WorkDescription;
+            cri.MaterialsUsed = criUpdate.MaterialsUsed;
+            cri.Duration = criUpdate.Duration;
+            cri.Status = criUpdate.Status;
+            cri.TechnicianSignature = criUpdate.TechnicianSignature;
+            cri.ClientSignature = criUpdate.ClientSignature;
+            cri.UpdatedAt = DateTime.UtcNow;
+
+            if (cri.Status == "Submitted" && cri.SubmittedAt == null)
+            {
+                cri.SubmittedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse<CRIForm>.SuccessResponse(cri));
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<ApiResponse<object>>> DeleteCRI(Guid id)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Unauthorized(ApiResponse<object>.ErrorResponse("Utilisateur non identifié"));
+
+            var cri = await _context.CRIForms.FindAsync(id);
+
+            if (cri == null)
+                return NotFound(ApiResponse<object>.ErrorResponse("CRI introuvable"));
+
+            if (cri.TechnicianId != userId && !User.IsInRole("Admin"))
+                return Forbid();
+
+            _context.CRIForms.Remove(cri);
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse<object>.SuccessResponse(null, "CRI supprimé avec succès"));
+        }
+    }
+}

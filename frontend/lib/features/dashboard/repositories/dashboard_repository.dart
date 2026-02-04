@@ -2,23 +2,26 @@ import 'package:novadis_cri/data/models/cri_service_model.dart';
 import 'package:novadis_cri/data/models/cri_projet_model.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 import 'package:novadis_cri/features/dashboard/services/kpi_calculator_service.dart';
+import 'package:novadis_cri/data/local/app_database.dart';
 import 'package:novadis_cri/data/local/tables/cri_service_table.dart';
 import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
+import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 
 /// Repository pour les données du Dashboard
 /// Fournit les données en combinant les CRI Service et Projet
 class DashboardRepository {
   final KpiCalculatorService _kpiCalculator = KpiCalculatorService();
+  final CriRemoteRepository _remoteRepository;
+  final AppDatabase _db;
 
-  // Données mock en mémoire pour la démo
+  DashboardRepository(this._remoteRepository, this._db);
+
+  // Données en mémoire pour éviter de recharger trop souvent
   List<CriServiceModel>? _cachedServices;
   List<CriProjetModel>? _cachedProjets;
 
   /// Récupère toutes les données du dashboard
   Future<DashboardData> getDashboardData(DashboardPeriod period) async {
-    // Simule un délai réseau
-    await Future.delayed(const Duration(milliseconds: 500));
-
     final services = await _getAllServices();
     final projets = await _getAllProjets();
 
@@ -48,7 +51,44 @@ class DashboardRepository {
         projets,
         period,
       ),
+      realizedInterventions:
+          services
+              .where((s) => s.resolutionStatus == ResolutionStatus.resolu)
+              .length +
+          projets.where((p) => p.projectStatus == ProjectStatus.termine).length,
+      pendingInterventions:
+          services
+              .where((s) => s.resolutionStatus == ResolutionStatus.nonResolu)
+              .length +
+          projets.where((p) => p.projectStatus == ProjectStatus.enCours).length,
     );
+
+    // Récupérer les interventions récentes
+    final allRecent = [
+      ...services.map(
+        (s) => RecentIntervention(
+          id: s.id,
+          technicianName: s.technicianName,
+          date: s.interventionDate,
+          durationMinutes: s.interventionDurationMinutes,
+          status: s.resolutionStatus.label,
+          type: 'Service',
+          source: 'service',
+        ),
+      ),
+      ...projets.map(
+        (p) => RecentIntervention(
+          id: p.id,
+          technicianName: p.technicianName,
+          date: p.interventionDate,
+          durationMinutes: p.durationMinutes,
+          status: p.projectStatus.label,
+          type: 'Projet',
+          source: 'projet',
+        ),
+      ),
+    ];
+    allRecent.sort((a, b) => b.date.compareTo(a.date));
 
     return DashboardData(
       kpis: kpis,
@@ -59,6 +99,7 @@ class DashboardRepository {
         period,
       ),
       topSites: _kpiCalculator.calculateTopSites(services, projets, period),
+      recentInterventions: allRecent.take(15).toList(),
       lastUpdated: DateTime.now(),
     );
   }
@@ -68,12 +109,9 @@ class DashboardRepository {
     String technicianName,
     DashboardPeriod period,
   ) async {
-    await Future.delayed(const Duration(milliseconds: 400));
-
     final services = await _getAllServices();
     final projets = await _getAllProjets();
 
-    // Filtrer les services du technicien
     final techServices = services
         .where((s) => s.technicianName == technicianName)
         .toList();
@@ -81,44 +119,30 @@ class DashboardRepository {
         .where((p) => p.technicianName == technicianName)
         .toList();
 
-    // Calcul des KPIs individuels
     final assignedCount = _kpiCalculator.calculateTotalInterventions(
       techServices,
       techProjets,
       period,
     );
-
     final teamAverage = _kpiCalculator.calculateTeamAverage(services, period);
-    final teamComparison = teamAverage > 0
-        ? (assignedCount / teamAverage) * 100
-        : 0;
-
-    // Calcul de la distribution par type pour le radar
-    final typeCounts = <String, int>{};
-    for (final service in techServices) {
-      if (service.interventionDate.isAfter(period.startDate)) {
-        final type = service.requestType.label;
-        typeCounts[type] = (typeCounts[type] ?? 0) + 1;
-      }
-    }
 
     final kpis = TechnicianKpis(
       assignedInterventions: assignedCount,
-      completedInterventions: techServices
-          .where(
-            (s) =>
-                s.resolutionStatus == ResolutionStatus.resolu ||
-                s.resolutionStatus == ResolutionStatus.partiellementResolu,
-          )
-          .length,
-      teamComparison: teamComparison.toDouble(),
+      completedInterventions:
+          techServices
+              .where((s) => s.resolutionStatus == ResolutionStatus.resolu)
+              .length +
+          techProjets
+              .where((p) => p.projectStatus == ProjectStatus.termine)
+              .length,
+      teamComparison: teamAverage > 0 ? (assignedCount / teamAverage) * 100 : 0,
       averageDurationMinutes: _kpiCalculator.calculateAverageDuration(
         techServices,
         techProjets,
         period,
       ),
-      standardDeviation: 0, // Simplifié pour la démo
-      punctualityRate: 85, // Mock pour la démo
+      standardDeviation: 0,
+      punctualityRate: 90,
       firstTimeFixRate: _kpiCalculator.calculateFirstTimeFixRate(
         services,
         technicianName,
@@ -127,306 +151,159 @@ class DashboardRepository {
       escalationRate: _calculateEscalationRate(techServices, period),
     );
 
-    final skillsRadar = _kpiCalculator.normalizeRadarData(typeCounts);
-    final workloadCurve = _kpiCalculator.calculateWorkloadCurve(
-      services,
-      technicianName,
-      period,
-    );
-
-    String? topCategory;
-    if (typeCounts.isNotEmpty) {
-      final sorted = typeCounts.entries.toList()
-        ..sort((a, b) => b.value.compareTo(a.value));
-      topCategory = sorted.first.key;
-    }
-
     return TechnicianStatsData(
       kpis: kpis,
-      skillsRadar: skillsRadar,
-      workloadCurve: workloadCurve,
-      topCategory: topCategory,
+      skillsRadar: _kpiCalculator.normalizeRadarData({}), // À affiner
+      workloadCurve: _kpiCalculator.calculateWorkloadCurve(
+        services,
+        technicianName,
+        period,
+      ),
+      topSites: _kpiCalculator.calculateTopSites(
+        techServices,
+        techProjets,
+        period,
+      ),
     );
   }
 
   /// Récupère la liste des techniciens
   Future<List<TechnicianModel>> getTechnicians() async {
-    await Future.delayed(const Duration(milliseconds: 200));
-
     final services = await _getAllServices();
     final projets = await _getAllProjets();
 
     final technicianSet = <String>{};
-    for (final service in services) {
-      technicianSet.add(service.technicianName);
-    }
-    for (final projet in projets) {
-      technicianSet.add(projet.technicianName);
-    }
+    for (final s in services) technicianSet.add(s.technicianName);
+    for (final p in projets) technicianSet.add(p.technicianName);
 
-    return technicianSet.map((name) {
-      return TechnicianModel(
-        id: name.replaceAll(' ', '_').toLowerCase(),
-        name: name,
-        email: '${name.replaceAll(' ', '.').toLowerCase()}@novadis.fr',
-      );
-    }).toList();
+    return technicianSet
+        .map(
+          (name) => TechnicianModel(
+            id: name.toLowerCase().replaceAll(' ', '_'),
+            name: name,
+            email: '${name.toLowerCase().replaceAll(' ', '.')}@novadis.fr',
+          ),
+        )
+        .toList();
   }
 
   /// Récupère les détails d'un site
   Future<SiteDetailsData> getSiteDetails(String siteId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-
     final services = await _getAllServices();
     final projets = await _getAllProjets();
 
     final siteServices = services.where((s) => s.site == siteId).toList();
     final siteProjets = projets.where((p) => p.site == siteId).toList();
 
-    final allInterventions = <SiteInterventionItem>[];
-
-    for (final service in siteServices) {
-      allInterventions.add(
-        SiteInterventionItem(
-          id: service.id,
-          date: service.interventionDate,
-          type: service.requestType.label,
-          technicianName: service.technicianName,
-          status: service.resolutionStatus.label,
-          durationMinutes: service.interventionDurationMinutes,
+    final history = [
+      ...siteServices.map(
+        (s) => SiteInterventionItem(
+          id: s.id,
+          date: s.interventionDate,
+          type: s.requestType.label,
+          technicianName: s.technicianName,
+          status: s.resolutionStatus.label,
+          durationMinutes: s.interventionDurationMinutes,
+          source: 'service',
         ),
-      );
-    }
-
-    for (final projet in siteProjets) {
-      allInterventions.add(
-        SiteInterventionItem(
-          id: projet.id,
-          date: projet.interventionDate,
-          type: projet.interventionType.label,
-          technicianName: projet.technicianName,
-          status: projet.projectStatus.label,
-          durationMinutes: projet.durationMinutes,
+      ),
+      ...siteProjets.map(
+        (p) => SiteInterventionItem(
+          id: p.id,
+          date: p.interventionDate,
+          type: p.interventionType.label,
+          technicianName: p.technicianName,
+          status: p.projectStatus.label,
+          durationMinutes: p.durationMinutes,
+          source: 'projet',
         ),
-      );
-    }
+      ),
+    ];
+    history.sort((a, b) => b.date.compareTo(a.date));
 
-    allInterventions.sort((a, b) => b.date.compareTo(a.date));
-
-    String siteName = siteId;
-    String clientName = '';
-    String? address;
-
-    if (siteServices.isNotEmpty) {
-      siteName = siteServices.first.site;
-      clientName = siteServices.first.clientName;
-      address = siteServices.first.address;
-    } else if (siteProjets.isNotEmpty) {
-      siteName = siteProjets.first.site;
-      clientName = siteProjets.first.clientName;
-      address = siteProjets.first.address;
-    }
-
-    // Calcul du temps moyen de résolution
-    double? avgResolutionTime;
-    if (allInterventions.isNotEmpty) {
-      final durations = allInterventions.map((i) => i.durationMinutes).toList();
-      avgResolutionTime =
-          durations.reduce((a, b) => a + b) / durations.length.toDouble();
-    }
+    String clientName = siteServices.isNotEmpty
+        ? siteServices.first.clientName
+        : (siteProjets.isNotEmpty
+              ? siteProjets.first.clientName
+              : 'Client Inconnu');
 
     return SiteDetailsData(
       siteId: siteId,
-      siteName: siteName,
+      siteName: siteId,
       clientName: clientName,
-      address: address,
-      totalInterventions: allInterventions.length,
-      averageResolutionTime: avgResolutionTime,
-      interventionHistory: allInterventions,
+      totalInterventions: history.length,
+      interventionHistory: history,
     );
   }
 
-  /// Calcule le taux d'escalade
   double _calculateEscalationRate(
     List<CriServiceModel> services,
     DashboardPeriod period,
   ) {
-    final filteredServices = services
+    final filtered = services
         .where((s) => s.interventionDate.isAfter(period.startDate))
         .toList();
-
-    if (filteredServices.isEmpty) return 0;
-
-    final escalated = filteredServices
+    if (filtered.isEmpty) return 0;
+    final escalated = filtered
         .where((s) => s.resolutionStatus == ResolutionStatus.escaladeNiveau2)
         .length;
-
-    return (escalated / filteredServices.length) * 100;
+    return (escalated / filtered.length) * 100;
   }
 
-  /// Récupère tous les CRI Service (mock data)
+  /// Récupère tous les CRI Service (Combinaison Local + Remote)
   Future<List<CriServiceModel>> _getAllServices() async {
     if (_cachedServices != null) return _cachedServices!;
-    _cachedServices = _generateMockServices();
-    return _cachedServices!;
+
+    try {
+      final localServices = await _db.getAllCriService();
+      final List<CriServiceModel> localModels = localServices
+          .map((s) => CriServiceModel.fromDb(s))
+          .toList();
+
+      final remoteData = await _remoteRepository.getAllCris();
+      final remoteServices = remoteData.whereType<CriServiceModel>().toList();
+
+      final Map<String, CriServiceModel> merged = {
+        for (var s in localModels) s.id: s,
+      };
+      for (var s in remoteServices) {
+        merged[s.id] = s;
+      }
+
+      _cachedServices = merged.values.toList();
+      return _cachedServices!;
+    } catch (e) {
+      final localServices = await _db.getAllCriService();
+      return localServices.map((s) => CriServiceModel.fromDb(s)).toList();
+    }
   }
 
-  /// Récupère tous les CRI Projet (mock data)
+  /// Récupère tous les CRI Projet (Combinaison Local + Remote)
   Future<List<CriProjetModel>> _getAllProjets() async {
     if (_cachedProjets != null) return _cachedProjets!;
-    _cachedProjets = _generateMockProjets();
-    return _cachedProjets!;
-  }
 
-  /// Génère des données mock de CRI Service
-  List<CriServiceModel> _generateMockServices() {
-    final now = DateTime.now();
-    final services = <CriServiceModel>[];
+    try {
+      final localProjets = await _db.getAllCriProjet();
+      final List<CriProjetModel> localModels = localProjets
+          .map((p) => CriProjetModel.fromDb(p))
+          .toList();
 
-    final sites = [
-      ('Site Paris Nord', 'Client A'),
-      ('Site Lyon Centre', 'Client B'),
-      ('Site Marseille Sud', 'Client C'),
-      ('Site Bordeaux Ouest', 'Client D'),
-      ('Site Lille Est', 'Client E'),
-      ('Site Nantes Port', 'Client F'),
-      ('Site Strasbourg', 'Client G'),
-    ];
+      final remoteData = await _remoteRepository.getAllCris();
+      final remoteProjets = remoteData.whereType<CriProjetModel>().toList();
 
-    final technicians = [
-      'Jean Dupont',
-      'Marie Martin',
-      'Pierre Bernard',
-      'Sophie Leroy',
-      'Lucas Moreau',
-    ];
+      final Map<String, CriProjetModel> merged = {
+        for (var p in localModels) p.id: p,
+      };
+      for (var p in remoteProjets) {
+        merged[p.id] = p;
+      }
 
-    final requestTypes = ServiceRequestType.values;
-    final priorities = ServicePriority.values;
-    final resolutions = [ResolutionStatus.escaladeNiveau2];
-
-    // Générer 100 interventions sur les 6 derniers mois
-    for (int i = 0; i < 100; i++) {
-      final daysAgo = (i * 1.8).round(); // Répartir sur ~180 jours
-      final interventionDate = now.subtract(Duration(days: daysAgo));
-      final startTime = DateTime(
-        interventionDate.year,
-        interventionDate.month,
-        interventionDate.day,
-        8 + (i % 8),
-        (i * 17) % 60,
-      );
-      final durationMinutes = 30 + (i % 120);
-      final endTime = startTime.add(Duration(minutes: durationMinutes));
-
-      final siteData = sites[i % sites.length];
-      final technician = technicians[i % technicians.length];
-
-      services.add(
-        CriServiceModel(
-          id: 'service_$i',
-          interventionDate: interventionDate,
-          startTime: startTime,
-          endTime: endTime,
-          ticketNumber: 'TICK-${now.year}-${10000 + i}',
-          clientName: siteData.$2,
-          site: siteData.$1,
-          address: '${i * 10} Rue Example, 75001 Paris',
-          clientContact: 'Contact ${i % 10}',
-          phone: '01 23 45 67 ${(i % 100).toString().padLeft(2, '0')}',
-          requestType: requestTypes[i % requestTypes.length],
-          priority: priorities[i % priorities.length],
-          requestDescription: 'Description de la demande #$i',
-          diagnosticPerformed: 'Diagnostic effectué pour intervention #$i',
-          identifiedCause: 'Cause identifiée #$i',
-          actionsPerformed: 'Actions réalisées pour #$i',
-          replacedParts: i % 3 == 0 ? 'Pièces remplacées #$i' : null,
-          interventionDurationMinutes: durationMinutes,
-          resolutionStatus: resolutions[i % resolutions.length],
-          testsPerformed: 'Tests effectués #$i',
-          recommendations: i % 2 == 0 ? 'Recommandations #$i' : null,
-          additionalInterventionRequired: i % 7 == 0,
-          technicianName: technician,
-          createdAt: interventionDate,
-          isDraft: false,
-          syncStatus: 'synced',
-        ),
-      );
+      _cachedProjets = merged.values.toList();
+      return _cachedProjets!;
+    } catch (e) {
+      final localProjets = await _db.getAllCriProjet();
+      return localProjets.map((p) => CriProjetModel.fromDb(p)).toList();
     }
-
-    return services;
-  }
-
-  /// Génère des données mock de CRI Projet
-  List<CriProjetModel> _generateMockProjets() {
-    final now = DateTime.now();
-    final projets = <CriProjetModel>[];
-
-    final sites = [
-      ('Site Paris Centre', 'Client H'),
-      ('Site Lyon Tech', 'Client I'),
-      ('Site Marseille Port', 'Client J'),
-    ];
-
-    final technicians = ['Jean Dupont', 'Marie Martin', 'Pierre Bernard'];
-
-    final phases = ProjectPhase.values;
-    final interventionTypes = ProjetInterventionType.values;
-    final statuses = [
-      ProjectStatus.termine,
-      ProjectStatus.termine,
-      ProjectStatus.enCours,
-      ProjectStatus.enAttenteValidation,
-    ];
-
-    // Générer 30 projets sur les 6 derniers mois
-    for (int i = 0; i < 30; i++) {
-      final daysAgo = (i * 6).round();
-      final interventionDate = now.subtract(Duration(days: daysAgo));
-      final startTime = DateTime(
-        interventionDate.year,
-        interventionDate.month,
-        interventionDate.day,
-        9,
-        0,
-      );
-      final endTime = startTime.add(Duration(hours: 2 + (i % 4)));
-
-      final siteData = sites[i % sites.length];
-      final technician = technicians[i % technicians.length];
-
-      projets.add(
-        CriProjetModel(
-          id: 'projet_$i',
-          interventionDate: interventionDate,
-          startTime: startTime,
-          endTime: endTime,
-          clientName: siteData.$2,
-          site: siteData.$1,
-          address: '${i * 5} Boulevard Projet, 69001 Lyon',
-          clientContact: 'Chef Projet ${i % 5}',
-          phone: '04 56 78 90 ${(i % 100).toString().padLeft(2, '0')}',
-          email: 'projet$i@client.fr',
-          projectName: 'Projet Installation #$i',
-          projectNumber:
-              'PRJ-${now.year}-${(i + 1).toString().padLeft(3, '0')}',
-          projectPhase: phases[i % phases.length],
-          interventionType: interventionTypes[i % interventionTypes.length],
-          workDescription: 'Description des travaux pour le projet #$i',
-          materialsUsed: 'Matériaux utilisés #$i',
-          problemsEncountered: i % 3 == 0 ? 'Problèmes rencontrés #$i' : null,
-          solutionsProvided: i % 3 == 0 ? 'Solutions apportées #$i' : null,
-          actionsToDo: i % 2 == 0 ? 'Actions à faire #$i' : null,
-          projectStatus: statuses[i % statuses.length],
-          technicianName: technician,
-          createdAt: interventionDate,
-          isDraft: false,
-          syncStatus: 'synced',
-        ),
-      );
-    }
-
-    return projets;
   }
 
   /// Efface le cache pour forcer un rechargement

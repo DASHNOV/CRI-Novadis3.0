@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/features/auth/login_screen.dart';
+import 'package:novadis_cri/features/auth/otp_verification_screen.dart';
 import 'package:novadis_cri/features/home/home_page.dart';
 import 'package:novadis_cri/features/dashboard/pages/main_dashboard_page.dart';
 import 'package:novadis_cri/features/dashboard/pages/site_dashboard_page.dart';
@@ -29,6 +30,7 @@ class AppRouter {
   static const String documents = '/documents';
   static const String criSelection = '/documents/selection';
   static const String admin = '/admin';
+  static const String verifyOtp = '/verify-otp';
 
   static final GoRouter router = GoRouter(
     initialLocation: login,
@@ -37,6 +39,14 @@ class AppRouter {
         path: login,
         name: 'login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: verifyOtp,
+        name: 'verify-otp',
+        builder: (context, state) {
+          final email = state.uri.queryParameters['email'] ?? '';
+          return OtpVerificationScreen(email: email);
+        },
       ),
       GoRoute(
         path: home,

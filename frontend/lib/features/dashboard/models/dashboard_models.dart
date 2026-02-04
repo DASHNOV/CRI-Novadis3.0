@@ -134,8 +134,7 @@ class DashboardData {
   final List<TimeEvolutionData> timeEvolution;
   final List<TypeDistributionData> typeDistribution;
   final List<TopSiteData> topSites;
-  final List<dynamic>
-  recentInterventions; // Using dynamic to avoid further missing models
+  final List<RecentIntervention> recentInterventions;
   final DateTime lastUpdated;
 
   const DashboardData({
@@ -331,5 +330,26 @@ class SiteInterventionItem {
     required this.status,
     this.source,
     required this.durationMinutes,
+  });
+}
+
+/// Modèle pour une intervention récente sur le Dashboard
+class RecentIntervention {
+  final String id;
+  final String technicianName;
+  final DateTime date;
+  final int durationMinutes;
+  final String status;
+  final String type;
+  final String source; // 'service' ou 'projet'
+
+  const RecentIntervention({
+    required this.id,
+    required this.technicianName,
+    required this.date,
+    required this.durationMinutes,
+    required this.status,
+    required this.type,
+    required this.source,
   });
 }

@@ -2,10 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 import 'package:novadis_cri/features/dashboard/repositories/dashboard_repository.dart';
+import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
+import 'package:novadis_cri/data/local/app_database.dart';
 
 /// Provider pour le repository dashboard
 final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
-  return DashboardRepository();
+  return DashboardRepository(
+    ref.read(criRemoteRepositoryProvider),
+    ref.read(appDatabaseProvider),
+  );
 });
 
 /// Provider pour la période sélectionnée

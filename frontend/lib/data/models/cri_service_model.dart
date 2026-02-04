@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:novadis_cri/data/local/tables/cri_service_table.dart';
 import 'package:novadis_cri/data/local/app_database.dart';
+import 'package:drift/drift.dart';
 
 /// Modèle de données pour un CRI Service
 class CriServiceModel {
@@ -240,6 +241,45 @@ class CriServiceModel {
       'syncStatus': syncStatus,
       'isDraft': isDraft,
     };
+  }
+
+  /// Convertit pour insertion dans la base Drift
+  CriServiceTableCompanion toDb() {
+    return CriServiceTableCompanion(
+      id: Value(id),
+      interventionDate: Value(interventionDate),
+      startTime: Value(startTime),
+      endTime: Value(endTime),
+      ticketNumber: Value(ticketNumber),
+      clientName: Value(clientName),
+      site: Value(site),
+      address: Value(address),
+      clientContact: Value(clientContact),
+      phone: Value(phone),
+      email: Value(email),
+      requestType: Value(requestType.name),
+      priority: Value(priority.name),
+      requestDescription: Value(requestDescription),
+      diagnosticPerformed: Value(diagnosticPerformed),
+      identifiedCause: Value(identifiedCause),
+      actionsPerformed: Value(actionsPerformed),
+      replacedParts: Value(replacedParts),
+      interventionDurationMinutes: Value(interventionDurationMinutes),
+      resolutionStatus: Value(resolutionStatus.name),
+      testsPerformed: Value(testsPerformed),
+      recommendations: Value(recommendations),
+      additionalInterventionRequired: Value(additionalInterventionRequired),
+      followUpDate: Value(followUpDate),
+      followUpComments: Value(followUpComments),
+      photos: Value(jsonEncode(photos)),
+      technicianName: Value(technicianName),
+      technicianSignature: Value(technicianSignature),
+      clientSignature: Value(clientSignature),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      syncStatus: Value(syncStatus),
+      isDraft: Value(isDraft),
+    );
   }
 
   factory CriServiceModel.fromDb(CriService db) {
