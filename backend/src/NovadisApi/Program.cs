@@ -72,6 +72,7 @@ builder.Services.AddAuthorization(options =>
 // 3️⃣ CONFIGURATION CORS
 // ========================================
 builder.Services.AddCors(options => {
+    // Politique pour le développement local
     options.AddPolicy("DevCorsPolicy", policy => {
         policy
             .WithOrigins(
@@ -84,6 +85,14 @@ builder.Services.AddCors(options => {
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
+    });
+
+    // ✅ Politique pour l'application mobile sur le réseau local
+    options.AddPolicy("AllowMobileApp", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
@@ -158,15 +167,24 @@ if (builder.Environment.IsProduction())
 }
 
 // ========================================
-// 7️⃣ CONSTRUCTION DE L'APPLICATION
+// 7️⃣ CONFIGURATION RÉSEAU & HEALTH CHECKS
 // ========================================
-// ✅ Configuration réseau pour développement
-if (builder.Environment.IsDevelopment())
-{
-    builder.WebHost.UseUrls("http://0.0.0.0:5245", "https://0.0.0.0:7245");
-}
+// ✅ Forcer l'écoute sur toutes les interfaces pour l'accès réseau local
+builder.WebHost.UseUrls("http://0.0.0.0:5000", "https://0.0.0.0:5001");
+
+// ✅ Ajouter les health checks
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
+
+// ✅ Middleware de logging des requêtes (pour le débogage réseau)
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation($"Requête entrante: {context.Request.Method} {context.Request.Path} depuis {context.Connection.RemoteIpAddress}");
+    await next.Invoke();
+    logger.LogInformation($"Réponse: {context.Response.StatusCode}");
+});
 
 // ========================================
 // 8️⃣ MIDDLEWARE PIPELINE
@@ -187,7 +205,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 // ✅ Activer CORS (AVANT UseAuthorization)
-app.UseCors("DevCorsPolicy");
+app.UseCors("AllowMobileApp");
 
 // Authentication & Authorization
 app.UseAuthentication();
@@ -195,6 +213,9 @@ app.UseAuthorization();
 
 // Controllers
 app.MapControllers();
+
+// ✅ Endpoint de santé
+app.MapHealthChecks("/api/health");
 
 // ========================================
 // 9️⃣ MIGRATION AUTOMATIQUE (DEV ONLY)
