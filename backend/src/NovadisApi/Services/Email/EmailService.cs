@@ -129,6 +129,14 @@ namespace NovadisApi.Services.Email
         {
             try
             {
+                // En mode développement, on peut rediriger tous les emails vers une boîte de test
+                var devOverrideEmail = _configuration["Email:DevOverrideEmail"];
+                if (_env.IsDevelopment() && !string.IsNullOrEmpty(devOverrideEmail))
+                {
+                    _logger.LogInformation("🔄 [DEV MODE] Redirection de l'email de {OriginalTo} vers {OverrideTo}", toEmail, devOverrideEmail);
+                    toEmail = devOverrideEmail;
+                }
+
                 var smtpHost = _configuration["Email:SmtpHost"];
                 if (string.IsNullOrEmpty(smtpHost))
                 {

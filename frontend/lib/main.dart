@@ -7,19 +7,12 @@ import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Chargement des variables d'environnement
   await dotenv.load(fileName: ".env");
-
-  // Initialisation de Supabase
-  await Supabase.initialize(
-    url: dotenv.env['EXPO_PUBLIC_SUPABASE_URL']!,
-    anonKey: dotenv.env['EXPO_PUBLIC_SUPABASE_ANON_KEY']!,
-  );
 
   SchedulerBinding.instance.addTimingsCallback((timings) {
     for (final timing in timings) {
