@@ -77,9 +77,11 @@ namespace NovadisApi.Data
                 entity.HasIndex(e => e.CreatedAt);
                 
                 entity.HasOne(e => e.Technician)
-                    .WithMany()
+                    .WithMany(u => u.CRIForms)
                     .HasForeignKey(e => e.TechnicianId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.Property(e => e.Duration).HasPrecision(18, 2);
             });
 
             // Configuration CRIPhoto
@@ -102,7 +104,7 @@ namespace NovadisApi.Data
                 entity.HasIndex(e => e.CreatedAt);
                 
                 entity.HasOne(e => e.User)
-                    .WithMany()
+                    .WithMany(u => u.AuditLogs)
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.SetNull);
             });

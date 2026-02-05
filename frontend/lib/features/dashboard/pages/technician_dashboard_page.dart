@@ -84,8 +84,9 @@ class _TechnicianDashboardPageState
 
                       techStatsAsync.when(
                         data: (stats) {
-                          if (stats == null)
+                          if (stats == null) {
                             return const Center(child: Text("Pas de données"));
+                          }
                           return Column(
                             children: [
                               // 1. Informations sur les sites affectés & Interventions réalisées

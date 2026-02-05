@@ -29,8 +29,15 @@ namespace NovadisApi.Controllers
             if (!Guid.TryParse(userIdStr, out var userId))
                 return Unauthorized(ApiResponse<IEnumerable<CRIForm>>.ErrorResponse("Utilisateur non identifié"));
 
-            var cris = await _context.CRIForms
-                .Where(c => c.TechnicianId == userId)
+            IQueryable<CRIForm> query = _context.CRIForms;
+            
+            // Si ce n'est pas un admin, on ne montre que ses propres CRIs
+            if (!User.IsInRole("Admin"))
+            {
+                query = query.Where(c => c.TechnicianId == userId);
+            }
+
+            var cris = await query
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
 

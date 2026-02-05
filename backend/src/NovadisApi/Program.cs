@@ -111,7 +111,11 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 // ========================================
 // 5️⃣ CONFIGURATION SWAGGER
 // ========================================
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -227,9 +231,9 @@ if (app.Environment.IsDevelopment())
     
     try
     {
-        app.Logger.LogInformation("Applying database migrations...");
-        dbContext.Database.Migrate();
-        app.Logger.LogInformation("Database migrations applied successfully");
+        app.Logger.LogInformation("Skipping automatic migrations (already handled manually)...");
+        // dbContext.Database.Migrate();
+        // app.Logger.LogInformation("Database migrations applied successfully");
     }
     catch (Exception ex)
     {

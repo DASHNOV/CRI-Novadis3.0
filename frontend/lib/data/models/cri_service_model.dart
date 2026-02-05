@@ -350,7 +350,9 @@ class CriServiceModel {
       testsPerformed: json['testsPerformed'] as String?,
       recommendations: json['recommendations'] as String?,
       additionalInterventionRequired:
-          json['additionalInterventionRequired'] as bool? ?? false,
+          json['additionalInterventionRequired'] is int
+          ? (json['additionalInterventionRequired'] as int) == 1
+          : json['additionalInterventionRequired'] as bool? ?? false,
       followUpDate: json['followUpDate'] != null
           ? DateTime.parse(json['followUpDate'] as String)
           : null,
@@ -366,7 +368,9 @@ class CriServiceModel {
           ? DateTime.parse(json['updatedAt'] as String)
           : null,
       syncStatus: json['syncStatus'] as String? ?? 'pending',
-      isDraft: json['isDraft'] as bool? ?? true,
+      isDraft: json['isDraft'] is int
+          ? (json['isDraft'] as int) == 1
+          : json['isDraft'] as bool? ?? true,
     );
   }
 
