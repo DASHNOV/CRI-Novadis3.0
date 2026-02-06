@@ -38,8 +38,9 @@ class AppDatabase extends _$AppDatabase {
     return into(criServiceTable).insert(cri);
   }
 
-  Future<bool> updateCriService(CriServiceTableCompanion cri) {
-    return update(criServiceTable).replace(cri);
+  Future<bool> updateCriService(CriServiceTableCompanion cri) async {
+    await into(criServiceTable).insertOnConflictUpdate(cri);
+    return true;
   }
 
   // CRI Projet Methods
@@ -55,8 +56,9 @@ class AppDatabase extends _$AppDatabase {
     return into(criProjetTable).insert(cri);
   }
 
-  Future<bool> updateCriProjet(CriProjetTableCompanion cri) {
-    return update(criProjetTable).replace(cri);
+  Future<bool> updateCriProjet(CriProjetTableCompanion cri) async {
+    await into(criProjetTable).insertOnConflictUpdate(cri);
+    return true;
   }
 
   // Exported Document Methods
