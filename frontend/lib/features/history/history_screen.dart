@@ -1,22 +1,77 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:novadis_cri/data/models/cri_model.dart';
-import 'package:novadis_cri/data/local/local_storage_service.dart';
+import 'package:novadis_cri/data/local/app_database.dart';
 
 /// Écran d'historique des CRI
 /// Affiche la liste de tous les comptes rendus d'intervention
-class HistoryScreen extends HookWidget {
+// Providers pour les flux de données réactifs
+final criServicesStreamProvider = StreamProvider.autoDispose((ref) {
+  return ref.watch(appDatabaseProvider).watchAllCriService();
+});
+
+final criProjectsStreamProvider = StreamProvider.autoDispose((ref) {
+  return ref.watch(appDatabaseProvider).watchAllCriProjet();
+});
+
+final historyListProvider = Provider.autoDispose<List<CriModel>>((ref) {
+  final services = ref.watch(criServicesStreamProvider).valueOrNull ?? [];
+  final projects = ref.watch(criProjectsStreamProvider).valueOrNull ?? [];
+
+  final all = <CriModel>[];
+
+  // Mapping des services
+  for (var s in services) {
+    all.add(
+      CriModel(
+        id: s.id,
+        client: s.clientName,
+        site: s.site,
+        typeIntervention: s.requestType,
+        description: s.requestDescription,
+        date: s.interventionDate,
+        createdAt: s.createdAt,
+      ),
+    );
+  }
+
+  // Mapping des projets
+  for (var p in projects) {
+    all.add(
+      CriModel(
+        id: p.id,
+        client: p.clientName,
+        site: p.site,
+        typeIntervention: 'Projet: ${p.interventionType}',
+        description: p.workDescription,
+        date: p.interventionDate,
+        createdAt: p.createdAt,
+      ),
+    );
+  }
+
+  // Tri par date de création décroissante
+  all.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  return all;
+});
+
+class HistoryScreen extends HookConsumerWidget {
   const HistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final storageService = useMemoized(() => LocalStorageService());
-    final criListFuture = useMemoized(() => storageService.getAllCri());
-    final refreshKey = useState(0);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final db = ref.watch(appDatabaseProvider);
+    final criList = ref.watch(historyListProvider);
+    final isLoading =
+        ref.watch(criServicesStreamProvider).isLoading &&
+        ref.watch(criProjectsStreamProvider).isLoading;
 
     Future<void> handleRefresh() async {
-      refreshKey.value++;
+      // Pour l'instant, le rafraîchissement est automatique via les Streams.
+      // On pourrait ajouter ici une synchro avec le serveur.
+      await Future.delayed(const Duration(milliseconds: 500));
     }
 
     Future<void> handleDelete(String id) async {
@@ -40,20 +95,26 @@ class HistoryScreen extends HookWidget {
       );
 
       if (confirmed == true) {
-        final success = await storageService.deleteCri(id);
+        // Tentative de suppression (on essaie les deux tables car on a juste l'ID)
+        int deleted = await db.deleteCriService(id);
+        if (deleted == 0) {
+          deleted = await db.deleteCriProjet(id);
+        }
+
         if (context.mounted) {
-          if (success) {
+          if (deleted > 0) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('CRI supprimé'),
                 backgroundColor: Colors.green,
               ),
             );
-            handleRefresh();
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Erreur lors de la suppression'),
+                content: Text(
+                  'Erreur lors de la suppression ou CRI introuvable',
+                ),
                 backgroundColor: Colors.red,
               ),
             );
@@ -118,37 +179,11 @@ class HistoryScreen extends HookWidget {
           ),
         ],
       ),
-      body: FutureBuilder<List<CriModel>>(
-        key: ValueKey(refreshKey.value),
-        future: criListFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Builder(
+        builder: (context) {
+          if (isLoading && criList.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Erreur de chargement',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    snapshot.error.toString(),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final criList = snapshot.data ?? [];
 
           if (criList.isEmpty) {
             return Center(

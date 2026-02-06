@@ -27,6 +27,8 @@ class AppDatabase extends _$AppDatabase {
 
   // CRI Service Methods
   Future<List<CriService>> getAllCriService() => select(criServiceTable).get();
+  Stream<List<CriService>> watchAllCriService() =>
+      select(criServiceTable).watch();
 
   Future<CriService?> getCriServiceById(String id) {
     return (select(
@@ -45,6 +47,7 @@ class AppDatabase extends _$AppDatabase {
 
   // CRI Projet Methods
   Future<List<CriProjet>> getAllCriProjet() => select(criProjetTable).get();
+  Stream<List<CriProjet>> watchAllCriProjet() => select(criProjetTable).watch();
 
   Future<CriProjet?> getCriProjetById(String id) {
     return (select(
@@ -59,6 +62,15 @@ class AppDatabase extends _$AppDatabase {
   Future<bool> updateCriProjet(CriProjetTableCompanion cri) async {
     await into(criProjetTable).insertOnConflictUpdate(cri);
     return true;
+  }
+
+  Future<int> deleteCriProjet(String id) {
+    return (delete(criProjetTable)..where((t) => t.id.equals(id))).go();
+  }
+
+  // CRI Service Delete Method
+  Future<int> deleteCriService(String id) {
+    return (delete(criServiceTable)..where((t) => t.id.equals(id))).go();
   }
 
   // Exported Document Methods
