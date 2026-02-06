@@ -39,6 +39,7 @@ class CriServiceModel {
   final ResolutionStatus resolutionStatus;
   final String? testsPerformed;
   final String? recommendations;
+  final String? cybersecurityRecommendations;
 
   // Section 7: Suivi
   final bool additionalInterventionRequired;
@@ -80,6 +81,7 @@ class CriServiceModel {
     required this.resolutionStatus,
     this.testsPerformed,
     this.recommendations,
+    this.cybersecurityRecommendations,
     this.additionalInterventionRequired = false,
     this.followUpDate,
     this.followUpComments,
@@ -153,6 +155,7 @@ class CriServiceModel {
     ResolutionStatus? resolutionStatus,
     String? testsPerformed,
     String? recommendations,
+    String? cybersecurityRecommendations,
     bool? additionalInterventionRequired,
     DateTime? followUpDate,
     String? followUpComments,
@@ -189,6 +192,8 @@ class CriServiceModel {
       resolutionStatus: resolutionStatus ?? this.resolutionStatus,
       testsPerformed: testsPerformed ?? this.testsPerformed,
       recommendations: recommendations ?? this.recommendations,
+      cybersecurityRecommendations:
+          cybersecurityRecommendations ?? this.cybersecurityRecommendations,
       additionalInterventionRequired:
           additionalInterventionRequired ?? this.additionalInterventionRequired,
       followUpDate: followUpDate ?? this.followUpDate,
@@ -229,6 +234,7 @@ class CriServiceModel {
       'resolutionStatus': resolutionStatus.name,
       'testsPerformed': testsPerformed,
       'recommendations': recommendations,
+      'cybersecurityRecommendations': cybersecurityRecommendations,
       'additionalInterventionRequired': additionalInterventionRequired,
       'followUpDate': followUpDate?.toIso8601String(),
       'followUpComments': followUpComments,
@@ -268,6 +274,7 @@ class CriServiceModel {
       resolutionStatus: Value(resolutionStatus.name),
       testsPerformed: Value(testsPerformed),
       recommendations: Value(recommendations),
+      cybersecurityRecommendations: Value(cybersecurityRecommendations),
       additionalInterventionRequired: Value(additionalInterventionRequired),
       followUpDate: Value(followUpDate),
       followUpComments: Value(followUpComments),
@@ -306,6 +313,7 @@ class CriServiceModel {
       resolutionStatus: ResolutionStatus.fromString(db.resolutionStatus),
       testsPerformed: db.testsPerformed,
       recommendations: db.recommendations,
+      cybersecurityRecommendations: db.cybersecurityRecommendations,
       additionalInterventionRequired: db.additionalInterventionRequired,
       followUpDate: db.followUpDate,
       followUpComments: db.followUpComments,
@@ -349,6 +357,8 @@ class CriServiceModel {
       ),
       testsPerformed: json['testsPerformed'] as String?,
       recommendations: json['recommendations'] as String?,
+      cybersecurityRecommendations:
+          json['cybersecurityRecommendations'] as String?,
       additionalInterventionRequired:
           json['additionalInterventionRequired'] is int
           ? (json['additionalInterventionRequired'] as int) == 1

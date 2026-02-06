@@ -569,7 +569,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             name: 'projectNumber',
             initialValue: state.currentCri?.projectNumber ?? '',
             decoration: InputDecoration(
-              hintText: 'Numéro de projet',
+              hintText: 'PRJ-YYYY-NNN',
               prefixIcon: const Icon(Icons.tag),
               helperText: 'Format: PRJ-YYYY-NNN',
               suffixIcon: Tooltip(
@@ -865,8 +865,23 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             decoration: const InputDecoration(
               hintText: 'Nom du technicien',
               prefixIcon: Icon(Icons.person),
+              helperText: 'Format: Prénom Nom',
             ),
-            enabled: false, // Pré-rempli
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Nom requis';
+              }
+              if (state.knownTechnicians.isNotEmpty &&
+                  !state.knownTechnicians.contains(value)) {
+                return 'Technicien inconnu dans la base';
+              }
+              return null;
+            },
+            onChanged: (value) {
+              ref
+                  .read(criProjetFormProvider.notifier)
+                  .updateTechnicianInfo(technicianName: value);
+            },
           ),
           const SizedBox(height: 24),
           SignaturePadWidget(

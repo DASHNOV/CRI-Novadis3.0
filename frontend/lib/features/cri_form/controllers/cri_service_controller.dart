@@ -175,6 +175,7 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     ResolutionStatus? resolutionStatus,
     String? testsPerformed,
     String? recommendations,
+    String? cybersecurityRecommendations,
     String? interventionStatus,
     List<dynamic>? fraisSupplementaires,
   }) {
@@ -184,6 +185,7 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
         resolutionStatus: resolutionStatus,
         testsPerformed: testsPerformed,
         recommendations: recommendations,
+        cybersecurityRecommendations: cybersecurityRecommendations,
       ),
       isDirty: true,
     );

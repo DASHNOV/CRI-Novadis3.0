@@ -256,6 +256,17 @@ class $CriServiceTableTable extends CriServiceTable
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _cybersecurityRecommendationsMeta =
+      const VerificationMeta('cybersecurityRecommendations');
+  @override
+  late final GeneratedColumn<String> cybersecurityRecommendations =
+      GeneratedColumn<String>(
+        'cybersecurity_recommendations',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _additionalInterventionRequiredMeta =
       const VerificationMeta('additionalInterventionRequired');
   @override
@@ -409,6 +420,7 @@ class $CriServiceTableTable extends CriServiceTable
     resolutionStatus,
     testsPerformed,
     recommendations,
+    cybersecurityRecommendations,
     additionalInterventionRequired,
     followUpDate,
     followUpComments,
@@ -627,6 +639,15 @@ class $CriServiceTableTable extends CriServiceTable
         ),
       );
     }
+    if (data.containsKey('cybersecurity_recommendations')) {
+      context.handle(
+        _cybersecurityRecommendationsMeta,
+        cybersecurityRecommendations.isAcceptableOrUnknown(
+          data['cybersecurity_recommendations']!,
+          _cybersecurityRecommendationsMeta,
+        ),
+      );
+    }
     if (data.containsKey('additional_intervention_required')) {
       context.handle(
         _additionalInterventionRequiredMeta,
@@ -810,6 +831,10 @@ class $CriServiceTableTable extends CriServiceTable
         DriftSqlType.string,
         data['${effectivePrefix}recommendations'],
       ),
+      cybersecurityRecommendations: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cybersecurity_recommendations'],
+      ),
       additionalInterventionRequired: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}additional_intervention_required'],
@@ -886,6 +911,7 @@ class CriService extends DataClass implements Insertable<CriService> {
   final String resolutionStatus;
   final String? testsPerformed;
   final String? recommendations;
+  final String? cybersecurityRecommendations;
   final bool additionalInterventionRequired;
   final DateTime? followUpDate;
   final String? followUpComments;
@@ -920,6 +946,7 @@ class CriService extends DataClass implements Insertable<CriService> {
     required this.resolutionStatus,
     this.testsPerformed,
     this.recommendations,
+    this.cybersecurityRecommendations,
     required this.additionalInterventionRequired,
     this.followUpDate,
     this.followUpComments,
@@ -976,6 +1003,11 @@ class CriService extends DataClass implements Insertable<CriService> {
     }
     if (!nullToAbsent || recommendations != null) {
       map['recommendations'] = Variable<String>(recommendations);
+    }
+    if (!nullToAbsent || cybersecurityRecommendations != null) {
+      map['cybersecurity_recommendations'] = Variable<String>(
+        cybersecurityRecommendations,
+      );
     }
     map['additional_intervention_required'] = Variable<bool>(
       additionalInterventionRequired,
@@ -1047,6 +1079,10 @@ class CriService extends DataClass implements Insertable<CriService> {
       recommendations: recommendations == null && nullToAbsent
           ? const Value.absent()
           : Value(recommendations),
+      cybersecurityRecommendations:
+          cybersecurityRecommendations == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cybersecurityRecommendations),
       additionalInterventionRequired: Value(additionalInterventionRequired),
       followUpDate: followUpDate == null && nullToAbsent
           ? const Value.absent()
@@ -1107,6 +1143,9 @@ class CriService extends DataClass implements Insertable<CriService> {
       resolutionStatus: serializer.fromJson<String>(json['resolutionStatus']),
       testsPerformed: serializer.fromJson<String?>(json['testsPerformed']),
       recommendations: serializer.fromJson<String?>(json['recommendations']),
+      cybersecurityRecommendations: serializer.fromJson<String?>(
+        json['cybersecurityRecommendations'],
+      ),
       additionalInterventionRequired: serializer.fromJson<bool>(
         json['additionalInterventionRequired'],
       ),
@@ -1152,6 +1191,9 @@ class CriService extends DataClass implements Insertable<CriService> {
       'resolutionStatus': serializer.toJson<String>(resolutionStatus),
       'testsPerformed': serializer.toJson<String?>(testsPerformed),
       'recommendations': serializer.toJson<String?>(recommendations),
+      'cybersecurityRecommendations': serializer.toJson<String?>(
+        cybersecurityRecommendations,
+      ),
       'additionalInterventionRequired': serializer.toJson<bool>(
         additionalInterventionRequired,
       ),
@@ -1191,6 +1233,7 @@ class CriService extends DataClass implements Insertable<CriService> {
     String? resolutionStatus,
     Value<String?> testsPerformed = const Value.absent(),
     Value<String?> recommendations = const Value.absent(),
+    Value<String?> cybersecurityRecommendations = const Value.absent(),
     bool? additionalInterventionRequired,
     Value<DateTime?> followUpDate = const Value.absent(),
     Value<String?> followUpComments = const Value.absent(),
@@ -1238,6 +1281,9 @@ class CriService extends DataClass implements Insertable<CriService> {
     recommendations: recommendations.present
         ? recommendations.value
         : this.recommendations,
+    cybersecurityRecommendations: cybersecurityRecommendations.present
+        ? cybersecurityRecommendations.value
+        : this.cybersecurityRecommendations,
     additionalInterventionRequired:
         additionalInterventionRequired ?? this.additionalInterventionRequired,
     followUpDate: followUpDate.present ? followUpDate.value : this.followUpDate,
@@ -1309,6 +1355,9 @@ class CriService extends DataClass implements Insertable<CriService> {
       recommendations: data.recommendations.present
           ? data.recommendations.value
           : this.recommendations,
+      cybersecurityRecommendations: data.cybersecurityRecommendations.present
+          ? data.cybersecurityRecommendations.value
+          : this.cybersecurityRecommendations,
       additionalInterventionRequired:
           data.additionalInterventionRequired.present
           ? data.additionalInterventionRequired.value
@@ -1364,6 +1413,9 @@ class CriService extends DataClass implements Insertable<CriService> {
           ..write('testsPerformed: $testsPerformed, ')
           ..write('recommendations: $recommendations, ')
           ..write(
+            'cybersecurityRecommendations: $cybersecurityRecommendations, ',
+          )
+          ..write(
             'additionalInterventionRequired: $additionalInterventionRequired, ',
           )
           ..write('followUpDate: $followUpDate, ')
@@ -1404,6 +1456,7 @@ class CriService extends DataClass implements Insertable<CriService> {
     resolutionStatus,
     testsPerformed,
     recommendations,
+    cybersecurityRecommendations,
     additionalInterventionRequired,
     followUpDate,
     followUpComments,
@@ -1443,6 +1496,8 @@ class CriService extends DataClass implements Insertable<CriService> {
           other.resolutionStatus == this.resolutionStatus &&
           other.testsPerformed == this.testsPerformed &&
           other.recommendations == this.recommendations &&
+          other.cybersecurityRecommendations ==
+              this.cybersecurityRecommendations &&
           other.additionalInterventionRequired ==
               this.additionalInterventionRequired &&
           other.followUpDate == this.followUpDate &&
@@ -1480,6 +1535,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
   final Value<String> resolutionStatus;
   final Value<String?> testsPerformed;
   final Value<String?> recommendations;
+  final Value<String?> cybersecurityRecommendations;
   final Value<bool> additionalInterventionRequired;
   final Value<DateTime?> followUpDate;
   final Value<String?> followUpComments;
@@ -1515,6 +1571,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     this.resolutionStatus = const Value.absent(),
     this.testsPerformed = const Value.absent(),
     this.recommendations = const Value.absent(),
+    this.cybersecurityRecommendations = const Value.absent(),
     this.additionalInterventionRequired = const Value.absent(),
     this.followUpDate = const Value.absent(),
     this.followUpComments = const Value.absent(),
@@ -1551,6 +1608,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     required String resolutionStatus,
     this.testsPerformed = const Value.absent(),
     this.recommendations = const Value.absent(),
+    this.cybersecurityRecommendations = const Value.absent(),
     this.additionalInterventionRequired = const Value.absent(),
     this.followUpDate = const Value.absent(),
     this.followUpComments = const Value.absent(),
@@ -1600,6 +1658,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     Expression<String>? resolutionStatus,
     Expression<String>? testsPerformed,
     Expression<String>? recommendations,
+    Expression<String>? cybersecurityRecommendations,
     Expression<bool>? additionalInterventionRequired,
     Expression<DateTime>? followUpDate,
     Expression<String>? followUpComments,
@@ -1638,6 +1697,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
       if (resolutionStatus != null) 'resolution_status': resolutionStatus,
       if (testsPerformed != null) 'tests_performed': testsPerformed,
       if (recommendations != null) 'recommendations': recommendations,
+      if (cybersecurityRecommendations != null)
+        'cybersecurity_recommendations': cybersecurityRecommendations,
       if (additionalInterventionRequired != null)
         'additional_intervention_required': additionalInterventionRequired,
       if (followUpDate != null) 'follow_up_date': followUpDate,
@@ -1678,6 +1739,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     Value<String>? resolutionStatus,
     Value<String?>? testsPerformed,
     Value<String?>? recommendations,
+    Value<String?>? cybersecurityRecommendations,
     Value<bool>? additionalInterventionRequired,
     Value<DateTime?>? followUpDate,
     Value<String?>? followUpComments,
@@ -1715,6 +1777,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
       resolutionStatus: resolutionStatus ?? this.resolutionStatus,
       testsPerformed: testsPerformed ?? this.testsPerformed,
       recommendations: recommendations ?? this.recommendations,
+      cybersecurityRecommendations:
+          cybersecurityRecommendations ?? this.cybersecurityRecommendations,
       additionalInterventionRequired:
           additionalInterventionRequired ?? this.additionalInterventionRequired,
       followUpDate: followUpDate ?? this.followUpDate,
@@ -1802,6 +1866,11 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     if (recommendations.present) {
       map['recommendations'] = Variable<String>(recommendations.value);
     }
+    if (cybersecurityRecommendations.present) {
+      map['cybersecurity_recommendations'] = Variable<String>(
+        cybersecurityRecommendations.value,
+      );
+    }
     if (additionalInterventionRequired.present) {
       map['additional_intervention_required'] = Variable<bool>(
         additionalInterventionRequired.value,
@@ -1868,6 +1937,9 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
           ..write('resolutionStatus: $resolutionStatus, ')
           ..write('testsPerformed: $testsPerformed, ')
           ..write('recommendations: $recommendations, ')
+          ..write(
+            'cybersecurityRecommendations: $cybersecurityRecommendations, ',
+          )
           ..write(
             'additionalInterventionRequired: $additionalInterventionRequired, ',
           )
@@ -4242,6 +4314,7 @@ typedef $$CriServiceTableTableCreateCompanionBuilder =
       required String resolutionStatus,
       Value<String?> testsPerformed,
       Value<String?> recommendations,
+      Value<String?> cybersecurityRecommendations,
       Value<bool> additionalInterventionRequired,
       Value<DateTime?> followUpDate,
       Value<String?> followUpComments,
@@ -4279,6 +4352,7 @@ typedef $$CriServiceTableTableUpdateCompanionBuilder =
       Value<String> resolutionStatus,
       Value<String?> testsPerformed,
       Value<String?> recommendations,
+      Value<String?> cybersecurityRecommendations,
       Value<bool> additionalInterventionRequired,
       Value<DateTime?> followUpDate,
       Value<String?> followUpComments,
@@ -4409,6 +4483,11 @@ class $$CriServiceTableTableFilterComposer
 
   ColumnFilters<String> get recommendations => $composableBuilder(
     column: $table.recommendations,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cybersecurityRecommendations => $composableBuilder(
+    column: $table.cybersecurityRecommendations,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4587,6 +4666,12 @@ class $$CriServiceTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get cybersecurityRecommendations =>
+      $composableBuilder(
+        column: $table.cybersecurityRecommendations,
+        builder: (column) => ColumnOrderings(column),
+      );
+
   ColumnOrderings<bool> get additionalInterventionRequired =>
       $composableBuilder(
         column: $table.additionalInterventionRequired,
@@ -4747,6 +4832,12 @@ class $$CriServiceTableTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get cybersecurityRecommendations =>
+      $composableBuilder(
+        column: $table.cybersecurityRecommendations,
+        builder: (column) => column,
+      );
+
   GeneratedColumn<bool> get additionalInterventionRequired =>
       $composableBuilder(
         column: $table.additionalInterventionRequired,
@@ -4851,6 +4942,8 @@ class $$CriServiceTableTableTableManager
                 Value<String> resolutionStatus = const Value.absent(),
                 Value<String?> testsPerformed = const Value.absent(),
                 Value<String?> recommendations = const Value.absent(),
+                Value<String?> cybersecurityRecommendations =
+                    const Value.absent(),
                 Value<bool> additionalInterventionRequired =
                     const Value.absent(),
                 Value<DateTime?> followUpDate = const Value.absent(),
@@ -4887,6 +4980,7 @@ class $$CriServiceTableTableTableManager
                 resolutionStatus: resolutionStatus,
                 testsPerformed: testsPerformed,
                 recommendations: recommendations,
+                cybersecurityRecommendations: cybersecurityRecommendations,
                 additionalInterventionRequired: additionalInterventionRequired,
                 followUpDate: followUpDate,
                 followUpComments: followUpComments,
@@ -4924,6 +5018,8 @@ class $$CriServiceTableTableTableManager
                 required String resolutionStatus,
                 Value<String?> testsPerformed = const Value.absent(),
                 Value<String?> recommendations = const Value.absent(),
+                Value<String?> cybersecurityRecommendations =
+                    const Value.absent(),
                 Value<bool> additionalInterventionRequired =
                     const Value.absent(),
                 Value<DateTime?> followUpDate = const Value.absent(),
@@ -4960,6 +5056,7 @@ class $$CriServiceTableTableTableManager
                 resolutionStatus: resolutionStatus,
                 testsPerformed: testsPerformed,
                 recommendations: recommendations,
+                cybersecurityRecommendations: cybersecurityRecommendations,
                 additionalInterventionRequired: additionalInterventionRequired,
                 followUpDate: followUpDate,
                 followUpComments: followUpComments,

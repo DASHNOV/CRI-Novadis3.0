@@ -13,6 +13,7 @@ class CriProjetFormState {
   final String? errorMessage;
   final bool isDirty;
   final DateTime? lastAutoSave;
+  final List<String> knownTechnicians;
 
   const CriProjetFormState({
     this.currentCri,
@@ -21,6 +22,7 @@ class CriProjetFormState {
     this.errorMessage,
     this.isDirty = false,
     this.lastAutoSave,
+    this.knownTechnicians = const [],
   });
 
   CriProjetFormState copyWith({
@@ -30,6 +32,7 @@ class CriProjetFormState {
     String? errorMessage,
     bool? isDirty,
     DateTime? lastAutoSave,
+    List<String>? knownTechnicians,
   }) {
     return CriProjetFormState(
       currentCri: currentCri ?? this.currentCri,
@@ -38,6 +41,7 @@ class CriProjetFormState {
       errorMessage: errorMessage,
       isDirty: isDirty ?? this.isDirty,
       lastAutoSave: lastAutoSave ?? this.lastAutoSave,
+      knownTechnicians: knownTechnicians ?? this.knownTechnicians,
     );
   }
 }
@@ -56,6 +60,14 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     final id = _uuid.v4();
     final newCri = CriProjetModel.empty(id: id, technicianName: technicianName);
     state = CriProjetFormState(currentCri: newCri, isDirty: false);
+    loadTechnicians();
+  }
+
+  Future<void> loadTechnicians() async {
+    final technicians = await _remoteRepo.getTechnicians();
+    if (technicians.isNotEmpty) {
+      state = state.copyWith(knownTechnicians: technicians);
+    }
   }
 
   /// Charge un CRI existant pour édition
@@ -69,6 +81,7 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
           currentCri: CriProjetModel.fromDb(dbCri),
           isLoading: false,
         );
+        loadTechnicians();
       } else {
         // Todo: Load from remote if not in local
         state = state.copyWith(
@@ -212,6 +225,14 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     if (state.currentCri == null) return;
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(clientComments: comments),
+      isDirty: true,
+    );
+  }
+
+  void updateTechnicianInfo({String? technicianName}) {
+    if (state.currentCri == null) return;
+    state = state.copyWith(
+      currentCri: state.currentCri!.copyWith(technicianName: technicianName),
       isDirty: true,
     );
   }

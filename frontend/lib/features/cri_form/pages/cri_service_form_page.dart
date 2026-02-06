@@ -54,7 +54,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
   }
 
   void _onStepContinue() {
-    if (_currentStep < 7) {
+    if (_currentStep < 8) {
       setState(() => _currentStep++);
       _autoSave();
     }
@@ -205,6 +205,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             _buildDiagnosticStep(state, theme),
             _buildInterventionStep(state, theme),
             _buildResultStep(state, theme),
+            _buildSecurityStep(state, theme),
             _buildFollowUpStep(state, theme),
             _buildValidationStep(state, theme),
           ],
@@ -823,6 +824,122 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             },
           ),
           const SizedBox(height: 16),
+          Text('Tests effectués', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
+          FormBuilderTextField(
+            name: 'testsPerformed',
+            initialValue: state.currentCri?.testsPerformed ?? '',
+            decoration: const InputDecoration(
+              hintText: 'Tests effectués',
+              prefixIcon: Icon(Icons.science),
+              alignLabelWithHint: true,
+            ),
+            maxLines: 3,
+            textCapitalization: TextCapitalization.sentences,
+            onChanged: (value) {
+              ref
+                  .read(criServiceFormProvider.notifier)
+                  .updateResultInfo(testsPerformed: value);
+            },
+          ),
+          const SizedBox(height: 16),
+          Text('Recommandations', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
+          FormBuilderTextField(
+            name: 'recommendations',
+            initialValue: state.currentCri?.recommendations ?? '',
+            decoration: const InputDecoration(
+              hintText: 'Recommandations',
+              prefixIcon: Icon(Icons.recommend),
+              alignLabelWithHint: true,
+            ),
+            maxLines: 3,
+            textCapitalization: TextCapitalization.sentences,
+            onChanged: (value) {
+              ref
+                  .read(criServiceFormProvider.notifier)
+                  .updateResultInfo(recommendations: value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Section 7: Sécurité
+  Step _buildSecurityStep(CriServiceFormState state, ThemeData theme) {
+    return Step(
+      title: const Text('Sécurité'),
+      subtitle: const Text('Cybersécurité'),
+      isActive: _currentStep >= 6,
+      state: _currentStep > 6 ? StepState.complete : StepState.indexed,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Recommandations Cybersécurité',
+            style: theme.textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          FormBuilderTextField(
+            name: 'cybersecurityRecommendations',
+            initialValue: state.currentCri?.cybersecurityRecommendations ?? '',
+            decoration: const InputDecoration(
+              hintText: 'Suggestions de cybersécurité (optionnel)',
+              prefixIcon: Icon(Icons.security),
+              alignLabelWithHint: true,
+            ),
+            maxLines: 4,
+            textCapitalization: TextCapitalization.sentences,
+            onChanged: (value) {
+              ref
+                  .read(criServiceFormProvider.notifier)
+                  .updateResultInfo(cybersecurityRecommendations: value);
+            },
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Laissez vide si aucune recommandation.',
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Section 8: Suivi
+  Step _buildFollowUpStep(CriServiceFormState state, ThemeData theme) {
+    return Step(
+      title: const Text('Suivi'),
+      subtitle: const Text('Actions et statut'),
+      isActive: _currentStep >= 7,
+      state: _currentStep > 7 ? StepState.complete : StepState.indexed,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Statut de résolution *', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
+          FormBuilderDropdown<ResolutionStatus>(
+            name: 'resolutionStatus',
+            initialValue:
+                state.currentCri?.resolutionStatus ??
+                ResolutionStatus.nonResolu,
+            decoration: const InputDecoration(
+              hintText: 'Statut de résolution',
+              prefixIcon: Icon(Icons.check_circle_outline),
+            ),
+            items: ResolutionStatus.values.map((status) {
+              return DropdownMenuItem(value: status, child: Text(status.label));
+            }).toList(),
+            onChanged: (value) {
+              if (value != null) {
+                ref
+                    .read(criServiceFormProvider.notifier)
+                    .updateResultInfo(resolutionStatus: value);
+              }
+            },
+          ),
+          const SizedBox(height: 16),
           Text('État de l\'intervention *', style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
           FormBuilderDropdown<String>(
@@ -903,24 +1020,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                   .updateResultInfo(recommendations: value);
             },
           ),
-        ],
-      ),
-    );
-  }
-
-  /// Section 7: Suivi
-  Step _buildFollowUpStep(CriServiceFormState state, ThemeData theme) {
-    final showFollowUpFields =
-        state.currentCri?.additionalInterventionRequired ?? false;
-
-    return Step(
-      title: const Text('Suivi'),
-      subtitle: const Text('Intervention supplémentaire'),
-      isActive: _currentStep >= 6,
-      state: _currentStep > 6 ? StepState.complete : StepState.indexed,
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+          const SizedBox(height: 16),
           FormBuilderSwitch(
             name: 'additionalInterventionRequired',
             initialValue:
@@ -933,7 +1033,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                   .updateFollowUpInfo(additionalInterventionRequired: value);
             },
           ),
-          if (showFollowUpFields) ...[
+          if (state.currentCri?.additionalInterventionRequired ?? false) ...[
             const SizedBox(height: 16),
             Text('Date de suivi *', style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
@@ -946,7 +1046,8 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
               ),
               inputType: InputType.date,
               format: DateFormat('dd/MM/yyyy'),
-              validator: showFollowUpFields
+              validator:
+                  (state.currentCri?.additionalInterventionRequired ?? false)
                   ? FormBuilderValidators.required(errorText: 'Date requise')
                   : null,
               onChanged: (value) {
@@ -980,12 +1081,12 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
     );
   }
 
-  /// Section 8: Validation
+  /// Section 9: Validation
   Step _buildValidationStep(CriServiceFormState state, ThemeData theme) {
     return Step(
       title: const Text('Validation'),
-      subtitle: const Text('Signatures et satisfaction'),
-      isActive: _currentStep >= 7,
+      subtitle: const Text('Signatures et photos'),
+      isActive: _currentStep >= 8,
       state: StepState.indexed,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

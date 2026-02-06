@@ -42,6 +42,7 @@ class CriServiceTable extends Table {
   TextColumn get resolutionStatus => text()(); // Enum value
   TextColumn get testsPerformed => text().nullable()();
   TextColumn get recommendations => text().nullable()();
+  TextColumn get cybersecurityRecommendations => text().nullable()();
 
   // Section 7: Suivi
   BoolColumn get additionalInterventionRequired =>

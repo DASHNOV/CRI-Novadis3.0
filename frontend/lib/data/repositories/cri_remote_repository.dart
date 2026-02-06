@@ -97,6 +97,26 @@ class CriRemoteRepository {
     }
   }
 
+  Future<List<String>> getTechnicians() async {
+    try {
+      final response = await _dio.get('/Users/technicians');
+      final List<dynamic> rawData = response.data['data'];
+
+      return rawData
+          .map<String>((e) {
+            final firstName = e['firstName'] ?? '';
+            final lastName = e['lastName'] ?? '';
+            return '$firstName $lastName'.trim();
+          })
+          .where((name) => name.isNotEmpty)
+          .toList();
+    } on DioException catch (_) {
+      // En cas d'erreur (ex: hors ligne), on retourne une liste vide
+      // Idéalement, on devrait cacher cette liste localement
+      return [];
+    }
+  }
+
   String _handleError(DioException e) {
     if (e.response != null && e.response?.data != null) {
       final data = e.response?.data;
