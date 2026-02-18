@@ -146,8 +146,17 @@ namespace NovadisApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during login for {Email}", request.Email);
+                
+                // Return detailed error in logs or dev mode if needed, but for now just tell user it failed
+                // If it's an email failure, it might be helpful to know
+                var message = "Une erreur est survenue. Veuillez réessayer.";
+                if (ex.Message.Contains("SMTP") || ex.Source?.Contains("Net.Mail") == true)
+                {
+                     message = "Erreur lors de l'envoi de l'email. Vérifiez la configuration SMTP.";
+                }
+
                 return StatusCode(500, ApiResponse<object>.ErrorResponse(
-                    "Une erreur est survenue. Veuillez réessayer."
+                   $"{message} (Détail: {ex.Message})"
                 ));
             }
         }

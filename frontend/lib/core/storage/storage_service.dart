@@ -10,6 +10,7 @@ class StorageService {
 
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
+  static const _userRoleKey = 'user_role';
 
   Future<void> saveTokens({
     required String accessToken,
@@ -27,8 +28,17 @@ class StorageService {
     return await _storage.read(key: _refreshTokenKey);
   }
 
+  Future<void> saveUserRole(String role) async {
+    await _storage.write(key: _userRoleKey, value: role);
+  }
+
+  Future<String?> getUserRole() async {
+    return await _storage.read(key: _userRoleKey);
+  }
+
   Future<void> clearTokens() async {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
+    await _storage.delete(key: _userRoleKey);
   }
 }

@@ -44,6 +44,12 @@ class AuthService {
           accessToken: accessToken,
           refreshToken: refreshToken,
         );
+
+        // Save user role for permissions
+        final user = data['user'];
+        if (user != null && user['role'] != null) {
+          await _storage.saveUserRole(user['role']);
+        }
       }
     } on DioException catch (e) {
       throw _handleError(e);
