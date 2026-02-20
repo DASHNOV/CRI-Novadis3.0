@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NovadisApi.Data;
+using NovadisApi.Services;
 using NovadisApi.Services.Auth;
 using NovadisApi.Services.Email;
 using System.Text;
@@ -103,6 +104,7 @@ builder.Services.AddCors(options => {
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICodeGeneratorService, CodeGeneratorService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ISiteSummaryService, SiteSummaryService>();
 
 // Services métier (à ajouter plus tard)
 // builder.Services.AddScoped<ICRIService, CRIService>();
@@ -174,7 +176,7 @@ if (builder.Environment.IsProduction())
 // 7️⃣ CONFIGURATION RÉSEAU & HEALTH CHECKS
 // ========================================
 // ✅ Forcer l'écoute sur toutes les interfaces pour l'accès réseau local
-builder.WebHost.UseUrls("http://0.0.0.0:5000", "https://0.0.0.0:5001");
+builder.WebHost.UseUrls("http://0.0.0.0:5200", "https://0.0.0.0:5201");
 
 // ✅ Ajouter les health checks
 builder.Services.AddHealthChecks();
@@ -246,6 +248,6 @@ if (app.Environment.IsDevelopment())
 // ========================================
 app.Logger.LogInformation("Novadis CRI API starting...");
 app.Logger.LogInformation("Environment: {Environment}", app.Environment.EnvironmentName);
-app.Logger.LogInformation("Swagger UI: {Url}", app.Environment.IsDevelopment() ? "http://localhost:5000" : "");
+app.Logger.LogInformation("Swagger UI: {Url}", app.Environment.IsDevelopment() ? "http://localhost:5200" : "");
 
 app.Run();

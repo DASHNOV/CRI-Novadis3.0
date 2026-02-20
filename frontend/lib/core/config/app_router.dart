@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/features/auth/login_screen.dart';
 import 'package:novadis_cri/features/auth/otp_verification_screen.dart';
-import 'package:novadis_cri/features/home/home_page.dart';
+import 'package:novadis_cri/screens/role_home_screen.dart';
 import 'package:novadis_cri/features/dashboard/pages/main_dashboard_page.dart';
 import 'package:novadis_cri/features/dashboard/pages/site_dashboard_page.dart';
 import 'package:novadis_cri/features/dashboard/pages/technician_dashboard_page.dart';
@@ -48,10 +48,11 @@ class AppRouter {
           return OtpVerificationScreen(email: email);
         },
       ),
+      // ─── Page d'accueil basée sur le rôle ───
       GoRoute(
         path: home,
         name: 'home',
-        builder: (context, state) => const HomePage(),
+        builder: (context, state) => const RoleHomeScreen(),
       ),
       GoRoute(
         path: dashboard,

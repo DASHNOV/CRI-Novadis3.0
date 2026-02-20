@@ -98,6 +98,9 @@ namespace NovadisApi.Controllers
                 _context.AuthAttempts.Add(authAttempt);
                 await _context.SaveChangesAsync();
 
+                // 🔍 LOG LE CODE POUR LE DÉVELOPPEMENT LOCAL
+                _logger.LogInformation("🔐 [DEV] Code de connexion pour {Email}: {Code}", request.Email, code);
+
                 // 5️⃣ Envoyer l'email avec le code
                 var emailBody = $@"
                     <html>

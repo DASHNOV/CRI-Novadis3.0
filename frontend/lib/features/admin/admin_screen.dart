@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/data/local/local_storage_service.dart';
+import 'package:novadis_cri/core/storage/storage_service.dart';
+import 'package:novadis_cri/core/config/app_router.dart';
 
 /// Écran d'administration
 /// Affiche des statistiques et options de gestion
-class AdminScreen extends HookWidget {
+class AdminScreen extends HookConsumerWidget {
   const AdminScreen({super.key});
 
   /// Charge les statistiques des CRI
@@ -34,7 +38,7 @@ class AdminScreen extends HookWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final storageService = useMemoized(() => LocalStorageService());
     final statsFuture = useMemoized(() => _loadStats(storageService));
     final refreshKey = useState(0);
@@ -43,15 +47,12 @@ class AdminScreen extends HookWidget {
       refreshKey.value++;
     }
 
-    Future<void> handleClearData() async {
+    Future<void> handleLogout() async {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Confirmation'),
-          content: const Text(
-            'Voulez-vous vraiment supprimer toutes les données ?\n\n'
-            'Cette action est irréversible.',
-          ),
+          title: const Text('Déconnexion'),
+          content: const Text('Voulez-vous vraiment vous déconnecter ?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -59,27 +60,16 @@ class AdminScreen extends HookWidget {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Supprimer tout'),
+              child: const Text('Se déconnecter'),
             ),
           ],
         ),
       );
 
       if (confirmed == true) {
-        final criList = await storageService.getAllCri();
-        for (var cri in criList) {
-          await storageService.deleteCri(cri.id);
-        }
-
+        await ref.read(storageServiceProvider).clearTokens();
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Toutes les données ont été supprimées'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          handleRefresh();
+          context.go(AppRouter.login);
         }
       }
     }
@@ -92,6 +82,11 @@ class AdminScreen extends HookWidget {
             icon: const Icon(Icons.refresh),
             onPressed: handleRefresh,
             tooltip: 'Actualiser',
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: handleLogout,
+            tooltip: 'Se déconnecter',
           ),
         ],
       ),
@@ -289,14 +284,11 @@ class AdminScreen extends HookWidget {
                     ),
                     const Divider(height: 1),
                     ListTile(
-                      leading: const Icon(
-                        Icons.delete_forever,
-                        color: Colors.red,
-                      ),
-                      title: const Text('Supprimer toutes les données'),
-                      subtitle: const Text('Action irréversible'),
+                      leading: const Icon(Icons.logout, color: Colors.red),
+                      title: const Text('Se déconnecter'),
+                      subtitle: const Text('Fermer la session'),
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: handleClearData,
+                      onTap: handleLogout,
                     ),
                   ],
                 ),

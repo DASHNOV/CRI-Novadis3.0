@@ -36,6 +36,11 @@ namespace NovadisApi.Models
 
         public DateTime? LastLoginAt { get; set; }
 
+        // Helper methods - supporte les deux formes du rôle
+        public bool IsAdmin() => Role == "Admin";
+        public bool IsTechnician() => Role == "Technician" || Role == "Technicien";
+        public UserRole GetUserRole() => UserRoleExtensions.FromString(Role);
+
         // Relations
         public virtual ICollection<CRIForm> CRIForms { get; set; } = new List<CRIForm>();
         public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();

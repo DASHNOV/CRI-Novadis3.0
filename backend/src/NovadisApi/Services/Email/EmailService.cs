@@ -90,6 +90,13 @@ namespace NovadisApi.Services.Email
 </body>
 </html>";
 
+            if (_env.IsDevelopment())
+            {
+                _logger.LogInformation("================================================");
+                _logger.LogInformation("🔐 [DEV ONLY] VOTRE CODE DE CONNEXION : {Code}", code);
+                _logger.LogInformation("================================================");
+            }
+
             await SendEmailAsync(toEmail, subject, htmlBody);
         }
 
@@ -170,7 +177,20 @@ namespace NovadisApi.Services.Email
                     EnableSsl = true
                 };
 
-                await smtpClient.SendMailAsync(mailMessage);
+                var sendTask = smtpClient.SendMailAsync(mailMessage);
+                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(5)); // Timeout de 5 secondes
+
+                var completedTask = await Task.WhenAny(sendTask, timeoutTask);
+
+                if (completedTask == timeoutTask)
+                {
+                    _logger.LogWarning("⏳ Email sending timed out after 5s. Proceeding without waiting. (Mocking send)");
+                    // On ne casse pas le flux, on considère que c'est envoyé (pour ne pas bloquer le user)
+                    return; 
+                }
+
+                // Si le sendTask est terminé, on vérifie s'il a levé une exception
+                await sendTask;
 
                 _logger.LogInformation("Email sent successfully to {Email}", toEmail);
             }

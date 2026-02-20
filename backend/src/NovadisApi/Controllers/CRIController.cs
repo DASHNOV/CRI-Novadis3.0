@@ -22,11 +22,20 @@ namespace NovadisApi.Controllers
             _logger = logger;
         }
 
+        private Guid? GetCurrentUserId()
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("userId")?.Value;
+            if (Guid.TryParse(userIdStr, out var userId))
+                return userId;
+            return null;
+        }
+
         [HttpGet]
         public async Task<ActionResult<ApiResponse<IEnumerable<CRIForm>>>> GetMyCRIs()
         {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!Guid.TryParse(userIdStr, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId == null)
                 return Unauthorized(ApiResponse<IEnumerable<CRIForm>>.ErrorResponse("Utilisateur non identifié"));
 
             IQueryable<CRIForm> query = _context.CRIForms;
@@ -34,7 +43,7 @@ namespace NovadisApi.Controllers
             // Si ce n'est pas un admin, on ne montre que ses propres CRIs
             if (!User.IsInRole("Admin"))
             {
-                query = query.Where(c => c.TechnicianId == userId);
+                query = query.Where(c => c.TechnicianId == userId.Value);
             }
 
             var cris = await query
@@ -47,8 +56,8 @@ namespace NovadisApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResponse<CRIForm>>> GetCRI(Guid id)
         {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!Guid.TryParse(userIdStr, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId == null)
                 return Unauthorized(ApiResponse<CRIForm>.ErrorResponse("Utilisateur non identifié"));
 
             var cri = await _context.CRIForms
@@ -59,7 +68,7 @@ namespace NovadisApi.Controllers
                 return NotFound(ApiResponse<CRIForm>.ErrorResponse("CRI introuvable"));
 
             // Les admins peuvent tout voir, les techniciens seulement les leurs
-            if (cri.TechnicianId != userId && !User.IsInRole("Admin"))
+            if (cri.TechnicianId != userId.Value && !User.IsInRole("Admin"))
                 return Forbid();
 
             return Ok(ApiResponse<CRIForm>.SuccessResponse(cri));
@@ -68,12 +77,12 @@ namespace NovadisApi.Controllers
         [HttpPost]
         public async Task<ActionResult<ApiResponse<CRIForm>>> CreateCRI([FromBody] CRIForm cri)
         {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!Guid.TryParse(userIdStr, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId == null)
                 return Unauthorized(ApiResponse<CRIForm>.ErrorResponse("Utilisateur non identifié"));
 
             cri.Id = cri.Id == Guid.Empty ? Guid.NewGuid() : cri.Id;
-            cri.TechnicianId = userId;
+            cri.TechnicianId = userId.Value;
             cri.CreatedAt = DateTime.UtcNow;
 
             _context.CRIForms.Add(cri);
@@ -85,8 +94,8 @@ namespace NovadisApi.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResponse<CRIForm>>> UpdateCRI(Guid id, [FromBody] CRIForm criUpdate)
         {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!Guid.TryParse(userIdStr, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId == null)
                 return Unauthorized(ApiResponse<CRIForm>.ErrorResponse("Utilisateur non identifié"));
 
             var cri = await _context.CRIForms.FindAsync(id);
@@ -94,10 +103,10 @@ namespace NovadisApi.Controllers
             if (cri == null)
                 return NotFound(ApiResponse<CRIForm>.ErrorResponse("CRI introuvable"));
 
-            if (cri.TechnicianId != userId && !User.IsInRole("Admin"))
+            if (cri.TechnicianId != userId.Value && !User.IsInRole("Admin"))
                 return Forbid();
 
-            // Mise à jour des champs (à affiner selon les besoins)
+            // Mise à jour des champs
             cri.InterventionType = criUpdate.InterventionType;
             cri.Category = criUpdate.Category;
             cri.InterventionDate = criUpdate.InterventionDate;
@@ -126,8 +135,8 @@ namespace NovadisApi.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApiResponse<object>>> DeleteCRI(Guid id)
         {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!Guid.TryParse(userIdStr, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId == null)
                 return Unauthorized(ApiResponse<object>.ErrorResponse("Utilisateur non identifié"));
 
             var cri = await _context.CRIForms.FindAsync(id);
@@ -135,7 +144,7 @@ namespace NovadisApi.Controllers
             if (cri == null)
                 return NotFound(ApiResponse<object>.ErrorResponse("CRI introuvable"));
 
-            if (cri.TechnicianId != userId && !User.IsInRole("Admin"))
+            if (cri.TechnicianId != userId.Value && !User.IsInRole("Admin"))
                 return Forbid();
 
             _context.CRIForms.Remove(cri);

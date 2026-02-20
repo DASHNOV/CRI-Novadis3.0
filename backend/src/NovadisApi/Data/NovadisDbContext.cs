@@ -16,7 +16,7 @@ namespace NovadisApi.Data
         public DbSet<CRIPhoto> CRIPhotos { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
 
-        // ✨ NOUVELLES TABLES pour l'authentification
+        // Tables pour l'authentification
         public DbSet<AuthAttempt> AuthAttempts { get; set; }
         public DbSet<UserToken> UserTokens { get; set; }
         public DbSet<MagicLink> MagicLinks { get; set; } // Pour Phase 2
@@ -31,8 +31,8 @@ namespace NovadisApi.Data
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.Email).IsUnique();
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.FirstName).HasMaxLength(100);
+                entity.Property(e => e.LastName).HasMaxLength(100);
             });
 
             // Configuration AuthAttempt
@@ -119,14 +119,14 @@ namespace NovadisApi.Data
                 new User
                 {
                     Id = Guid.Parse("a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"),
-                    Email = "admin@novadis.local",
+                    Email = "admin@novadis.fr",
                     FirstName = "Admin",
                     LastName = "Système",
                     Role = "Admin",
                     IsActive = true,
-                    CreatedAt = DateTime.UtcNow,
-                    CRIForms = null, // Fix for EF Core Seeding
-                    AuditLogs = null // Fix for EF Core Seeding
+                    CreatedAt = new DateTime(2026, 2, 5, 10, 31, 37, DateTimeKind.Utc),
+                    CRIForms = null,
+                    AuditLogs = null
                 },
                 new User
                 {
@@ -137,9 +137,9 @@ namespace NovadisApi.Data
                     Role = "Technician",
                     PhoneNumber = "0612345678",
                     IsActive = true,
-                    CreatedAt = DateTime.UtcNow,
-                    CRIForms = null, // Fix for EF Core Seeding
-                    AuditLogs = null // Fix for EF Core Seeding
+                    CreatedAt = new DateTime(2026, 2, 5, 10, 31, 37, DateTimeKind.Utc),
+                    CRIForms = null,
+                    AuditLogs = null
                 }
             );
         }

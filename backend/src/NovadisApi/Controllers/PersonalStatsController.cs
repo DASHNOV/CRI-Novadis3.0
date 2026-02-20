@@ -1,0 +1,146 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using NovadisApi.Attributes;
+using NovadisApi.Data;
+using NovadisApi.Models;
+using NovadisApi.Models.DTOs;
+using System.Security.Claims;
+
+namespace NovadisApi.Controllers
+{
+    /// <summary>
+    /// 👤 Endpoints personnels - Statistiques et CRI du technicien connecté
+    /// Accessible par Technician ET Admin (chacun voit SES propres données)
+    /// </summary>
+    [ApiController]
+    [Route("api/personal")]
+    [Authorize]
+    [RoleAuthorize("Technicien", "Technician", "Admin")]
+    public class PersonalStatsController : ControllerBase
+    {
+        private readonly NovadisDbContext _context;
+        private readonly ILogger<PersonalStatsController> _logger;
+
+        public PersonalStatsController(NovadisDbContext context, ILogger<PersonalStatsController> logger)
+        {
+            _context = context;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Récupère l'ID de l'utilisateur connecté depuis le JWT
+        /// </summary>
+        private Guid? GetCurrentUserId()
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("userId")?.Value;
+            if (Guid.TryParse(userIdStr, out var userId))
+                return userId;
+            return null;
+        }
+
+        /// <summary>
+        /// 📊 GET /api/personal/stats - Statistiques personnelles du technicien connecté
+        /// </summary>
+        [HttpGet("stats")]
+        public async Task<ActionResult<ApiResponse<PersonalStatsDto>>> GetPersonalStats()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<PersonalStatsDto>.ErrorResponse("Utilisateur non identifié"));
+
+            try
+            {
+                var now = DateTime.UtcNow;
+                var startOfMonth = new DateTime(now.Year, now.Month, 1);
+
+                var stats = new PersonalStatsDto
+                {
+                    CriCeMois = await _context.CRIForms
+                        .CountAsync(c => c.TechnicianId == userId && c.CreatedAt >= startOfMonth),
+
+                    CriEnCours = await _context.CRIForms
+                        .CountAsync(c => c.TechnicianId == userId && c.Status == "Draft"),
+
+                    CriEnAttente = await _context.CRIForms
+                        .CountAsync(c => c.TechnicianId == userId && c.ClientSignature == null)
+                };
+
+                return Ok(ApiResponse<PersonalStatsDto>.SuccessResponse(stats));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving personal stats for user {UserId}", userId);
+                return StatusCode(500, ApiResponse<PersonalStatsDto>.ErrorResponse(
+                    "Erreur lors de la récupération des statistiques personnelles."));
+            }
+        }
+
+        /// <summary>
+        /// 📋 GET /api/personal/cris - CRI personnels avec filtre
+        /// </summary>
+        [HttpGet("cris")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<CRIForm>>>> GetPersonalCRIs(
+            [FromQuery] string filter = "all")
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<IEnumerable<CRIForm>>.ErrorResponse("Utilisateur non identifié"));
+
+            try
+            {
+                IQueryable<CRIForm> query = _context.CRIForms
+                    .Where(c => c.TechnicianId == userId);
+
+                query = filter.ToLower() switch
+                {
+                    "pending" => query.Where(c => c.ClientSignature == null),
+                    "signed" => query.Where(c => c.ClientSignature != null),
+                    "in_progress" => query.Where(c => c.Status == "Draft"),
+                    _ => query // "all"
+                };
+
+                var cris = await query
+                    .OrderByDescending(c => c.CreatedAt)
+                    .ToListAsync();
+
+                return Ok(ApiResponse<IEnumerable<CRIForm>>.SuccessResponse(cris));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving personal CRIs for user {UserId}", userId);
+                return StatusCode(500, ApiResponse<IEnumerable<CRIForm>>.ErrorResponse(
+                    "Erreur lors de la récupération des CRI personnels."));
+            }
+        }
+
+        /// <summary>
+        /// 🕐 GET /api/personal/recent - 5 derniers CRI du technicien
+        /// </summary>
+        [HttpGet("recent")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<CRIForm>>>> GetRecentCRIs()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<IEnumerable<CRIForm>>.ErrorResponse("Utilisateur non identifié"));
+
+            try
+            {
+                var recentCris = await _context.CRIForms
+                    .Where(c => c.TechnicianId == userId)
+                    .OrderByDescending(c => c.CreatedAt)
+                    .Take(5)
+                    .ToListAsync();
+
+                return Ok(ApiResponse<IEnumerable<CRIForm>>.SuccessResponse(recentCris));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving recent CRIs for user {UserId}", userId);
+                return StatusCode(500, ApiResponse<IEnumerable<CRIForm>>.ErrorResponse(
+                    "Erreur lors de la récupération des CRI récents."));
+            }
+        }
+    }
+}

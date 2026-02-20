@@ -11,6 +11,10 @@ import 'package:novadis_cri/features/cri_form/controllers/cri_projet_controller.
 import 'package:novadis_cri/features/cri_form/widgets/photo_picker.dart';
 import 'package:novadis_cri/features/cri_form/widgets/signature_pad.dart';
 import 'package:novadis_cri/features/cri_form/widgets/priority_chip.dart';
+import 'package:novadis_cri/data/repositories/site_summary_repository.dart';
+import 'package:novadis_cri/data/models/site_summary_model.dart';
+import 'package:novadis_cri/features/cri_form/widgets/site_summary_card.dart';
+import 'dart:async';
 
 /// Page de formulaire CRI Service avec 8 sections
 class CriServiceFormPage extends ConsumerStatefulWidget {
@@ -27,12 +31,38 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
   int _currentStep = 0;
   final bool _autoSaveEnabled = true;
 
+  Timer? _debounceTimer;
+  SiteSummaryModel? _siteSummary;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initForm();
     });
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchSiteSummary(String siteName) async {
+    if (siteName.trim().length < 3) {
+      setState(() => _siteSummary = null);
+      return;
+    }
+    
+    try {
+      final repo = ref.read(siteSummaryRepositoryProvider);
+      final summary = await repo.getSummary(siteName.trim());
+      if (mounted) {
+        setState(() => _siteSummary = summary);
+      }
+    } catch (e) {
+      print('Error fetching summary: $e');
+    }
   }
 
   void _initForm() {
@@ -162,52 +192,78 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       ),
       body: FormBuilder(
         key: _formKey,
-        child: Stepper(
-          currentStep: _currentStep,
-          onStepContinue: _onStepContinue,
-          onStepCancel: _onStepCancel,
-          onStepTapped: (index) => setState(() => _currentStep = index),
-          controlsBuilder: (context, details) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Row(
-                children: [
-                  if (_currentStep < 7)
-                    FilledButton(
-                      onPressed: details.onStepContinue,
-                      child: const Text('Suivant'),
-                    )
-                  else
-                    FilledButton(
-                      onPressed: state.isSaving ? null : _submit,
-                      child: state.isSaving
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Padding(
+                padding: EdgeInsets.only(top: _siteSummary != null ? 120 : 0),
+                child: Stepper(
+                  currentStep: _currentStep,
+                  onStepContinue: _onStepContinue,
+                  onStepCancel: _onStepCancel,
+                  onStepTapped: (index) => setState(() => _currentStep = index),
+                  controlsBuilder: (context, details) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: Row(
+                        children: [
+                          if (_currentStep < 7)
+                            FilledButton(
+                              onPressed: details.onStepContinue,
+                              child: const Text('Suivant'),
                             )
-                          : const Text('Soumettre'),
-                    ),
-                  const SizedBox(width: 12),
-                  if (_currentStep > 0)
-                    OutlinedButton(
-                      onPressed: details.onStepCancel,
-                      child: const Text('Précédent'),
-                    ),
-                ],
+                          else
+                            FilledButton(
+                              onPressed: state.isSaving ? null : _submit,
+                              child: state.isSaving
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Text('Soumettre'),
+                            ),
+                          const SizedBox(width: 12),
+                          if (_currentStep > 0)
+                            OutlinedButton(
+                              onPressed: details.onStepCancel,
+                              child: const Text('Précédent'),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                  steps: [
+                    _buildGeneralStep(state, theme),
+                    _buildClientStep(state, theme),
+                    _buildRequestStep(state, theme),
+                    _buildDiagnosticStep(state, theme),
+                    _buildInterventionStep(state, theme),
+                    _buildResultStep(state, theme),
+                    _buildSecurityStep(state, theme),
+                    _buildFollowUpStep(state, theme),
+                    _buildValidationStep(state, theme),
+                  ],
+                ),
               ),
-            );
-          },
-          steps: [
-            _buildGeneralStep(state, theme),
-            _buildClientStep(state, theme),
-            _buildRequestStep(state, theme),
-            _buildDiagnosticStep(state, theme),
-            _buildInterventionStep(state, theme),
-            _buildResultStep(state, theme),
-            _buildSecurityStep(state, theme),
-            _buildFollowUpStep(state, theme),
-            _buildValidationStep(state, theme),
+            ),
+            if (_siteSummary != null)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  color: theme.scaffoldBackgroundColor.withValues(alpha: 0.95),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: SiteSummaryCard(
+                    summary: _siteSummary!,
+                    onDismiss: () => setState(() => _siteSummary = null),
+                    onSeeHistory: () {
+                      context.push('/history');
+                    },
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -408,6 +464,13 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
               ref
                   .read(criServiceFormProvider.notifier)
                   .updateClientInfo(site: value);
+              
+              if (value != null) {
+                _debounceTimer?.cancel();
+                _debounceTimer = Timer(const Duration(milliseconds: 1000), () {
+                  _fetchSiteSummary(value);
+                });
+              }
             },
           ),
           const SizedBox(height: 16),
