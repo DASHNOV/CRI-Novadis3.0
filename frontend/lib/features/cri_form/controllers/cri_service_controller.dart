@@ -233,6 +233,14 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
+  void updateTechnicianName(String? name) {
+    if (state.currentCri == null) return;
+    state = state.copyWith(
+      currentCri: state.currentCri!.copyWith(technicianName: name ?? ''),
+      isDirty: true,
+    );
+  }
+
   /// Sauvegarde brouillon
   Future<bool> saveDraft() async {
     if (state.currentCri == null) return false;

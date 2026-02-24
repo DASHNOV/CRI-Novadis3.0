@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:novadis_cri/data/models/cri_model.dart';
+import 'package:novadis_cri/data/models/cri_service_model.dart';
+import 'package:novadis_cri/data/models/cri_projet_model.dart';
 import 'package:novadis_cri/data/local/app_database.dart';
+import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
+import 'package:novadis_cri/features/history/widgets/cri_details_dialog.dart';
 
 /// Écran d'historique des CRI
 /// Affiche la liste de tous les comptes rendus d'intervention
@@ -64,14 +68,33 @@ class HistoryScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final db = ref.watch(appDatabaseProvider);
     final criList = ref.watch(historyListProvider);
+    final remoteRepo = ref.watch(criRemoteRepositoryProvider);
     final isLoading =
         ref.watch(criServicesStreamProvider).isLoading &&
         ref.watch(criProjectsStreamProvider).isLoading;
 
     Future<void> handleRefresh() async {
-      // Pour l'instant, le rafraîchissement est automatique via les Streams.
-      // On pourrait ajouter ici une synchro avec le serveur.
-      await Future.delayed(const Duration(milliseconds: 500));
+      try {
+        final remoteCris = await remoteRepo.getAllCris();
+        for (var cri in remoteCris) {
+          if (cri is CriServiceModel) {
+            await db.updateCriService(cri.toDb());
+          } else if (cri is CriProjetModel) {
+            await db.updateCriProjet(cri.toDb());
+          }
+        }
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Synchro réussie : ${remoteCris.length} éléments')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erreur de synchronisation : $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
     }
 
     Future<void> handleDelete(String id) async {
@@ -124,47 +147,18 @@ class HistoryScreen extends HookConsumerWidget {
     }
 
     void showCriDetails(CriModel cri) {
-      showDialog(
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ouverture de ${cri.client}...'), duration: const Duration(milliseconds: 500)),
+      );
+
+      showModalBottomSheet(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text(cri.client),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _DetailRow(label: 'Site', value: cri.site),
-                const SizedBox(height: 8),
-                _DetailRow(label: 'Type', value: cri.typeIntervention),
-                const SizedBox(height: 8),
-                _DetailRow(
-                  label: 'Date',
-                  value: DateFormat('dd/MM/yyyy').format(cri.date),
-                ),
-                const SizedBox(height: 8),
-                _DetailRow(
-                  label: 'Créé le',
-                  value: DateFormat('dd/MM/yyyy à HH:mm').format(cri.createdAt),
-                ),
-                const Divider(height: 24),
-                Text(
-                  'Description',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(cri.description),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Fermer'),
-            ),
-          ],
+        isScrollControlled: true,
+        backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
+        builder: (context) => CriDetailsDialog(cri: cri),
       );
     }
 
@@ -309,35 +303,6 @@ class _CriCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Widget pour afficher une ligne de détail
-class _DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _DetailRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            '$label:',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ),
-        Expanded(
-          child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
-        ),
-      ],
     );
   }
 }

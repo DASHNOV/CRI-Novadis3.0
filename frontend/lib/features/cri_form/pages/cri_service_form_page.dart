@@ -53,7 +53,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       setState(() => _siteSummary = null);
       return;
     }
-    
+
     try {
       final repo = ref.read(siteSummaryRepositoryProvider);
       final summary = await repo.getSummary(siteName.trim());
@@ -126,10 +126,21 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
   Future<void> _submit() async {
     // D'abord valider les champs FormBuilder
     if (!(_formKey.currentState?.saveAndValidate() ?? false)) {
+      // Identifier quel champ pose problème
+      String errorMessage = 'Veuillez corriger les erreurs';
+      final fields = _formKey.currentState!.fields;
+      for (var entry in fields.entries) {
+        if (entry.value.hasError) {
+          errorMessage = 'Erreur: ${entry.value.errorText ?? entry.key}';
+          break;
+        }
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez corriger les erreurs dans le formulaire'),
+        SnackBar(
+          content: Text(errorMessage),
           backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 5),
         ),
       );
       return;
@@ -142,15 +153,40 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
         SnackBar(
           content: Text(customValidationError),
           backgroundColor: Colors.orange,
-          duration: const Duration(seconds: 4),
+          duration: const Duration(seconds: 5),
         ),
       );
       return;
     }
 
+    // Afficher un indicateur de chargement
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 16),
+            Text('Soumission en cours...'),
+          ],
+        ),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
     // Tout est valide, soumettre
     final success = await ref.read(criServiceFormProvider.notifier).submit();
-    if (success && mounted) {
+
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('CRI Service enregistré avec succès'),
@@ -158,6 +194,35 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
         ),
       );
       context.pop();
+    } else {
+      final state = ref.read(criServiceFormProvider);
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(state.errorMessage ?? 'Erreur lors de la soumission'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 8),
+          action: SnackBarAction(
+            label: 'Détails',
+            textColor: Colors.white,
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Détails de l\'erreur'),
+                  content: Text(state.errorMessage ?? 'Erreur inconnue'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Fermer'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
     }
   }
 
@@ -207,7 +272,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                       padding: const EdgeInsets.only(top: 16),
                       child: Row(
                         children: [
-                          if (_currentStep < 7)
+                          if (_currentStep < 8)
                             FilledButton(
                               onPressed: details.onStepContinue,
                               child: const Text('Suivant'),
@@ -219,7 +284,9 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                                   ? const SizedBox(
                                       width: 20,
                                       height: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
                                     )
                                   : const Text('Soumettre'),
                             ),
@@ -464,7 +531,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
               ref
                   .read(criServiceFormProvider.notifier)
                   .updateClientInfo(site: value);
-              
+
               if (value != null) {
                 _debounceTimer?.cancel();
                 _debounceTimer = Timer(const Duration(milliseconds: 1000), () {
@@ -980,110 +1047,6 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Statut de résolution *', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          FormBuilderDropdown<ResolutionStatus>(
-            name: 'resolutionStatus',
-            initialValue:
-                state.currentCri?.resolutionStatus ??
-                ResolutionStatus.nonResolu,
-            decoration: const InputDecoration(
-              hintText: 'Statut de résolution',
-              prefixIcon: Icon(Icons.check_circle_outline),
-            ),
-            items: ResolutionStatus.values.map((status) {
-              return DropdownMenuItem(value: status, child: Text(status.label));
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                ref
-                    .read(criServiceFormProvider.notifier)
-                    .updateResultInfo(resolutionStatus: value);
-              }
-            },
-          ),
-          const SizedBox(height: 16),
-          Text('État de l\'intervention *', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          FormBuilderDropdown<String>(
-            name: 'interventionStatus',
-            initialValue: state.currentCri?.interventionStatus ?? 'Terminée',
-            decoration: const InputDecoration(
-              hintText: 'État intervention',
-              prefixIcon: Icon(Icons.pending_actions),
-            ),
-            items: ['Terminée', 'A Suivre', 'Devis à réaliser', 'Facturable']
-                .map(
-                  (status) =>
-                      DropdownMenuItem(value: status, child: Text(status)),
-                )
-                .toList(),
-            onChanged: (value) {
-              ref
-                  .read(criServiceFormProvider.notifier)
-                  .updateResultInfo(interventionStatus: value);
-            },
-          ),
-          const SizedBox(height: 16),
-          Text('Frais supplémentaires', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          FormBuilderCheckboxGroup<String>(
-            name: 'fraisSupplementaires',
-            initialValue: state.currentCri?.fraisSupplementaires ?? [],
-            decoration: const InputDecoration(border: InputBorder.none),
-            options: const [
-              FormBuilderFieldOption(value: 'IDF', child: Text('IDF')),
-              FormBuilderFieldOption(
-                value: 'National',
-                child: Text('National'),
-              ),
-              FormBuilderFieldOption(value: 'Autres', child: Text('Autres')),
-            ],
-            onChanged: (value) {
-              ref
-                  .read(criServiceFormProvider.notifier)
-                  .updateResultInfo(fraisSupplementaires: value);
-            },
-          ),
-          const SizedBox(height: 16),
-          Text('Tests réalisés', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          FormBuilderTextField(
-            name: 'testsPerformed',
-            initialValue: state.currentCri?.testsPerformed ?? '',
-            decoration: const InputDecoration(
-              hintText: 'Tests réalisés',
-              prefixIcon: Icon(Icons.science),
-              alignLabelWithHint: true,
-            ),
-            maxLines: 3,
-            textCapitalization: TextCapitalization.sentences,
-            onChanged: (value) {
-              ref
-                  .read(criServiceFormProvider.notifier)
-                  .updateResultInfo(testsPerformed: value);
-            },
-          ),
-          const SizedBox(height: 16),
-          Text('Recommandations', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          FormBuilderTextField(
-            name: 'recommendations',
-            initialValue: state.currentCri?.recommendations ?? '',
-            decoration: const InputDecoration(
-              hintText: 'Recommandations',
-              prefixIcon: Icon(Icons.recommend),
-              alignLabelWithHint: true,
-            ),
-            maxLines: 3,
-            textCapitalization: TextCapitalization.sentences,
-            onChanged: (value) {
-              ref
-                  .read(criServiceFormProvider.notifier)
-                  .updateResultInfo(recommendations: value);
-            },
-          ),
-          const SizedBox(height: 16),
           FormBuilderSwitch(
             name: 'additionalInterventionRequired',
             initialValue:
@@ -1171,7 +1134,12 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
               hintText: 'Nom du technicien',
               prefixIcon: Icon(Icons.person),
             ),
-            enabled: false, // Pré-rempli
+            validator: FormBuilderValidators.required(errorText: 'Nom requis'),
+            onChanged: (value) {
+              ref
+                  .read(criServiceFormProvider.notifier)
+                  .updateTechnicianName(value);
+            },
           ),
           const SizedBox(height: 24),
           SignaturePadWidget(

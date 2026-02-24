@@ -22,11 +22,11 @@ VALUES (
         "technicianName": "Jean Dupont",
         "ticketNumber": "TICK-2025-00101",
         "priority": "normale",
-        "requestDescription": "Problème de climatisation Zone A",
-        "identifiedCause": "Fuite lente sur le raccord du compresseur principal",
-        "replacedParts": "Joint torique",
+        "requestDescription": "Lenteurs excessives sur l''application métier (Base de données)",
+        "identifiedCause": "Saturation de la mémoire vive (RAM) sur le serveur de production",
+        "replacedParts": "2x Barrette RAM 16Go DDR4",
         "resolutionStatus": "partiellementResolu",
-        "recommendations": "Surveiller la pression la semaine prochaine."
+        "recommendations": "La RAM a été doublée mais le CPU monte encore à 90%. Prévoir migration vers instance plus puissante."
     }'
 );
 
@@ -41,12 +41,12 @@ VALUES (
         "technicianName": "Marie Martin",
         "ticketNumber": "TICK-2025-00205",
         "priority": "haute",
-        "requestDescription": "Arrêt complet clim Zone A",
-        "identifiedCause": "Fuite lente sur le raccord du compresseur principal",
+        "requestDescription": "Déconnexions intermittentes du Wi-Fi dans tout l''étage 2",
+        "identifiedCause": "Port SFP defectueux sur le switch coeur de réseau (Slot 4)",
         "replacedParts": "-",
         "resolutionStatus": "nonResolu",
-        "recommendations": "Le joint n''a pas tenu. Prévoir remplacement du raccord complet.",
-        "cybersecurityRecommendations": "S''assurer que le boîtier de contrôle reste hors réseau public."
+        "recommendations": "Le module GBIC semble HS. Branchement temporaire sur le Slot 5, mais instable. Remplacement switch à prévoir.",
+        "cybersecurityRecommendations": "Vérifier que le firmware du switch est à jour (v6.4 recommandée)."
     }'
 );
 
@@ -61,11 +61,11 @@ VALUES (
         "technicianName": "Jean Dupont",
         "ticketNumber": "TICK-2025-00312",
         "priority": "critique",
-        "requestDescription": "Fuite gaz importante",
-        "identifiedCause": "Fuite lente sur le raccord du compresseur principal",
-        "replacedParts": "Azote pour test",
+        "requestDescription": "Coupure totale du réseau local et internet",
+        "identifiedCause": "Tempête de broadcast causée par une boucle réseau",
+        "replacedParts": "Câble RJ45 cat6a",
         "resolutionStatus": "nonResolu",
-        "recommendations": "Prévoir une échelle de 3m pour accéder au compresseur. Le raccord est fissuré."
+        "recommendations": "Un switch non administré a été branché par un utilisateur, créant une boucle. Localisation en cours."
     }'
 );
 

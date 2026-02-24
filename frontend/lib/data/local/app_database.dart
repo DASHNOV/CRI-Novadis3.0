@@ -23,7 +23,22 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (m) async {
+        await m.createAll();
+      },
+      onUpgrade: (m, from, to) async {
+        if (from < 2) {
+          // Ajouter la colonne cybersecurity_recommendations si elle manque
+          await m.addColumn(criServiceTable, criServiceTable.cybersecurityRecommendations);
+        }
+      },
+    );
+  }
 
   // CRI Service Methods
   Future<List<CriService>> getAllCriService() => select(criServiceTable).get();

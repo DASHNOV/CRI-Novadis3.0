@@ -3,6 +3,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:novadis_cri/services/stats_api_service.dart';
 import 'package:novadis_cri/features/documents/pages/documents_page.dart';
+import 'package:novadis_cri/data/models/cri_model.dart';
+import 'package:novadis_cri/features/history/widgets/cri_details_dialog.dart';
 
 /// Historique personnel - uniquement les CRI du technicien connecté
 class PersonalHistoryScreen extends ConsumerStatefulWidget {
@@ -208,7 +210,29 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          // TODO: Navigator vers la vue détaillée du CRI
+          final criModel = CriModel(
+            id: cri['id'],
+            client: clientName,
+            site: cri['clientSite'] ?? clientName,
+            typeIntervention: interventionType,
+            description: cri['workDescription'] ?? '',
+            date: cri['interventionDate'] != null 
+                ? DateTime.tryParse(cri['interventionDate']) ?? DateTime.now()
+                : DateTime.now(),
+            createdAt: cri['createdAt'] != null 
+                ? DateTime.tryParse(cri['createdAt']) ?? DateTime.now()
+                : DateTime.now(),
+          );
+          
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.white,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (context) => CriDetailsDialog(cri: criModel),
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
