@@ -28,12 +28,15 @@ namespace NovadisApi.Services.Auth
         }
 
         /// <summary>
-        /// Hash un code avec SHA256 pour stockage sécurisé
+        /// Hash un code avec SHA256 et un sel pour stockage sécurisé
         /// </summary>
         public string HashCode(string code)
         {
+            // Note: En production réelle, on utiliserait un sel stocké en base par utilisateur.
+            // Pour des codes à 6 chiffres éphémères, un sel constant applicatif est un premier rempart.
+            const string internalSalt = "Novadis_Security_Salt_2025_!";
             using var sha256 = SHA256.Create();
-            var bytes = System.Text.Encoding.UTF8.GetBytes(code);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(code + internalSalt);
             var hash = sha256.ComputeHash(bytes);
             return Convert.ToBase64String(hash);
         }

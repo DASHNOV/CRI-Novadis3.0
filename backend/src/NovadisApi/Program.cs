@@ -88,10 +88,10 @@ builder.Services.AddCors(options => {
             .AllowCredentials();
     });
 
-    // ✅ Politique pour l'application mobile sur le réseau local
+    // ✅ Politique restreinte pour l'application mobile
     options.AddPolicy("AllowMobileApp", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://localhost", "app://novadis-cri") // Ajoutez ici vos schémas d'app réels
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
