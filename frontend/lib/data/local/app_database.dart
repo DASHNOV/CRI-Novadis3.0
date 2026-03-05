@@ -1,7 +1,9 @@
-import 'dart:io';
+import 'dart:io' show File;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:drift/wasm.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -129,7 +131,17 @@ class AppDatabase extends _$AppDatabase {
   }
 }
 
-LazyDatabase _openConnection() {
+QueryExecutor _openConnection() {
+  if (kIsWeb) {
+    return LazyDatabase(() async {
+      final result = await WasmDatabase.open(
+        databaseName: 'db',
+        sqlite3Uri: Uri.parse('sqlite3.wasm'),
+        driftWorkerUri: Uri.parse('drift_worker.js'),
+      );
+      return result.resolvedExecutor;
+    });
+  }
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'db.sqlite'));
