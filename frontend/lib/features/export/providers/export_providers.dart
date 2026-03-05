@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../../data/local/app_database.dart';
 import '../models/exported_document_model.dart';
@@ -10,7 +10,7 @@ import '../services/file_management_service.dart';
 
 // ============================================================
 // Providers de services
-// ============================================================
+// ============================================
 
 /// Provider pour la base de données
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -18,9 +18,9 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 });
 
 /// Provider pour le service PDF
-final pdfGeneratorServiceProvider = Provider<PdfGeneratorService>((ref) {
+final pdfGeneratorServiceProvider = Provider<BasePdfGeneratorService>((ref) {
   final database = ref.watch(databaseProvider);
-  return PdfGeneratorService(database);
+  return createPdfService(database);
 });
 
 /// Provider pour le service CSV Dashboard
@@ -51,6 +51,7 @@ final fileManagementServiceProvider = Provider<FileManagementService>((ref) {
 final exportedDocumentsProvider = FutureProvider<List<ExportedDocument>>((
   ref,
 ) async {
+  if (kIsWeb) return []; // Pas de documents locaux sur le web
   final database = ref.watch(databaseProvider);
   return await database.getAllExportedDocuments();
 });
@@ -61,6 +62,7 @@ final filteredDocumentsProvider =
       ref,
       filter,
     ) async {
+      if (kIsWeb) return [];
       // Utiliser le provider principal comme source de vérité pour que l'invalidation fonctionne
       final documentsSource = await ref.watch(exportedDocumentsProvider.future);
       // Créer une nouvelle liste pour éviter de modifier la source
@@ -103,6 +105,7 @@ final filteredDocumentsProvider =
 final pdfDocumentsProvider = FutureProvider<List<ExportedDocument>>((
   ref,
 ) async {
+  if (kIsWeb) return [];
   final database = ref.watch(databaseProvider);
   return await database.getExportedDocumentsByType('pdf');
 });
@@ -111,6 +114,7 @@ final pdfDocumentsProvider = FutureProvider<List<ExportedDocument>>((
 final csvDocumentsProvider = FutureProvider<List<ExportedDocument>>((
   ref,
 ) async {
+  if (kIsWeb) return [];
   final database = ref.watch(databaseProvider);
   return await database.getExportedDocumentsByType('csv');
 });
@@ -118,6 +122,7 @@ final csvDocumentsProvider = FutureProvider<List<ExportedDocument>>((
 /// Provider pour les documents d'un CRI spécifique
 final criDocumentsProvider =
     FutureProvider.family<List<ExportedDocument>, String>((ref, criId) async {
+      if (kIsWeb) return [];
       final database = ref.watch(databaseProvider);
       return await database.getExportedDocumentsByCriId(criId);
     });
@@ -161,10 +166,14 @@ final searchQueryProvider = StateProvider<String>((ref) {
 // ============================================================
 
 /// Provider pour générer un PDF CRI
-final generateCriPdfProvider = FutureProvider.family<File, String>((
+final generateCriPdfProvider = FutureProvider.family<dynamic, String>((
   ref,
   criId,
 ) async {
+  if (kIsWeb) {
+    throw Exception('La génération PDF n\'est pas disponible sur le Web');
+  }
+  
   final service = ref.watch(pdfGeneratorServiceProvider);
   final database = ref.watch(databaseProvider);
 
@@ -178,7 +187,7 @@ final generateCriPdfProvider = FutureProvider.family<File, String>((
   });
 
   try {
-    File? file;
+    dynamic file;
 
     // 1. Chercher dans CRI Service
     final serviceCri = await database.getCriServiceById(criId);
@@ -245,10 +254,13 @@ final generateCriPdfProvider = FutureProvider.family<File, String>((
 
 /// Provider pour exporter les interventions en CSV
 final exportInterventionsCsvProvider =
-    FutureProvider.family<File, ({DateTime startDate, DateTime endDate})>((
+    FutureProvider.family<dynamic, ({DateTime startDate, DateTime endDate})>((
       ref,
       params,
     ) async {
+      if (kIsWeb) {
+        throw Exception('L\'export CSV n\'est pas disponible sur le Web');
+      }
       final service = ref.watch(dashboardCsvServiceProvider);
 
       Future.microtask(() {
@@ -298,10 +310,13 @@ final exportInterventionsCsvProvider =
 
 /// Provider pour exporter la synthèse KPI en CSV
 final exportKPICsvProvider =
-    FutureProvider.family<File, ({DateTime startDate, DateTime endDate})>((
+    FutureProvider.family<dynamic, ({DateTime startDate, DateTime endDate})>((
       ref,
       params,
     ) async {
+      if (kIsWeb) {
+        throw Exception('L\'export CSV n\'est pas disponible sur le Web');
+      }
       final service = ref.watch(dashboardCsvServiceProvider);
 
       Future.microtask(() {
@@ -352,10 +367,13 @@ final exportKPICsvProvider =
 
 /// Provider pour exporter le top sites en CSV
 final exportTopSitesCsvProvider =
-    FutureProvider.family<File, ({DateTime startDate, DateTime endDate})>((
+    FutureProvider.family<dynamic, ({DateTime startDate, DateTime endDate})>((
       ref,
       params,
     ) async {
+      if (kIsWeb) {
+        throw Exception('L\'export CSV n\'est pas disponible sur le Web');
+      }
       final service = ref.watch(dashboardCsvServiceProvider);
 
       Future.microtask(() {
@@ -406,8 +424,11 @@ final exportTopSitesCsvProvider =
 
 /// Provider pour exporter tout le dashboard en CSV
 final exportAllDashboardCsvProvider =
-    FutureProvider.family<List<File>, ({DateTime startDate, DateTime endDate})>(
+    FutureProvider.family<List<dynamic>, ({DateTime startDate, DateTime endDate})>(
       (ref, params) async {
+        if (kIsWeb) {
+          throw Exception('L\'export CSV n\'est pas disponible sur le Web');
+        }
         final service = ref.watch(dashboardCsvServiceProvider);
 
         Future.microtask(() {
@@ -433,7 +454,7 @@ final exportAllDashboardCsvProvider =
               exportType: ExportType.dashboard,
               metadata: {
                 'type': 'All',
-                'filename': file.path.split(Platform.pathSeparator).last,
+                'filename': file.path.split('/').last,
                 'startDate': params.startDate.toIso8601String(),
                 'endDate': params.endDate.toIso8601String(),
               },
@@ -464,9 +485,12 @@ final exportAllDashboardCsvProvider =
 /// Provider pour exporter les stats technicien en CSV
 final exportTechnicianStatsCsvProvider =
     FutureProvider.family<
-      File,
+      dynamic,
       ({String technicianName, DateTime startDate, DateTime endDate})
     >((ref, params) async {
+      if (kIsWeb) {
+        throw Exception('L\'export CSV n\'est pas disponible sur le Web');
+      }
       final service = ref.watch(technicianStatsCsvServiceProvider);
 
       Future.microtask(() {

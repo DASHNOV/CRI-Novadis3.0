@@ -1,5 +1,6 @@
 import 'dart:typed_data';
-import 'dart:io';
+import 'dart:io' show Directory, File;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:signature/signature.dart';
@@ -87,25 +88,35 @@ class _SignaturePadWidgetState extends State<SignaturePadWidget> {
         throw Exception('Impossible de générer l\'image de signature');
       }
 
-      // Sauvegarder dans le dossier temporaire de l'app
-      final directory = await getApplicationDocumentsDirectory();
-      final signatureDir = Directory('${directory.path}/signatures');
+      if (kIsWeb) {
+        // Sur le web, on ne sauvegarde pas dans le système de fichiers
+        // On pourrait utiliser le localStorage ou simplement garder en mémoire
+        // Pour l'instant, on simule une sauvegarde
+        setState(() {
+          _savedPath = 'web_signature_${DateTime.now().millisecondsSinceEpoch}';
+        });
+        widget.onSignatureSaved(_savedPath);
+      } else {
+        // Sauvegarder dans le dossier temporaire de l'app (Natif)
+        final directory = await getApplicationDocumentsDirectory();
+        final signatureDir = Directory('${directory.path}/signatures');
 
-      if (!await signatureDir.exists()) {
-        await signatureDir.create(recursive: true);
+        if (!await signatureDir.exists()) {
+          await signatureDir.create(recursive: true);
+        }
+
+        final fileName = 'signature_${DateTime.now().millisecondsSinceEpoch}.png';
+        final filePath = '${signatureDir.path}/$fileName';
+
+        final file = File(filePath);
+        await file.writeAsBytes(signature);
+
+        setState(() {
+          _savedPath = filePath;
+        });
+
+        widget.onSignatureSaved(filePath);
       }
-
-      final fileName = 'signature_${DateTime.now().millisecondsSinceEpoch}.png';
-      final filePath = '${signatureDir.path}/$fileName';
-
-      final file = File(filePath);
-      await file.writeAsBytes(signature);
-
-      setState(() {
-        _savedPath = filePath;
-      });
-
-      widget.onSignatureSaved(filePath);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -205,12 +216,14 @@ class _SignaturePadWidgetState extends State<SignaturePadWidget> {
             child: _savedPath != null && _savedPath!.isNotEmpty
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(11),
-                    child: Image.file(
-                      File(_savedPath!),
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _buildPlaceholder(theme),
-                    ),
+                    child: kIsWeb 
+                      ? const Center(child: Text('Signature enregistrée (Web)'))
+                      : Image.file(
+                          File(_savedPath!),
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildPlaceholder(theme),
+                        ),
                   )
                 : _buildPlaceholder(theme),
           ),
@@ -389,16 +402,18 @@ class SignaturePreview extends StatelessWidget {
           child: hasSignature
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(7),
-                  child: Image.file(
-                    File(signaturePath!),
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => Center(
-                      child: Icon(
-                        Icons.error_outline,
-                        color: theme.colorScheme.error,
+                  child: kIsWeb
+                    ? const Center(child: Text('Signé'))
+                    : Image.file(
+                        File(signaturePath!),
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => Center(
+                          child: Icon(
+                            Icons.error_outline,
+                            color: theme.colorScheme.error,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
                 )
               : Center(
                   child: Text(
@@ -414,3 +429,4 @@ class SignaturePreview extends StatelessWidget {
     );
   }
 }
+

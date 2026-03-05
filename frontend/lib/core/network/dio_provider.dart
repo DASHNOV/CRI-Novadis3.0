@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novadis_cri/core/config/api_config.dart';
 import 'package:novadis_cri/core/network/isolate_transformer.dart';
@@ -20,9 +21,11 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  // Utiliser le transformer par défaut mais avec notre fonction de décodage en Isolate
-  dio.transformer = BackgroundTransformer()
-    ..jsonDecodeCallback = jsonDecodeAndCompute;
+  // Utiliser le transformer par défaut mais avec notre fonction de décodage en Isolate (Natif uniquement)
+  if (!kIsWeb) {
+    dio.transformer = BackgroundTransformer()
+      ..jsonDecodeCallback = jsonDecodeAndCompute;
+  }
 
   dio.interceptors.add(
     InterceptorsWrapper(
@@ -52,9 +55,11 @@ final dioProvider = Provider<Dio>((ref) {
                 ),
               );
 
-              // Use the Isolate transformer here as well for consistency
-              refreshDio.transformer = BackgroundTransformer()
-                ..jsonDecodeCallback = jsonDecodeAndCompute;
+              // Use the Isolate transformer here as well for consistency (Natif uniquement)
+              if (!kIsWeb) {
+                refreshDio.transformer = BackgroundTransformer()
+                  ..jsonDecodeCallback = jsonDecodeAndCompute;
+              }
 
               final response = await refreshDio.post(
                 '/auth/refresh',

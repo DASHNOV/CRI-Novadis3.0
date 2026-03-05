@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:io' show File;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -277,17 +278,26 @@ class _PhotoThumbnail extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.file(
-                File(photoPath),
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: theme.colorScheme.errorContainer,
-                  child: Icon(
-                    Icons.broken_image,
-                    color: theme.colorScheme.error,
+              child: kIsWeb
+                ? Image.network(
+                    photoPath,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: theme.colorScheme.errorContainer,
+                      child: const Icon(Icons.broken_image, color: Colors.red),
+                    ),
+                  )
+                : Image.file(
+                    File(photoPath),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: theme.colorScheme.errorContainer,
+                      child: Icon(
+                        Icons.broken_image,
+                        color: theme.colorScheme.error,
+                      ),
+                    ),
                   ),
-                ),
-              ),
             ),
           ),
         ),
@@ -409,15 +419,24 @@ class PhotoViewScreen extends StatelessWidget {
         child: InteractiveViewer(
           minScale: 0.5,
           maxScale: 4.0,
-          child: Image.file(
-            File(photoPath),
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => const Center(
-              child: Icon(Icons.broken_image, size: 64, color: Colors.white54),
-            ),
-          ),
+          child: kIsWeb
+            ? Image.network(
+                photoPath,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const Center(
+                  child: Icon(Icons.broken_image, size: 64, color: Colors.white54),
+                ),
+              )
+            : Image.file(
+                File(photoPath),
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const Center(
+                  child: Icon(Icons.broken_image, size: 64, color: Colors.white54),
+                ),
+              ),
         ),
       ),
     );
   }
 }
+

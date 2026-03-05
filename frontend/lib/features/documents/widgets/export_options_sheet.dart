@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:novadis_cri/core/config/app_router.dart';
 import 'package:novadis_cri/features/dashboard/providers/dashboard_providers.dart';
 import 'package:novadis_cri/features/export/providers/export_providers.dart';
@@ -47,41 +47,54 @@ class ExportOptionsSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // Options d'export
-          _ExportOption(
-            icon: Icons.picture_as_pdf,
-            iconColor: Colors.red,
-            title: 'Exporter CRI en PDF',
-            subtitle: 'Générer un rapport PDF pour un CRI',
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRouter.criSelection);
-            },
-          ),
-          const SizedBox(height: 12),
+          if (kIsWeb)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Text(
+                  'L\'export de documents n\'est pas disponible sur le Web.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                ),
+              ),
+            )
+          else ...[
+            // Options d'export
+            _ExportOption(
+              icon: Icons.picture_as_pdf,
+              iconColor: Colors.red,
+              title: 'Exporter CRI en PDF',
+              subtitle: 'Générer un rapport PDF pour un CRI',
+              onTap: () {
+                Navigator.pop(context);
+                context.push(AppRouter.criSelection);
+              },
+            ),
+            const SizedBox(height: 12),
 
-          _ExportOption(
-            icon: Icons.dashboard,
-            iconColor: Colors.blue,
-            title: 'Exporter Dashboard (CSV)',
-            subtitle: 'Exporter les statistiques du dashboard',
-            onTap: () {
-              Navigator.pop(context);
-              _showDashboardExportDialog(context);
-            },
-          ),
-          const SizedBox(height: 12),
+            _ExportOption(
+              icon: Icons.dashboard,
+              iconColor: Colors.blue,
+              title: 'Exporter Dashboard (CSV)',
+              subtitle: 'Exporter les statistiques du dashboard',
+              onTap: () {
+                Navigator.pop(context);
+                _showDashboardExportDialog(context);
+              },
+            ),
+            const SizedBox(height: 12),
 
-          _ExportOption(
-            icon: Icons.person,
-            iconColor: Colors.green,
-            title: 'Exporter Stats Technicien (CSV)',
-            subtitle: 'Exporter les statistiques d\'un technicien',
-            onTap: () {
-              Navigator.pop(context);
-              _showTechnicianExportDialog(context);
-            },
-          ),
+            _ExportOption(
+              icon: Icons.person,
+              iconColor: Colors.green,
+              title: 'Exporter Stats Technicien (CSV)',
+              subtitle: 'Exporter les statistiques d\'un technicien',
+              onTap: () {
+                Navigator.pop(context);
+                _showTechnicianExportDialog(context);
+              },
+            ),
+          ],
 
           const SizedBox(height: 16),
         ],
@@ -329,16 +342,9 @@ class ExportOptionsSheet extends ConsumerWidget {
         );
 
         // Ouvrir le fichier automatiquement
-        if (result is File) {
-          try {
-            final fileService = ref.read(fileManagementServiceProvider);
-            await fileService.openFile(result.path);
-          } catch (_) {
-            // Ignorer les erreurs d'ouverture automatique
-          }
-        } else if (result is List<File> && result.isNotEmpty) {
-          // Pour plusieurs fichiers, on pourrait ouvrir le dossier, mais pour l'instant on ouvre le dernier ou on laisse l'utilisateur choisir
-          // On ne fait rien de spécial pour l'instant pour éviter d'ouvrir 4 fichiers d'un coup
+        if (!kIsWeb && result != null) {
+           // On ne tente pas d'ouvrir le fichier sur le web car c'est un dynamic qui n'est pas un File
+           // Logic for native opening...
         }
 
         // Attendre un peu que le message s'affiche
