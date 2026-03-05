@@ -40,10 +40,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
               floating: true,
               backgroundColor: Colors.transparent,
               elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppTheme.darkBlue),
-                onPressed: () => context.go(AppRouter.home),
-              ),
+              leading: const Icon(Icons.dashboard, color: AppTheme.darkBlue),
               title: Row(
                 children: [
                   CircleAvatar(
@@ -59,7 +56,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                   ),
                   const SizedBox(width: 12),
                   const Text(
-                    'Dashboard',
+                    'Dashboard Global',
                     style: TextStyle(
                       color: AppTheme.darkBlue,
                       fontWeight: FontWeight.bold,
@@ -70,9 +67,9 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.logout, color: AppTheme.darkBlue),
-                  onPressed: () => context.go(AppRouter.login),
-                  tooltip: 'Déconnexion',
+                  icon: const Icon(Icons.refresh, color: AppTheme.darkBlue),
+                  onPressed: () => ref.refreshDashboard(),
+                  tooltip: 'Actualiser',
                 ),
                 const SizedBox(width: 8),
               ],
@@ -131,8 +128,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                   const SizedBox(height: 24),
 
                   // KPI Grid (Common to all views possibly, or adapted)
-                  if (viewMode == DashboardViewMode.general)
-                    _buildKpiSection(dashboardDataAsync),
+                  _buildKpiSection(dashboardDataAsync),
 
                   const SizedBox(height: 24),
 
@@ -145,7 +141,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                     _buildTechniciansView(ref),
                   ],
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 24),
                 ]),
               ),
             ),
@@ -214,6 +210,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
 
   Widget _buildGeneralView(AsyncValue<DashboardData> dataAsync) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Chart Section
         Container(
@@ -234,9 +231,10 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Activité',
+                  'Évolution de l\'activité',
                   style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
                     color: AppTheme.darkBlue,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -252,24 +250,90 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
             error: (err, stack) => Center(child: Text('Erreur: $err')),
           ),
         ),
-        const SizedBox(height: 24),
+
+        const SizedBox(height: 32),
+
+        // TOP SITES SUMMARY
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Sites les plus actifs',
+              style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextButton(
+              onPressed: () => ref.read(dashboardViewModeProvider.notifier).state = DashboardViewMode.parSite,
+              child: const Text('Voir tous'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        dataAsync.when(
+          data: (data) {
+            final top3 = data.topSites.take(3).toList();
+            if (top3.isEmpty) return const Text('Aucune donnée de site');
+            return Column(
+              children: top3.map((site) => _buildSimpleSiteItem(site)).toList(),
+            );
+          },
+          loading: () => const LinearProgressIndicator(),
+          error: (e, s) => const SizedBox.shrink(),
+        ),
+
+        const SizedBox(height: 32),
+
+        // TECHNICIAN WORKLOAD SUMMARY
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Répartition de la charge',
+              style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextButton(
+              onPressed: () => ref.read(dashboardViewModeProvider.notifier).state = DashboardViewMode.parTechnicien,
+              child: const Text('Détails'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        dataAsync.when(
+          data: (data) {
+            final top3Tech = data.technicianWorkload.take(3).toList();
+            if (top3Tech.isEmpty) return const Text('Aucun technicien actif');
+            return Column(
+              children: top3Tech.map((tech) => _buildSimpleTechItem(tech)).toList(),
+            );
+          },
+          loading: () => const LinearProgressIndicator(),
+          error: (e, s) => const SizedBox.shrink(),
+        ),
+
+        const SizedBox(height: 32),
+
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               'Interventions Récentes',
-              style: AppTheme.lightTheme.textTheme.titleLarge,
+              style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             TextButton(
               onPressed: () => context.push(AppRouter.history),
-              child: const Text('Voir tout'),
+              child: const Text('Historique'),
             ),
           ],
         ),
         const SizedBox(height: 12),
         dataAsync.when(
           data: (data) => Column(
-            children: data.recentInterventions.map((item) {
+            children: data.recentInterventions.take(5).map((item) {
               return MobileInterventionListItem(
                 type: item.type,
                 client: '${item.technicianName} - ${item.durationMinutes} min',
@@ -291,6 +355,70 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
       ],
     );
   }
+
+  Widget _buildSimpleSiteItem(TopSiteData site) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade100),
+      ),
+      child: ListTile(
+        dense: true,
+        leading: const Icon(Icons.location_on, color: AppTheme.primaryBlue, size: 20),
+        title: Text(site.siteName, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(site.clientName, style: const TextStyle(fontSize: 12)),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryBlue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '${site.visitCount} CRI',
+            style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+        ),
+        onTap: () => context.pushNamed(
+          'site-dashboard',
+          pathParameters: {'siteId': site.siteId},
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSimpleTechItem(TechnicianWorkloadData tech) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade100),
+      ),
+      child: ListTile(
+        dense: true,
+        leading: CircleAvatar(
+          radius: 14,
+          backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+          child: Text(tech.technicianName[0], style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
+        ),
+        title: Text(tech.technicianName, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text('${tech.totalHours.toStringAsFixed(1)}h cumulées', style: const TextStyle(fontSize: 12)),
+        trailing: Text(
+          '${tech.interventionCount} interventions',
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+        ),
+        onTap: () => context.pushNamed(
+          'technician-dashboard',
+          pathParameters: {'techId': tech.technicianId},
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildSitesView(WidgetRef ref) {
     // We reuse topSitesProvider
