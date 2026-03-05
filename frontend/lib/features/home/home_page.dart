@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
+import 'package:novadis_cri/core/storage/storage_service.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+
+import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
 
 /// Page d'accueil principale après authentification
 /// Dirige l'utilisateur vers les fonctionnalités principales
-class HomePage extends StatelessWidget {
+class HomePage extends HookConsumerWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userName = ref.watch(userNameProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Novadis CRI'),
@@ -27,7 +34,7 @@ class HomePage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // En-tête de bienvenue
-              _buildWelcomeHeader(context),
+              _buildWelcomeHeader(context, userName ?? ''),
 
               const SizedBox(height: 32),
 
@@ -50,7 +57,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildWelcomeHeader(BuildContext context) {
+  Widget _buildWelcomeHeader(BuildContext context, String userName) {
     return Column(
       children: [
         Icon(
@@ -60,7 +67,7 @@ class HomePage extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          'Bienvenue',
+          userName.isNotEmpty ? 'Bonjour $userName' : 'Bienvenue',
           style: Theme.of(
             context,
           ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),

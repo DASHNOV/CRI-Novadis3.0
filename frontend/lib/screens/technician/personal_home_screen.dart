@@ -7,6 +7,8 @@ import 'package:novadis_cri/models/personal_stats.dart';
 import 'package:novadis_cri/services/stats_api_service.dart';
 import 'package:novadis_cri/features/cri_form/cri_form_screen.dart';
 
+import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
+
 /// Page d'accueil personnalisée pour le technicien
 /// Affiche ses statistiques personnelles et ses derniers CRI
 class PersonalHomeScreen extends ConsumerStatefulWidget {
@@ -32,10 +34,6 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
     try {
       final statsService = ref.read(statsApiServiceProvider);
 
-      // Charger le nom de l'utilisateur depuis le storage
-      // On récupère le rôle, mais le nom sera dans les tokens
-      // _userName assignment removed as it is unused
-
       final results = await Future.wait([
         statsService.getPersonalStats(),
         statsService.getRecentPersonalCRIs(),
@@ -59,6 +57,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final dateStr = DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(now);
+    final userName = ref.watch(userNameProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -93,7 +92,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // En-tête de bienvenue
-                    _buildWelcomeHeader(dateStr),
+                    _buildWelcomeHeader(dateStr, userName),
                     const SizedBox(height: 24),
 
                     // Statistiques personnelles
@@ -114,12 +113,12 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
     );
   }
 
-  Widget _buildWelcomeHeader(String dateStr) {
+  Widget _buildWelcomeHeader(String dateStr, String? userName) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Bonjour 👋',
+          userName != null && userName.isNotEmpty ? 'Bonjour $userName' : 'Bonjour',
           style: Theme.of(
             context,
           ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),

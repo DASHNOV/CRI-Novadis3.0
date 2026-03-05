@@ -45,10 +45,16 @@ class AuthService {
           refreshToken: refreshToken,
         );
 
-        // Save user role for permissions
+        // Save user role and name for permissions and UI
         final user = data['user'];
-        if (user != null && user['role'] != null) {
-          await _storage.saveUserRole(user['role']);
+        if (user != null) {
+          if (user['role'] != null) {
+            await _storage.saveUserRole(user['role']);
+          }
+          final firstName = user['firstName'] ?? '';
+          if (firstName.isNotEmpty) {
+            await _storage.saveUserName(firstName);
+          }
         }
       }
     } on DioException catch (e) {

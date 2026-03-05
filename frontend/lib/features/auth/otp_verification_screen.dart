@@ -5,6 +5,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
 import 'package:novadis_cri/features/auth/data/auth_service.dart';
 
+import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
+import 'package:novadis_cri/features/auth/presentation/providers/permissions_provider.dart';
+
 class OtpVerificationScreen extends HookConsumerWidget {
   final String email;
 
@@ -28,6 +31,11 @@ class OtpVerificationScreen extends HookConsumerWidget {
 
       try {
         await authService.verifyCode(email, codeController.text);
+        
+        // Invalider les providers pour forcer le rechargement des données de l'utilisateur
+        ref.invalidate(userNameProvider);
+        ref.invalidate(userRoleProvider);
+
         if (context.mounted) {
           context.go(AppRouter.home);
         }

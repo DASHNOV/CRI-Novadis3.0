@@ -79,11 +79,15 @@ class StatsApiService {
   Future<List<Map<String, dynamic>>> getAllCRIsWithTechnician({
     String? technicienId,
     String filter = 'all',
+    String? searchId,
   }) async {
     try {
       final queryParams = <String, dynamic>{'filter': filter};
       if (technicienId != null) {
         queryParams['technicienId'] = technicienId;
+      }
+      if (searchId != null && searchId.isNotEmpty) {
+        queryParams['searchId'] = searchId;
       }
 
       final response = await _dio.get(

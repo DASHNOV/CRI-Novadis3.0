@@ -11,6 +11,8 @@ import 'package:novadis_cri/features/dashboard/widgets/intervention_list_item.da
 import 'package:novadis_cri/features/dashboard/widgets/kpi_card_widget.dart';
 import 'package:novadis_cri/features/dashboard/widgets/time_evolution_chart_widget.dart';
 
+import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
+
 /// Page principale du Dashboard avec design modernisé
 class MainDashboardPage extends ConsumerStatefulWidget {
   const MainDashboardPage({super.key});
@@ -25,6 +27,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
     final selectedPeriod = ref.watch(selectedPeriodProvider);
     final viewMode = ref.watch(dashboardViewModeProvider);
     final dashboardDataAsync = ref.watch(dashboardDataProvider);
+    final userName = ref.watch(userNameProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.lightGray,
@@ -86,9 +89,9 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Bonjour,', // TODO: Add user name
-                        style: TextStyle(
+                      Text(
+                        userName != null && userName.isNotEmpty ? 'Bonjour $userName,' : 'Bonjour,',
+                        style: const TextStyle(
                           color: Color(0xFF64748B),
                           fontSize: 14,
                           fontWeight: FontWeight.w500,

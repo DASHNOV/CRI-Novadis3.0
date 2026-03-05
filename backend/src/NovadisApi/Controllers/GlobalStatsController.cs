@@ -74,7 +74,8 @@ namespace NovadisApi.Controllers
         [HttpGet("cris")]
         public async Task<ActionResult<ApiResponse<IEnumerable<CRIWithTechnicianDto>>>> GetAllCRIsWithTechnician(
             [FromQuery] Guid? technicienId = null,
-            [FromQuery] string filter = "all")
+            [FromQuery] string filter = "all",
+            [FromQuery] string? searchId = null)
         {
             try
             {
@@ -86,6 +87,12 @@ namespace NovadisApi.Controllers
                 if (technicienId.HasValue)
                 {
                     query = query.Where(c => c.TechnicianId == technicienId.Value);
+                }
+
+                // Filtre par ID exact
+                if (!string.IsNullOrWhiteSpace(searchId) && Guid.TryParse(searchId, out var searchGuid))
+                {
+                    query = query.Where(c => c.Id == searchGuid);
                 }
 
                 // Filtre par statut

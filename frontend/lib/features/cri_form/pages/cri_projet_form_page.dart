@@ -9,6 +9,7 @@ import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
 import 'package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart';
 import 'package:novadis_cri/features/cri_form/widgets/photo_picker.dart';
 import 'package:novadis_cri/features/cri_form/widgets/signature_pad.dart';
+import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 
 /// Page de formulaire CRI Projet avec 6 sections
 class CriProjetFormPage extends ConsumerStatefulWidget {
@@ -340,37 +341,116 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
         children: [
           Text('Nom du client *', style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
-          FormBuilderTextField(
+          FormBuilderField<String>(
             name: 'clientName',
             initialValue: state.currentCri?.clientName ?? '',
-            decoration: const InputDecoration(
-              hintText: 'Nom du client',
-              prefixIcon: Icon(Icons.business),
-            ),
             validator: FormBuilderValidators.required(errorText: 'Nom requis'),
-            textCapitalization: TextCapitalization.words,
-            onChanged: (value) {
-              ref
-                  .read(criProjetFormProvider.notifier)
-                  .updateClientInfo(clientName: value);
+            builder: (FormFieldState<String> field) {
+              return Autocomplete<String>(
+                initialValue: TextEditingValue(text: field.value ?? ''),
+                optionsBuilder: (TextEditingValue textEditingValue) async {
+                  if (textEditingValue.text.isEmpty) {
+                    return const Iterable<String>.empty();
+                  }
+                  return await ref
+                      .read(criRemoteRepositoryProvider)
+                      .searchClients(textEditingValue.text);
+                },
+                onSelected: (String selection) {
+                  field.didChange(selection);
+                  ref
+                      .read(criProjetFormProvider.notifier)
+                      .updateClientInfo(clientName: selection);
+                },
+                fieldViewBuilder:
+                    (
+                      context,
+                      textEditingController,
+                      focusNode,
+                      onFieldSubmitted,
+                    ) {
+                      if (textEditingController.text != field.value &&
+                          field.value != null &&
+                          !focusNode.hasFocus) {
+                        textEditingController.text = field.value!;
+                      }
+                      return TextField(
+                        controller: textEditingController,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          hintText: 'Nom du client',
+                          prefixIcon: const Icon(Icons.business),
+                          errorText: field.errorText,
+                        ),
+                        textCapitalization: TextCapitalization.words,
+                        onChanged: (val) {
+                          field.didChange(val);
+                          ref
+                              .read(criProjetFormProvider.notifier)
+                              .updateClientInfo(clientName: val);
+                        },
+                        onSubmitted: (_) => onFieldSubmitted(),
+                      );
+                    },
+              );
             },
           ),
           const SizedBox(height: 16),
           Text('Site *', style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
-          FormBuilderTextField(
+          FormBuilderField<String>(
             name: 'site',
             initialValue: state.currentCri?.site ?? '',
-            decoration: const InputDecoration(
-              hintText: 'Site',
-              prefixIcon: Icon(Icons.location_on),
-            ),
             validator: FormBuilderValidators.required(errorText: 'Site requis'),
-            textCapitalization: TextCapitalization.words,
-            onChanged: (value) {
-              ref
-                  .read(criProjetFormProvider.notifier)
-                  .updateClientInfo(site: value);
+            builder: (FormFieldState<String> field) {
+              return Autocomplete<String>(
+                initialValue: TextEditingValue(text: field.value ?? ''),
+                optionsBuilder: (TextEditingValue textEditingValue) async {
+                  if (textEditingValue.text.isEmpty) {
+                    return const Iterable<String>.empty();
+                  }
+                  final clientName = state.currentCri?.clientName ?? '';
+                  return await ref
+                      .read(criRemoteRepositoryProvider)
+                      .searchSites(clientName, textEditingValue.text);
+                },
+                onSelected: (String selection) {
+                  field.didChange(selection);
+                  ref
+                      .read(criProjetFormProvider.notifier)
+                      .updateClientInfo(site: selection);
+                },
+                fieldViewBuilder:
+                    (
+                      context,
+                      textEditingController,
+                      focusNode,
+                      onFieldSubmitted,
+                    ) {
+                      if (textEditingController.text != field.value &&
+                          field.value != null &&
+                          !focusNode.hasFocus) {
+                        textEditingController.text = field.value!;
+                      }
+                      return TextField(
+                        controller: textEditingController,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          hintText: 'Site',
+                          prefixIcon: const Icon(Icons.location_on),
+                          errorText: field.errorText,
+                        ),
+                        textCapitalization: TextCapitalization.words,
+                        onChanged: (val) {
+                          field.didChange(val);
+                          ref
+                              .read(criProjetFormProvider.notifier)
+                              .updateClientInfo(site: val);
+                        },
+                        onSubmitted: (_) => onFieldSubmitted(),
+                      );
+                    },
+              );
             },
           ),
           const SizedBox(height: 16),

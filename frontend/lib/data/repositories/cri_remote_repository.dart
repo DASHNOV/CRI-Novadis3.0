@@ -126,4 +126,32 @@ class CriRemoteRepository {
     }
     return 'Erreur de communication avec le serveur';
   }
+
+  Future<List<String>> searchClients(String query) async {
+    try {
+      if (query.isEmpty) return [];
+      final response = await _dio.get(
+        '/CRI/clients/search',
+        queryParameters: {'q': query},
+      );
+      final List<dynamic> data = response.data['data'] ?? [];
+      return data.cast<String>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<List<String>> searchSites(String client, String query) async {
+    try {
+      if (query.isEmpty) return [];
+      final response = await _dio.get(
+        '/CRI/sites/search',
+        queryParameters: {'client': client, 'q': query},
+      );
+      final List<dynamic> data = response.data['data'] ?? [];
+      return data.cast<String>();
+    } catch (_) {
+      return [];
+    }
+  }
 }

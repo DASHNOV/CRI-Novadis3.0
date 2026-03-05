@@ -152,5 +152,49 @@ namespace NovadisApi.Controllers
 
             return Ok(ApiResponse<object>.SuccessResponse(null, "CRI supprimé avec succès"));
         }
+
+        [HttpGet("clients/search")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<string>>>> SearchClients([FromQuery] string q)
+        {
+            if (string.IsNullOrWhiteSpace(q))
+                return Ok(ApiResponse<IEnumerable<string>>.SuccessResponse(new List<string>()));
+            
+            var query = q.ToLower();
+            var clients = await _context.CRIForms
+                .Where(c => c.ClientName != null && c.ClientName.ToLower().Contains(query))
+                .Select(c => c.ClientName)
+                .Distinct()
+                .Take(20)
+                .ToListAsync();
+
+            return Ok(ApiResponse<IEnumerable<string>>.SuccessResponse(clients!));
+        }
+
+        [HttpGet("sites/search")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<string>>>> SearchSites([FromQuery] string? client, [FromQuery] string q)
+        {
+            var queryDb = _context.CRIForms.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(client))
+            {
+               var loweredClient = client.ToLower();
+               queryDb = queryDb.Where(c => c.ClientName != null && c.ClientName.ToLower() == loweredClient);
+            }
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+               var loweredQ = q.ToLower();
+               queryDb = queryDb.Where(c => c.ClientSite != null && c.ClientSite.ToLower().Contains(loweredQ));
+            }
+
+            var sites = await queryDb
+                .Where(c => c.ClientSite != null)
+                .Select(c => c.ClientSite)
+                .Distinct()
+                .Take(20)
+                .ToListAsync();
+
+            return Ok(ApiResponse<IEnumerable<string>>.SuccessResponse(sites!));
+        }
     }
 }
