@@ -185,5 +185,3 @@ class PdfGeneratorService implements BasePdfGeneratorService {
 
   String _formatDateForFilename(DateTime date) => DateFormat('yyyyMMdd_HHmmss').format(date);
 }
-
-BasePdfGeneratorService createPdfService(AppDatabase database) => PdfGeneratorService(database);

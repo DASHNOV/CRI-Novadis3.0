@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../../data/local/app_database.dart';
 import '../models/exported_document_model.dart';
-import '../services/pdf_generator_stub.dart';
 import '../services/pdf_generator_service.dart';
 import '../services/dashboard_csv_service.dart';
 import '../services/technician_stats_csv_service.dart';
@@ -39,9 +38,9 @@ final technicianStatsCsvServiceProvider = Provider<TechnicianStatsCsvService>((
 });
 
 /// Provider pour le service de gestion de fichiers
-final fileManagementServiceProvider = Provider<FileManagementService>((ref) {
+final fileManagementServiceProvider = Provider<BaseFileManagementService>((ref) {
   final database = ref.watch(databaseProvider);
-  return FileManagementService(database);
+  return createFileService(database);
 });
 
 // ============================================================

@@ -15,5 +15,3 @@ class PdfGeneratorService implements BasePdfGeneratorService {
     throw UnimplementedError('PDF generation not supported on web');
   }
 }
-
-BasePdfGeneratorService createPdfService(AppDatabase database) => PdfGeneratorService(database);
