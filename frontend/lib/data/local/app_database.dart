@@ -1,12 +1,10 @@
-import 'dart:io' show File;
-import 'package:flutter/foundation.dart' show kIsWeb;
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:drift/wasm.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Import conditionnel
+import 'connection_stub.dart'
+    if (dart.library.js_interop) 'connection_web.dart'
+    if (dart.library.io) 'connection_native.dart';
 
 import 'tables/cri_service_table.dart';
 import 'tables/cri_projet_table.dart';
@@ -22,7 +20,7 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
 
 @DriftDatabase(tables: [CriServiceTable, CriProjetTable, ExportedDocumentTable])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase() : super(openConnection());
 
   @override
   int get schemaVersion => 2;
@@ -35,7 +33,6 @@ class AppDatabase extends _$AppDatabase {
       },
       onUpgrade: (m, from, to) async {
         if (from < 2) {
-          // Ajouter la colonne cybersecurity_recommendations si elle manque
           await m.addColumn(criServiceTable, criServiceTable.cybersecurityRecommendations);
         }
       },
@@ -44,19 +41,9 @@ class AppDatabase extends _$AppDatabase {
 
   // CRI Service Methods
   Future<List<CriService>> getAllCriService() => select(criServiceTable).get();
-  Stream<List<CriService>> watchAllCriService() =>
-      select(criServiceTable).watch();
-
-  Future<CriService?> getCriServiceById(String id) {
-    return (select(
-      criServiceTable,
-    )..where((t) => t.id.equals(id))).getSingleOrNull();
-  }
-
-  Future<int> insertCriService(CriServiceTableCompanion cri) {
-    return into(criServiceTable).insert(cri);
-  }
-
+  Stream<List<CriService>> watchAllCriService() => select(criServiceTable).watch();
+  Future<CriService?> getCriServiceById(String id) => (select(criServiceTable)..where((t) => t.id.equals(id))).getSingleOrNull();
+  Future<int> insertCriService(CriServiceTableCompanion cri) => into(criServiceTable).insert(cri);
   Future<bool> updateCriService(CriServiceTableCompanion cri) async {
     await into(criServiceTable).insertOnConflictUpdate(cri);
     return true;
@@ -65,91 +52,28 @@ class AppDatabase extends _$AppDatabase {
   // CRI Projet Methods
   Future<List<CriProjet>> getAllCriProjet() => select(criProjetTable).get();
   Stream<List<CriProjet>> watchAllCriProjet() => select(criProjetTable).watch();
-
-  Future<CriProjet?> getCriProjetById(String id) {
-    return (select(
-      criProjetTable,
-    )..where((t) => t.id.equals(id))).getSingleOrNull();
-  }
-
-  Future<int> insertCriProjet(CriProjetTableCompanion cri) {
-    return into(criProjetTable).insert(cri);
-  }
-
+  Future<CriProjet?> getCriProjetById(String id) => (select(criProjetTable)..where((t) => t.id.equals(id))).getSingleOrNull();
+  Future<int> insertCriProjet(CriProjetTableCompanion cri) => into(criProjetTable).insert(cri);
   Future<bool> updateCriProjet(CriProjetTableCompanion cri) async {
     await into(criProjetTable).insertOnConflictUpdate(cri);
     return true;
   }
-
-  Future<int> deleteCriProjet(String id) {
-    return (delete(criProjetTable)..where((t) => t.id.equals(id))).go();
-  }
-
-  // CRI Service Delete Method
-  Future<int> deleteCriService(String id) {
-    return (delete(criServiceTable)..where((t) => t.id.equals(id))).go();
-  }
+  Future<int> deleteCriProjet(String id) => (delete(criProjetTable)..where((t) => t.id.equals(id))).go();
+  Future<int> deleteCriService(String id) => (delete(criServiceTable)..where((t) => t.id.equals(id))).go();
 
   // Exported Document Methods
-  Future<List<ExportedDocument>> getAllExportedDocuments() =>
-      select(exportedDocumentTable).get();
-
-  Future<List<ExportedDocument>> getExportedDocumentsByType(String type) {
-    return (select(
-      exportedDocumentTable,
-    )..where((t) => t.fileType.equals(type))).get();
-  }
-
-  Future<List<ExportedDocument>> getExportedDocumentsByCriId(String id) {
-    return (select(
-      exportedDocumentTable,
-    )..where((t) => t.criId.equals(id))).get();
-  }
-
-  Future<ExportedDocument?> getExportedDocumentById(int id) {
-    return (select(
-      exportedDocumentTable,
-    )..where((t) => t.id.equals(id))).getSingleOrNull();
-  }
-
-  Future<int> insertExportedDocument(ExportedDocumentTableCompanion doc) {
-    return into(exportedDocumentTable).insert(doc);
-  }
-
-  Future<bool> updateExportedDocument(ExportedDocumentTableCompanion doc) {
-    return update(exportedDocumentTable).replace(doc);
-  }
-
-  Future<int> deleteExportedDocument(int id) {
-    return (delete(exportedDocumentTable)..where((t) => t.id.equals(id))).go();
-  }
-
-  Future<int> updateSharedAt(int id, DateTime date) {
-    return (update(exportedDocumentTable)..where((t) => t.id.equals(id))).write(
+  Future<List<ExportedDocument>> getAllExportedDocuments() => select(exportedDocumentTable).get();
+  Future<List<ExportedDocument>> getExportedDocumentsByType(String type) => (select(exportedDocumentTable)..where((t) => t.fileType.equals(type))).get();
+  Future<List<ExportedDocument>> getExportedDocumentsByCriId(String id) => (select(exportedDocumentTable)..where((t) => t.criId.equals(id))).get();
+  Future<ExportedDocument?> getExportedDocumentById(int id) => (select(exportedDocumentTable)..where((t) => t.id.equals(id))).getSingleOrNull();
+  Future<int> insertExportedDocument(ExportedDocumentTableCompanion doc) => into(exportedDocumentTable).insert(doc);
+  Future<bool> updateExportedDocument(ExportedDocumentTableCompanion doc) => update(exportedDocumentTable).replace(doc);
+  Future<int> deleteExportedDocument(int id) => (delete(exportedDocumentTable)..where((t) => t.id.equals(id))).go();
+  Future<int> updateSharedAt(int id, DateTime date) => (update(exportedDocumentTable)..where((t) => t.id.equals(id))).write(
       ExportedDocumentTableCompanion(sharedAt: Value(date)),
     );
-  }
-}
-
-QueryExecutor _openConnection() {
-  if (kIsWeb) {
-    return LazyDatabase(() async {
-      final result = await WasmDatabase.open(
-        databaseName: 'db',
-        sqlite3Uri: Uri.parse('sqlite3.wasm'),
-        driftWorkerUri: Uri.parse('drift_worker.js'),
-      );
-      return result.resolvedExecutor;
-    });
-  }
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'db.sqlite'));
-    return NativeDatabase.createInBackground(file);
-  });
 }
 
 extension CriProjetUtils on CriProjet {
-  int get interventionDurationMinutes =>
-      endTime.difference(startTime).inMinutes;
+  int get interventionDurationMinutes => endTime.difference(startTime).inMinutes;
 }
