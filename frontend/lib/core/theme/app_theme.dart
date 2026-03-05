@@ -50,7 +50,7 @@ class AppTheme {
       ),
 
       // Configuration des Cartes
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0, // Design plat/épuré
         color: white,
         margin: EdgeInsets.zero,
