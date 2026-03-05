@@ -1,7 +1,9 @@
-import 'dart:io' show File;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:novadis_cri/core/utils/file_utils.dart';
+
+final _fileUtils = createFileUtils();
 
 /// Widget pour sélectionner et afficher des photos
 /// Maximum 5 photos avec compression automatique
@@ -287,17 +289,7 @@ class _PhotoThumbnail extends StatelessWidget {
                       child: const Icon(Icons.broken_image, color: Colors.red),
                     ),
                   )
-                : Image.file(
-                    File(photoPath),
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: theme.colorScheme.errorContainer,
-                      child: Icon(
-                        Icons.broken_image,
-                        color: theme.colorScheme.error,
-                      ),
-                    ),
-                  ),
+                : _fileUtils.getFileWidget(photoPath),
             ),
           ),
         ),
@@ -427,16 +419,12 @@ class PhotoViewScreen extends StatelessWidget {
                   child: Icon(Icons.broken_image, size: 64, color: Colors.white54),
                 ),
               )
-            : Image.file(
-                File(photoPath),
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => const Center(
-                  child: Icon(Icons.broken_image, size: 64, color: Colors.white54),
-                ),
-              ),
+            : _fileUtils.getFileWidget(photoPath),
         ),
       ),
     );
   }
 }
+
+
 

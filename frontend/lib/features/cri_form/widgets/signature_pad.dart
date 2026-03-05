@@ -1,9 +1,11 @@
 import 'dart:typed_data';
-import 'dart:io' show Directory, File;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:signature/signature.dart';
+import 'package:novadis_cri/core/utils/file_utils.dart';
+
+final _fileUtils = createFileUtils();
 
 /// Widget pour capturer une signature
 /// Permet de dessiner, effacer et sauvegarder en PNG
@@ -89,27 +91,16 @@ class _SignaturePadWidgetState extends State<SignaturePadWidget> {
       }
 
       if (kIsWeb) {
-        // Sur le web, on ne sauvegarde pas dans le système de fichiers
-        // On pourrait utiliser le localStorage ou simplement garder en mémoire
-        // Pour l'instant, on simule une sauvegarde
         setState(() {
           _savedPath = 'web_signature_${DateTime.now().millisecondsSinceEpoch}';
         });
         widget.onSignatureSaved(_savedPath);
       } else {
-        // Sauvegarder dans le dossier temporaire de l'app (Natif)
         final directory = await getApplicationDocumentsDirectory();
-        final signatureDir = Directory('${directory.path}/signatures');
-
-        if (!await signatureDir.exists()) {
-          await signatureDir.create(recursive: true);
-        }
-
         final fileName = 'signature_${DateTime.now().millisecondsSinceEpoch}.png';
-        final filePath = '${signatureDir.path}/$fileName';
+        final filePath = '${directory.path}/signatures/$fileName';
 
-        final file = File(filePath);
-        await file.writeAsBytes(signature);
+        await _fileUtils.saveBytesToFile(signature, filePath);
 
         setState(() {
           _savedPath = filePath;
@@ -218,12 +209,7 @@ class _SignaturePadWidgetState extends State<SignaturePadWidget> {
                     borderRadius: BorderRadius.circular(11),
                     child: kIsWeb 
                       ? const Center(child: Text('Signature enregistrée (Web)'))
-                      : Image.file(
-                          File(_savedPath!),
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildPlaceholder(theme),
-                        ),
+                      : _fileUtils.getFileWidget(_savedPath!),
                   )
                 : _buildPlaceholder(theme),
           ),
@@ -404,16 +390,7 @@ class SignaturePreview extends StatelessWidget {
                   borderRadius: BorderRadius.circular(7),
                   child: kIsWeb
                     ? const Center(child: Text('Signé'))
-                    : Image.file(
-                        File(signaturePath!),
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => Center(
-                          child: Icon(
-                            Icons.error_outline,
-                            color: theme.colorScheme.error,
-                          ),
-                        ),
-                      ),
+                    : _fileUtils.getFileWidget(signaturePath!),
                 )
               : Center(
                   child: Text(
@@ -429,4 +406,6 @@ class SignaturePreview extends StatelessWidget {
     );
   }
 }
+
+
 
