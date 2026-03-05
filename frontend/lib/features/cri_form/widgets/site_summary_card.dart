@@ -125,10 +125,10 @@ class SiteSummaryCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: colorScheme.outline.withValues(alpha: 0.2),
+                        color: colorScheme.outline.withOpacity(0.2),
                       ),
                     ),
                     child: Column(
@@ -341,3 +341,4 @@ class SiteSummaryCard extends StatelessWidget {
     }
   }
 }
+

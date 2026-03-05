@@ -128,7 +128,7 @@ class TechnicianSelectorWidget extends StatelessWidget {
                             radius: 14,
                             backgroundColor: Theme.of(
                               context,
-                            ).primaryColor.withValues(alpha: 0.1),
+                            ).primaryColor.withOpacity(0.1),
                             child: Text(
                               tech.name.isNotEmpty
                                   ? tech.name[0].toUpperCase()
@@ -283,13 +283,13 @@ class ConnectionStatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: isOnline
-            ? Colors.green.withValues(alpha: 0.1)
-            : Colors.orange.withValues(alpha: 0.1),
+            ? Colors.green.withOpacity(0.1)
+            : Colors.orange.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isOnline
-              ? Colors.green.withValues(alpha: 0.3)
-              : Colors.orange.withValues(alpha: 0.3),
+              ? Colors.green.withOpacity(0.3)
+              : Colors.orange.withOpacity(0.3),
         ),
       ),
       child: Row(
@@ -317,3 +317,4 @@ class ConnectionStatusBadge extends StatelessWidget {
     );
   }
 }
+

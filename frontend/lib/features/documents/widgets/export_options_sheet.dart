@@ -401,7 +401,7 @@ class _ExportOption extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
+                  color: iconColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: iconColor, size: 28),
@@ -423,7 +423,7 @@ class _ExportOption extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
-                        ).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                        ).textTheme.bodySmall?.color?.withOpacity(0.7),
                       ),
                     ),
                   ],
@@ -441,3 +441,4 @@ class _ExportOption extends StatelessWidget {
     );
   }
 }
+

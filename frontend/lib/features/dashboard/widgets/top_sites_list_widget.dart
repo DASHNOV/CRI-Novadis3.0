@@ -54,7 +54,7 @@ class TopSitesListWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.1),
+                    color: Colors.green.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -242,9 +242,9 @@ class _SiteListItem extends StatelessWidget {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: badgeColor.withValues(alpha: 0.2),
+        color: badgeColor.withOpacity(0.2),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: badgeColor.withValues(alpha: 0.5), width: 1),
+        border: Border.all(color: badgeColor.withOpacity(0.5), width: 1),
       ),
       child: Center(
         child: Text(
@@ -263,7 +263,7 @@ class _SiteListItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.blue.withValues(alpha: 0.1),
+        color: Colors.blue.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -284,3 +284,4 @@ class _SiteListItem extends StatelessWidget {
     );
   }
 }
+

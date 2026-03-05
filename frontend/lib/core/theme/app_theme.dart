@@ -50,7 +50,7 @@ class AppTheme {
       ),
 
       // Configuration des Cartes
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         elevation: 0, // Design plat/épuré
         color: white,
         margin: EdgeInsets.zero,
@@ -60,7 +60,7 @@ class AppTheme {
             color: Colors.transparent,
           ), // Pas de bordure par défaut
         ),
-        shadowColor: Colors.black.withValues(alpha: 0.05), // Ombre très légère
+        shadowColor: Colors.black.withOpacity(0.05), // Ombre très légère
       ),
 
       // Textes
@@ -150,3 +150,4 @@ class AppTheme {
     );
   }
 }
+

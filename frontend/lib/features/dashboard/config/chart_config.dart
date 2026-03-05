@@ -21,12 +21,12 @@ class ChartConfig {
 
   // Gradient pour les zones sous les lignes
   static List<Color> get areaGradient => [
-    primaryLineColor.withValues(alpha: 0.3),
-    primaryLineColor.withValues(alpha: 0.0),
+    primaryLineColor.withOpacity(0.3),
+    primaryLineColor.withOpacity(0.0),
   ];
 
   // Couleur du radar
-  static Color get radarFillColor => primaryLineColor.withValues(alpha: 0.3);
+  static Color get radarFillColor => primaryLineColor.withOpacity(0.3);
   static Color get radarBorderColor => primaryLineColor;
 
   // Couleurs de tendance
@@ -50,7 +50,7 @@ class ChartConfig {
     borderRadius: BorderRadius.circular(8),
     boxShadow: [
       BoxShadow(
-        color: Colors.black.withValues(alpha: 0.2),
+        color: Colors.black.withOpacity(0.2),
         blurRadius: 8,
         offset: const Offset(0, 4),
       ),
@@ -84,7 +84,7 @@ class ChartConfig {
   );
 
   // Grille
-  static Color get gridLineColor => Colors.grey.withValues(alpha: 0.2);
+  static Color get gridLineColor => Colors.grey.withOpacity(0.2);
 
   // Couleurs des KPI cards
   static const Map<String, Color> kpiColors = {
@@ -126,3 +126,4 @@ class ChartConfig {
     return '${h}h${m.toString().padLeft(2, '0')}';
   }
 }
+

@@ -52,7 +52,7 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
                 filled: true,
                 fillColor: Theme.of(
                   context,
-                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -82,7 +82,7 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
                     size: 64,
                     color: Theme.of(
                       context,
-                    ).colorScheme.outline.withValues(alpha: 0.5),
+                    ).colorScheme.outline.withOpacity(0.5),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -153,7 +153,7 @@ class _CriReportCard extends ConsumerWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+          color: Theme.of(context).dividerColor.withOpacity(0.5),
         ),
       ),
       child: InkWell(
@@ -173,8 +173,8 @@ class _CriReportCard extends ConsumerWidget {
                     ),
                     decoration: BoxDecoration(
                       color: report.isProjet
-                          ? Colors.purple.withValues(alpha: 0.1)
-                          : Colors.blue.withValues(alpha: 0.1),
+                          ? Colors.purple.withOpacity(0.1)
+                          : Colors.blue.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -348,3 +348,4 @@ class _ExportProgressDialogState extends ConsumerState<_ExportProgressDialog> {
     );
   }
 }
+

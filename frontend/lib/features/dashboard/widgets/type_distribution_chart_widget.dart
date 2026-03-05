@@ -212,7 +212,7 @@ class _TypeDistributionChartWidgetState
                 backDrawRodData: BackgroundBarChartRodData(
                   show: true,
                   toY: maxY,
-                  color: ChartConfig.gridLineColor.withValues(alpha: 0.1),
+                  color: ChartConfig.gridLineColor.withOpacity(0.1),
                 ),
               ),
             ],
@@ -339,3 +339,4 @@ class _TypeDistributionChartWidgetState
     return label;
   }
 }
+

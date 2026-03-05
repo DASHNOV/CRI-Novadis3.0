@@ -53,6 +53,17 @@ class FileManagementService implements BaseFileManagementService {
   }
 
   @override
+  Future<bool> shareMultipleFiles(List<String> filePaths, {String? subject, String? text}) async {
+    final xFiles = <XFile>[];
+    for (final path in filePaths) {
+      if (await File(path).exists()) xFiles.add(XFile(path));
+    }
+    if (xFiles.isEmpty) throw Exception('Aucun fichier à partager');
+    await Share.shareXFiles(xFiles, subject: subject, text: text);
+    return true;
+  }
+
+  @override
   Future<bool> deleteFile(int documentId) async {
     final document = await _database.getExportedDocumentById(documentId);
     if (document == null) return false;
@@ -60,6 +71,42 @@ class FileManagementService implements BaseFileManagementService {
     if (await file.exists()) await file.delete();
     await _database.deleteExportedDocument(documentId);
     return true;
+  }
+
+  @override
+  Future<int> deleteMultipleFiles(List<int> documentIds) async {
+    int count = 0;
+    for (final id in documentIds) {
+      if (await deleteFile(id)) count++;
+    }
+    return count;
+  }
+
+  @override
+  Future<bool> renameFile(int documentId, String newFilename) async {
+    final document = await _database.getExportedDocumentById(documentId);
+    if (document == null) return false;
+    
+    final file = File(document.filePath);
+    final extension = p.extension(document.filename);
+    var finalName = newFilename.endsWith(extension) ? newFilename : '$newFilename$extension';
+    
+    final newPath = p.join(p.dirname(document.filePath), finalName);
+    final renamedFile = await file.rename(newPath);
+
+    await _database.updateExportedDocument(
+      ExportedDocumentTableCompanion(
+        id: Value(document.id),
+        filename: Value(finalName),
+        filePath: Value(renamedFile.path),
+      ),
+    );
+    return true;
+  }
+
+  @override
+  Future<void> markAsShared(int documentId) async {
+    await _database.updateSharedAt(documentId, DateTime.now());
   }
 
   @override

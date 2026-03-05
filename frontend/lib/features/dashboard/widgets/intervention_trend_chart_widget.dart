@@ -63,7 +63,7 @@ class _InterventionTrendChartWidgetState
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -244,8 +244,8 @@ class _InterventionTrendChartWidgetState
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                AppTheme.primaryBlue.withValues(alpha: 0.3),
-                AppTheme.primaryBlue.withValues(alpha: 0.0),
+                AppTheme.primaryBlue.withOpacity(0.3),
+                AppTheme.primaryBlue.withOpacity(0.0),
               ],
             ),
           ),
@@ -254,3 +254,4 @@ class _InterventionTrendChartWidgetState
     );
   }
 }
+

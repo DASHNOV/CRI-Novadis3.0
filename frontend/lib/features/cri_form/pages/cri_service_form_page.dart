@@ -321,7 +321,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                 left: 0,
                 right: 0,
                 child: Container(
-                  color: theme.scaffoldBackgroundColor.withValues(alpha: 0.95),
+                  color: theme.scaffoldBackgroundColor.withOpacity(0.95),
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: SiteSummaryCard(
                     summary: _siteSummary!,
@@ -1255,3 +1255,4 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
     );
   }
 }
+

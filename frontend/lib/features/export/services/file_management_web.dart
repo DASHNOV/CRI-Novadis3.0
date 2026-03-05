@@ -13,7 +13,19 @@ class FileManagementService implements BaseFileManagementService {
   Future<bool> shareFile(String filePath, {String? subject, String? text}) async => throw UnimplementedError();
 
   @override
+  Future<bool> shareMultipleFiles(List<String> filePaths, {String? subject, String? text}) async => throw UnimplementedError();
+
+  @override
   Future<bool> deleteFile(int documentId) async => throw UnimplementedError();
+
+  @override
+  Future<int> deleteMultipleFiles(List<int> documentIds) async => throw UnimplementedError();
+
+  @override
+  Future<bool> renameFile(int documentId, String newFilename) async => throw UnimplementedError();
+
+  @override
+  Future<void> markAsShared(int documentId) async => throw UnimplementedError();
 
   @override
   Future<int> registerExportedDocument({

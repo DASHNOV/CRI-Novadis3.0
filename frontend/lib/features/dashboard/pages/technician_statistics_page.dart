@@ -291,7 +291,7 @@ class TechnicianStatisticsPage extends ConsumerWidget {
               width: 70,
               height: 70,
               decoration: BoxDecoration(
-                color: scoreColor.withValues(alpha: 0.1),
+                color: scoreColor.withOpacity(0.1),
                 shape: BoxShape.circle,
                 border: Border.all(color: scoreColor, width: 3),
               ),
@@ -404,7 +404,7 @@ class _TechnicianProfileCard extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
+                        color: Colors.blue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -426,3 +426,4 @@ class _TechnicianProfileCard extends StatelessWidget {
     );
   }
 }
+

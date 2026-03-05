@@ -113,7 +113,7 @@ class _CriTypeCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: color.withValues(alpha: 0.3)),
+        side: BorderSide(color: color.withOpacity(0.3)),
       ),
       child: InkWell(
         onTap: onTap,
@@ -126,7 +126,7 @@ class _CriTypeCard extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 32),
@@ -163,7 +163,7 @@ class _CriTypeCard extends StatelessWidget {
                             Icon(
                               Icons.check_circle,
                               size: 14,
-                              color: color.withValues(alpha: 0.7),
+                              color: color.withOpacity(0.7),
                             ),
                             const SizedBox(width: 4),
                             Flexible(
@@ -185,7 +185,7 @@ class _CriTypeCard extends StatelessWidget {
               // Arrow
               Icon(
                 Icons.arrow_forward_ios,
-                color: color.withValues(alpha: 0.5),
+                color: color.withOpacity(0.5),
                 size: 20,
               ),
             ],
@@ -195,3 +195,4 @@ class _CriTypeCard extends StatelessWidget {
     );
   }
 }
+

@@ -24,7 +24,7 @@ class MobileInterventionListItem extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
+        side: BorderSide(color: Colors.grey.withOpacity(0.1)),
       ),
       child: InkWell(
         onTap: onTap,
@@ -38,7 +38,7 @@ class MobileInterventionListItem extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppTheme.lightBlue.withValues(alpha: 0.1),
+                  color: AppTheme.lightBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
@@ -123,7 +123,7 @@ class MobileInterventionListItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -148,3 +148,4 @@ class MobileInterventionListItem extends StatelessWidget {
     return '${date.day}/${date.month}/${date.year}';
   }
 }
+

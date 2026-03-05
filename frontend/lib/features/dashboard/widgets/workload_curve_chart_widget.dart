@@ -204,7 +204,7 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
         horizontalLines: [
           HorizontalLine(
             y: widget.thresholdHours,
-            color: ChartConfig.thresholdLineColor.withValues(alpha: 0.5),
+            color: ChartConfig.thresholdLineColor.withOpacity(0.5),
             strokeWidth: 2,
             dashArray: [8, 4],
             label: HorizontalLineLabel(
@@ -253,8 +253,8 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                const Color(0xFF8B5CF6).withValues(alpha: 0.3),
-                const Color(0xFF8B5CF6).withValues(alpha: 0.0),
+                const Color(0xFF8B5CF6).withOpacity(0.3),
+                const Color(0xFF8B5CF6).withOpacity(0.0),
               ],
             ),
           ),
@@ -328,9 +328,9 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Text(
         message,
@@ -361,3 +361,4 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
 extension on Color {
   Color get shade700 => HSLColor.fromColor(this).withLightness(0.35).toColor();
 }
+

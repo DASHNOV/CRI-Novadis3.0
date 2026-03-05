@@ -52,7 +52,7 @@ class EmptyDocumentsState extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                ).textTheme.bodyMedium?.color?.withOpacity(0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -121,7 +121,7 @@ class EmptySearchState extends StatelessWidget {
               size: 64,
               color: Theme.of(
                 context,
-              ).colorScheme.primary.withValues(alpha: 0.5),
+              ).colorScheme.primary.withOpacity(0.5),
             ),
             const SizedBox(height: 24),
             Text(
@@ -136,7 +136,7 @@ class EmptySearchState extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                ).textTheme.bodyMedium?.color?.withOpacity(0.7),
               ),
             ),
           ],
@@ -145,3 +145,4 @@ class EmptySearchState extends StatelessWidget {
     );
   }
 }
+

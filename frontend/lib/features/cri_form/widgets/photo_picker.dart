@@ -188,7 +188,7 @@ class _PhotoPickerState extends State<PhotoPicker> {
               color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                color: theme.colorScheme.outline.withOpacity(0.3),
                 style: BorderStyle.solid,
               ),
             ),
@@ -272,7 +272,7 @@ class _PhotoThumbnail extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -338,7 +338,7 @@ class _AddPhotoButton extends StatelessWidget {
           color: theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: theme.colorScheme.outline.withValues(alpha: 0.3),
+            color: theme.colorScheme.outline.withOpacity(0.3),
           ),
         ),
         child: isLoading
@@ -425,6 +425,7 @@ class PhotoViewScreen extends StatelessWidget {
     );
   }
 }
+
 
 
 
