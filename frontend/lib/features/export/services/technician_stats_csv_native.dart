@@ -9,12 +9,15 @@ import '../../../data/local/app_database.dart';
 import '../../../data/local/tables/cri_service_table.dart';
 import '../../../data/local/tables/cri_projet_table.dart';
 
+import 'technician_stats_csv_stub.dart';
+
 /// Service de génération CSV pour les statistiques d'un technicien (Version Native)
-class TechnicianStatsCsvService {
+class TechnicianStatsCsvService implements BaseTechnicianStatsCsvService {
   final AppDatabase _database;
 
   TechnicianStatsCsvService(this._database);
 
+  @override
   Future<File> exportTechnicianStats({
     required String technicianName,
     required DateTime startDate,

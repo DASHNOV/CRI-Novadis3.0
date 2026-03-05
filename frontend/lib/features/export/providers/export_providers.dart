@@ -24,17 +24,17 @@ final pdfGeneratorServiceProvider = Provider<BasePdfGeneratorService>((ref) {
 });
 
 /// Provider pour le service CSV Dashboard
-final dashboardCsvServiceProvider = Provider<DashboardCsvService>((ref) {
+final dashboardCsvServiceProvider = Provider<BaseDashboardCsvService>((ref) {
   final database = ref.watch(databaseProvider);
-  return DashboardCsvService(database);
+  return createDashboardCsvService(database);
 });
 
 /// Provider pour le service CSV Technicien
-final technicianStatsCsvServiceProvider = Provider<TechnicianStatsCsvService>((
+final technicianStatsCsvServiceProvider = Provider<BaseTechnicianStatsCsvService>((
   ref,
 ) {
   final database = ref.watch(databaseProvider);
-  return TechnicianStatsCsvService(database);
+  return createTechnicianStatsCsvService(database);
 });
 
 /// Provider pour le service de gestion de fichiers

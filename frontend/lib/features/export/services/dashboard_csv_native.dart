@@ -9,12 +9,15 @@ import '../../../data/local/app_database.dart';
 import '../../../data/local/tables/cri_service_table.dart';
 import '../../../data/local/tables/cri_projet_table.dart';
 
+import 'dashboard_csv_stub.dart';
+
 /// Service de génération CSV pour les exports Dashboard (Version Native)
-class DashboardCsvService {
+class DashboardCsvService implements BaseDashboardCsvService {
   final AppDatabase _database;
 
   DashboardCsvService(this._database);
 
+  @override
   Future<File> exportInterventions({
     required DateTime startDate,
     required DateTime endDate,
