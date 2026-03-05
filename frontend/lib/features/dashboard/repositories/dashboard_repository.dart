@@ -99,6 +99,11 @@ class DashboardRepository {
         period,
       ),
       topSites: _kpiCalculator.calculateTopSites(services, projets, period),
+      technicianWorkload: _kpiCalculator.calculateTechnicianWorkload(
+        services,
+        projets,
+        period,
+      ),
       recentInterventions: allRecent.take(15).toList(),
       lastUpdated: DateTime.now(),
     );

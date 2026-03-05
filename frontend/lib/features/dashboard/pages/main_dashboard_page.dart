@@ -358,19 +358,25 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
   }
 
   Widget _buildTechniciansView(WidgetRef ref) {
-    final techniciansAsync = ref.watch(techniciansListProvider);
+    final workloadAsync = ref.watch(technicianWorkloadProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Liste des Techniciens',
-          style: AppTheme.lightTheme.textTheme.titleLarge,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Activité des Techniciens',
+              style: AppTheme.lightTheme.textTheme.titleLarge,
+            ),
+            const Icon(Icons.info_outline, size: 18, color: Colors.grey),
+          ],
         ),
         const SizedBox(height: 12),
-        techniciansAsync.when(
-          data: (techs) => Column(
-            children: techs
+        workloadAsync.when(
+          data: (workload) => Column(
+            children: workload
                 .map(
                   (tech) => Card(
                     margin: const EdgeInsets.only(bottom: 12),
@@ -385,8 +391,8 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                           alpha: 0.1,
                         ),
                         child: Text(
-                          tech.name.isNotEmpty
-                              ? tech.name[0].toUpperCase()
+                          tech.technicianName.isNotEmpty
+                              ? tech.technicianName[0].toUpperCase()
                               : '?',
                           style: const TextStyle(
                             color: AppTheme.primaryBlue,
@@ -395,14 +401,44 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                         ),
                       ),
                       title: Text(
-                        tech.name,
+                        tech.technicianName,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text(tech.email),
-                      trailing: const Icon(Icons.chevron_right),
+                      subtitle: Text(
+                        '${tech.totalHours.toStringAsFixed(1)}h de travail',
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '${tech.interventionCount} CRI',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.darkBlue,
+                                ),
+                              ),
+                              Text(
+                                '${tech.completionRate.toStringAsFixed(0)}% résolu',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: tech.completionRate > 80
+                                      ? Colors.green
+                                      : Colors.orange,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.chevron_right),
+                        ],
+                      ),
                       onTap: () => context.pushNamed(
                         'technician-dashboard',
-                        pathParameters: {'techId': tech.id},
+                        pathParameters: {'techId': tech.technicianId},
                       ),
                     ),
                   ),

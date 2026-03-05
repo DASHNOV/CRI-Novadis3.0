@@ -128,12 +128,30 @@ class TopSiteData {
   });
 }
 
+/// Données de charge de travail par technicien
+class TechnicianWorkloadData {
+  final String technicianId;
+  final String technicianName;
+  final int interventionCount;
+  final double totalHours;
+  final double completionRate;
+
+  const TechnicianWorkloadData({
+    required this.technicianId,
+    required this.technicianName,
+    required this.interventionCount,
+    required this.totalHours,
+    required this.completionRate,
+  });
+}
+
 /// Données complètes du dashboard
 class DashboardData {
   final DashboardKpis kpis;
   final List<TimeEvolutionData> timeEvolution;
   final List<TypeDistributionData> typeDistribution;
   final List<TopSiteData> topSites;
+  final List<TechnicianWorkloadData> technicianWorkload;
   final List<RecentIntervention> recentInterventions;
   final DateTime lastUpdated;
 
@@ -142,6 +160,7 @@ class DashboardData {
     required this.timeEvolution,
     required this.typeDistribution,
     required this.topSites,
+    required this.technicianWorkload,
     this.recentInterventions = const [],
     required this.lastUpdated,
   });
@@ -152,6 +171,7 @@ class DashboardData {
       timeEvolution: [],
       typeDistribution: [],
       topSites: [],
+      technicianWorkload: [],
       lastUpdated: DateTime.now(),
     );
   }

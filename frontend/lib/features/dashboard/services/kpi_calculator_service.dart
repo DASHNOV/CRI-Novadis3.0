@@ -324,7 +324,7 @@ class KpiCalculatorService {
     final sorted = siteData.entries.toList()
       ..sort((a, b) => b.value.count.compareTo(a.value.count));
 
-    return sorted.take(5).map((entry) {
+    return sorted.take(20).map((entry) {
       return TopSiteData(
         siteId: entry.key,
         siteName: entry.value.siteName,
@@ -332,6 +332,65 @@ class KpiCalculatorService {
         visitCount: entry.value.count,
       );
     }).toList();
+  }
+
+  /// Calcule la charge de travail par technicien
+  List<TechnicianWorkloadData> calculateTechnicianWorkload(
+    List<CriServiceModel> services,
+    List<CriProjetModel> projets,
+    DashboardPeriod period,
+  ) {
+    final startDate = period.startDate;
+    final endDate = period.endDate;
+    final techData = <String, _TechWorkInfo>{};
+
+    void processIntervention(
+      String name,
+      DateTime date,
+      int duration,
+      bool isCompleted,
+    ) {
+      if (date.isAfter(startDate) &&
+          date.isBefore(endDate.add(const Duration(days: 1)))) {
+        if (!techData.containsKey(name)) {
+          techData[name] = _TechWorkInfo(name: name);
+        }
+        final info = techData[name]!;
+        info.count++;
+        info.totalMinutes += duration;
+        if (isCompleted) info.completedCount++;
+      }
+    }
+
+    for (final s in services) {
+      processIntervention(
+        s.technicianName,
+        s.interventionDate,
+        s.interventionDurationMinutes,
+        s.resolutionStatus == ResolutionStatus.resolu,
+      );
+    }
+
+    for (final p in projets) {
+      processIntervention(
+        p.technicianName,
+        p.interventionDate,
+        p.durationMinutes,
+        p.projectStatus == ProjectStatus.termine,
+      );
+    }
+
+    return techData.entries.map((entry) {
+      final info = entry.value;
+      return TechnicianWorkloadData(
+        technicianId: entry.key.toLowerCase().replaceAll(' ', '_'),
+        technicianName: entry.key,
+        interventionCount: info.count,
+        totalHours: info.totalMinutes / 60,
+        completionRate: info.count > 0 ? (info.completedCount / info.count) * 100 : 0,
+      );
+    }).toList()
+      ..sort((a, b) => b.interventionCount.compareTo(a.interventionCount));
   }
 
   /// Calcule la moyenne de l'équipe pour un métrique donné
@@ -459,6 +518,16 @@ class _SiteInfo {
     required this.clientName,
     required this.count,
   });
+}
+
+/// Classe helper pour les infos de technicien
+class _TechWorkInfo {
+  final String name;
+  int count = 0;
+  int completedCount = 0;
+  double totalMinutes = 0;
+
+  _TechWorkInfo({required this.name});
 }
 
 /// Direction de la tendance

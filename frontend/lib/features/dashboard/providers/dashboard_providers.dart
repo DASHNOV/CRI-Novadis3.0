@@ -91,6 +91,13 @@ final topSitesProvider = FutureProvider.autoDispose<List<TopSiteData>>((
   return data.topSites;
 });
 
+/// Provider pour la charge de travail des techniciens
+final technicianWorkloadProvider =
+    FutureProvider.autoDispose<List<TechnicianWorkloadData>>((ref) async {
+      final data = await ref.watch(dashboardDataProvider.future);
+      return data.technicianWorkload;
+    });
+
 /// Provider pour la liste des techniciens
 final techniciansListProvider =
     FutureProvider.autoDispose<List<TechnicianModel>>((ref) async {
