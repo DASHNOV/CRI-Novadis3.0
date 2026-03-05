@@ -515,9 +515,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                     ),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: AppTheme.primaryBlue.withValues(
-                          alpha: 0.1,
-                        ),
+                        backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
                         child: Text(
                           tech.technicianName.isNotEmpty
                               ? tech.technicianName[0].toUpperCase()
@@ -633,4 +631,5 @@ class _ViewModeSelector extends StatelessWidget {
     );
   }
 }
+
 

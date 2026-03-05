@@ -445,9 +445,7 @@ class _TechniciansList extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 20,
-                        backgroundColor: AppTheme.lightBlue.withValues(
-                          alpha: 0.2,
-                        ),
+                        backgroundColor: AppTheme.lightBlue.withOpacity(0.2),
                         child: Text(
                           techName.isNotEmpty ? techName[0].toUpperCase() : '?',
                           style: const TextStyle(
@@ -609,4 +607,5 @@ class _TimelineItem extends StatelessWidget {
     );
   }
 }
+
 
