@@ -88,10 +88,14 @@ builder.Services.AddCors(options => {
             .AllowCredentials();
     });
 
-    // ✅ Politique restreinte pour l'application mobile
+    // ✅ Politique restreinte pour l'application mobile et web Vercel
     options.AddPolicy("AllowMobileApp", policy =>
     {
-        policy.WithOrigins("http://localhost", "app://novadis-cri") // Ajoutez ici vos schémas d'app réels
+        policy.WithOrigins(
+                "http://localhost", 
+                "app://novadis-cri", 
+                "https://crinovadis.vercel.app"
+              )
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
