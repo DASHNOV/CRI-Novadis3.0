@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novadis_cri/core/network/dio_provider.dart';
 import 'package:novadis_cri/data/models/cri_projet_model.dart';
 import 'package:novadis_cri/data/models/cri_service_model.dart';
+import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
+import 'package:novadis_cri/data/local/tables/cri_service_table.dart';
 import 'dart:convert';
 
 final criRemoteRepositoryProvider = Provider<CriRemoteRepository>((ref) {
