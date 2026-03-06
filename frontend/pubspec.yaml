@@ -21,7 +21,7 @@ dependencies:
   flutter_hooks: ^0.20.0
   
   # Date formatting
-  intl: 0.20.2
+  intl: any
   flutter_form_builder: any
   form_builder_validators: any
   flutter_riverpod: ^2.6.1
