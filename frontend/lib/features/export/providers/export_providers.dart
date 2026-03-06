@@ -454,7 +454,6 @@ final exportAllDashboardCsvProvider =
               exportType: ExportType.dashboard,
               metadata: {
                 'type': 'All',
-                'filename': file.path.split('/').last,
                 'startDate': params.startDate.toIso8601String(),
                 'endDate': params.endDate.toIso8601String(),
               },
