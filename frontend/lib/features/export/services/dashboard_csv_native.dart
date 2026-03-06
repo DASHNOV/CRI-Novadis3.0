@@ -8,8 +8,7 @@ import 'package:path/path.dart' as p;
 import '../../../data/local/app_database.dart';
 import '../../../data/local/tables/cri_service_table.dart';
 import '../../../data/local/tables/cri_projet_table.dart';
-
-import 'dashboard_csv_service.dart';
+import 'base_service_interfaces.dart';
 
 /// Service de génération CSV pour les exports Dashboard (Version Native)
 class DashboardCsvService implements BaseDashboardCsvService {

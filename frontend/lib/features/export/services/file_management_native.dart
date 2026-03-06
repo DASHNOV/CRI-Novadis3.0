@@ -7,7 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../data/local/app_database.dart';
 import '../models/exported_document_model.dart';
-import 'file_management_service.dart';
+import 'base_service_interfaces.dart';
 
 /// Service de gestion des fichiers exportés (Version Native)
 class FileManagementService implements BaseFileManagementService {

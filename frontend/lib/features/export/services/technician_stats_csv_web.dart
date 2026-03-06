@@ -1,5 +1,5 @@
 import '../../../data/local/app_database.dart';
-import 'technician_stats_csv_service.dart';
+import 'base_service_interfaces.dart';
 
 class TechnicianStatsCsvService implements BaseTechnicianStatsCsvService {
   final AppDatabase _database;
@@ -12,3 +12,6 @@ class TechnicianStatsCsvService implements BaseTechnicianStatsCsvService {
     required DateTime endDate,
   }) async => throw UnimplementedError();
 }
+
+BaseTechnicianStatsCsvService createTechnicianStatsCsvService(AppDatabase database) => TechnicianStatsCsvService(database);
+

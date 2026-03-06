@@ -1,5 +1,5 @@
 import '../../../data/local/app_database.dart';
-import 'dashboard_csv_service.dart';
+import 'base_service_interfaces.dart';
 
 class DashboardCsvService implements BaseDashboardCsvService {
   final AppDatabase _database;
@@ -22,3 +22,6 @@ class DashboardCsvService implements BaseDashboardCsvService {
   @override
   Future<List<dynamic>> exportAll({required DateTime startDate, required DateTime endDate}) async => throw UnimplementedError();
 }
+
+BaseDashboardCsvService createDashboardCsvService(AppDatabase database) => DashboardCsvService(database);
+

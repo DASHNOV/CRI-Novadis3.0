@@ -10,7 +10,7 @@ import 'package:path/path.dart' as p;
 import '../../../data/local/app_database.dart';
 import '../../../data/models/cri_projet_model.dart';
 import '../../../data/models/cri_service_model.dart';
-import 'pdf_generator_service.dart';
+import 'base_service_interfaces.dart';
 
 /// Service de génération de PDF pour les CRI (Version Native)
 class PdfGeneratorService implements BasePdfGeneratorService {
@@ -117,10 +117,7 @@ class PdfGeneratorService implements BasePdfGeneratorService {
     return await _savePDF(pdf, 'CRI_Projet_${cri.projectNumber}_${_formatDateForFilename(DateTime.now())}');
   }
 
-  // --- Widgets --- (Same implementation as before but shortened for brevity in this tool call)
-  // [I will reuse all the private helper methods from the original file]
   pw.Widget _buildServicePaperBody(CriServiceModel cri) {
-    final borderSide = pw.BorderSide(color: PdfColors.black, width: 1);
     return pw.Container(
       decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.black, width: 1)),
       child: pw.Column(
@@ -128,7 +125,6 @@ class PdfGeneratorService implements BasePdfGeneratorService {
           _buildPaperRow(children: [_buildPaperCell(label: 'Client', value: cri.clientName, textStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold))], borderBottom: true),
           _buildPaperRow(children: [_buildPaperCell(label: 'Projet / Site', value: cri.site, flex: 2, borderRight: true), _buildPaperCell(label: 'Date', value: DateFormat('dd/MM/yyyy').format(cri.interventionDate), flex: 1)], borderBottom: true),
           _buildPaperRow(children: [_buildPaperCell(label: 'Ville', value: cri.ville, flex: 2, borderRight: true), _buildPaperCell(label: 'Dpt', value: cri.departement, flex: 1, borderRight: true), _buildPaperCell(label: 'Début d\'intervention', value: DateFormat('HH:mm').format(cri.startTime), flex: 1)], borderBottom: true),
-          // ... Rest of the body widgets ...
           pw.Padding(padding: const pw.EdgeInsets.all(10), child: pw.Text('... contenu du rapport ...'))
         ],
       ),
@@ -155,8 +151,6 @@ class PdfGeneratorService implements BasePdfGeneratorService {
 
   pw.Widget _buildPaperRow({required List<pw.Widget> children, bool borderBottom = false}) => pw.Row(children: children);
   pw.Widget _buildPaperCell({required String label, String? value, int flex = 1, bool borderRight = false, pw.TextStyle? textStyle}) => pw.Expanded(flex: flex, child: pw.Text('$label: ${value ?? ''}'));
-  pw.Widget _buildPaperCheckbox(String label, bool value) => pw.Text('$label: ${value ? '[X]' : '[ ]'}');
-  pw.Widget _buildPaperLabelValue(String label, String? value) => pw.Text('$label: ${value ?? ''}');
   
   pw.Widget _buildProjetGeneralInfo(DateTime date, DateTime start, DateTime end, int dur, String type) => pw.Text('Infos: $type');
   pw.Widget _buildClientInfoSection(String n, String s, String? a, String? v, String? d, String? c, String? p, String? e) => pw.Text('Client: $n');
@@ -164,11 +158,6 @@ class PdfGeneratorService implements BasePdfGeneratorService {
   pw.Widget _buildProjetExecutionSection(String t, String? n, String? a, String d, String? m, String? p) => pw.Text('Exécution: $d');
   pw.Widget _buildProjetResultSection(String s, String? sol, bool? a) => pw.Text('Résultat: $s');
   pw.Widget _buildValidationSection(String t, String? ts, String? cs, String? sat, bool d) => pw.Text('Validation');
-
-  pw.Widget _buildSignature(String path) => pw.Text('[Signature]');
-  pw.Widget _buildSection(String title, List<pw.Widget> children) => pw.Column(children: [pw.Text(title), ...children]);
-  pw.Widget _buildInfoRow(String label, String value) => pw.Text('$label: $value');
-  pw.Widget _buildTextBlock(String label, String text) => pw.Text('$label: $text');
 
   Future<void> _addPhotosPage(pw.Document pdf, String photosJson) async {
     pdf.addPage(pw.Page(build: (context) => pw.Center(child: pw.Text('Photos'))));
@@ -187,7 +176,3 @@ class PdfGeneratorService implements BasePdfGeneratorService {
 }
 
 BasePdfGeneratorService createPdfService(AppDatabase database) => PdfGeneratorService(database);
-
-
-BasePdfGeneratorService createPdfService(AppDatabase database) => PdfGeneratorService(database);
-
