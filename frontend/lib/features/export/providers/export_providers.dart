@@ -3,10 +3,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../../data/local/app_database.dart';
 import '../models/exported_document_model.dart';
-import '../services/pdf_generator_service.dart';
-import '../services/dashboard_csv_service.dart';
-import '../services/technician_stats_csv_service.dart';
-import '../services/file_management_service.dart';
+import '../services/base_service_interfaces.dart';
+import '../services/service_factory.dart' as factory;
 
 // ============================================================
 // Providers de services
@@ -20,13 +18,13 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 /// Provider pour le service PDF
 final pdfGeneratorServiceProvider = Provider<BasePdfGeneratorService>((ref) {
   final database = ref.watch(databaseProvider);
-  return createPdfService(database);
+  return factory.getPdfService(database);
 });
 
 /// Provider pour le service CSV Dashboard
 final dashboardCsvServiceProvider = Provider<BaseDashboardCsvService>((ref) {
   final database = ref.watch(databaseProvider);
-  return createDashboardCsvService(database);
+  return factory.getDashboardCsvService(database);
 });
 
 /// Provider pour le service CSV Technicien
@@ -34,13 +32,13 @@ final technicianStatsCsvServiceProvider = Provider<BaseTechnicianStatsCsvService
   ref,
 ) {
   final database = ref.watch(databaseProvider);
-  return createTechnicianStatsCsvService(database);
+  return factory.getTechnicianStatsService(database);
 });
 
 /// Provider pour le service de gestion de fichiers
 final fileManagementServiceProvider = Provider<BaseFileManagementService>((ref) {
   final database = ref.watch(databaseProvider);
-  return createFileService(database);
+  return factory.getFileService(database);
 });
 
 // ============================================================
