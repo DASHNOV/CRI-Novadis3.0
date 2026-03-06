@@ -1,5 +1,5 @@
 import '../../../data/local/app_database.dart';
-import 'pdf_generator_stub.dart';
+import 'pdf_generator_service.dart';
 
 class PdfGeneratorService implements BasePdfGeneratorService {
   final AppDatabase _database;

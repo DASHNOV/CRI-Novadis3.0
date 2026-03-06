@@ -9,7 +9,7 @@ import '../../../data/local/app_database.dart';
 import '../../../data/local/tables/cri_service_table.dart';
 import '../../../data/local/tables/cri_projet_table.dart';
 
-import 'dashboard_csv_stub.dart';
+import 'dashboard_csv_service.dart';
 
 /// Service de génération CSV pour les exports Dashboard (Version Native)
 class DashboardCsvService implements BaseDashboardCsvService {
@@ -155,3 +155,7 @@ class SiteStats {
   double get avgDuration => count > 0 ? totalDuration / count : 0;
   double get resolutionRate => count > 0 ? (resolvedCount / count) * 100 : 0;
 }
+
+BaseDashboardCsvService createDashboardCsvService(AppDatabase database) => DashboardCsvService(database);
+
+

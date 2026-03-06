@@ -1,6 +1,6 @@
 import '../../../data/local/app_database.dart';
 import '../models/exported_document_model.dart';
-import 'file_management_stub.dart';
+import 'file_management_service.dart';
 
 class FileManagementService implements BaseFileManagementService {
   final AppDatabase _database;
@@ -36,5 +36,3 @@ class FileManagementService implements BaseFileManagementService {
     Map<String, dynamic>? metadata,
   }) async => throw UnimplementedError();
 }
-
-BaseFileManagementService createFileService(AppDatabase db) => FileManagementService(db);

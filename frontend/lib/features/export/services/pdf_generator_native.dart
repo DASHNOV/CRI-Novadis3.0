@@ -10,7 +10,7 @@ import 'package:path/path.dart' as p;
 import '../../../data/local/app_database.dart';
 import '../../../data/models/cri_projet_model.dart';
 import '../../../data/models/cri_service_model.dart';
-import 'pdf_generator_stub.dart';
+import 'pdf_generator_service.dart';
 
 /// Service de génération de PDF pour les CRI (Version Native)
 class PdfGeneratorService implements BasePdfGeneratorService {
@@ -185,3 +185,9 @@ class PdfGeneratorService implements BasePdfGeneratorService {
 
   String _formatDateForFilename(DateTime date) => DateFormat('yyyyMMdd_HHmmss').format(date);
 }
+
+BasePdfGeneratorService createPdfService(AppDatabase database) => PdfGeneratorService(database);
+
+
+BasePdfGeneratorService createPdfService(AppDatabase database) => PdfGeneratorService(database);
+

@@ -1,5 +1,5 @@
 import '../../../data/local/app_database.dart';
-import 'technician_stats_csv_stub.dart';
+import 'technician_stats_csv_service.dart';
 
 class TechnicianStatsCsvService implements BaseTechnicianStatsCsvService {
   final AppDatabase _database;

@@ -9,7 +9,7 @@ import '../../../data/local/app_database.dart';
 import '../../../data/local/tables/cri_service_table.dart';
 import '../../../data/local/tables/cri_projet_table.dart';
 
-import 'technician_stats_csv_stub.dart';
+import 'technician_stats_csv_service.dart';
 
 /// Service de génération CSV pour les statistiques d'un technicien (Version Native)
 class TechnicianStatsCsvService implements BaseTechnicianStatsCsvService {
@@ -68,3 +68,7 @@ class TechnicianStatsCsvService implements BaseTechnicianStatsCsvService {
     return file;
   }
 }
+
+BaseTechnicianStatsCsvService createTechnicianStatsCsvService(AppDatabase database) => TechnicianStatsCsvService(database);
+
+
