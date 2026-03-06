@@ -91,14 +91,17 @@ builder.Services.AddCors(options => {
     // ✅ Politique restreinte pour l'application mobile et web Vercel
     options.AddPolicy("AllowMobileApp", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost", 
-                "app://novadis-cri", 
-                "https://crinovadis.vercel.app"
-              )
-              .SetIsOriginAllowedToAllowWildcardSubdomains()
+        policy.SetIsOriginAllowed(origin => 
+              {
+                  var host = new Uri(origin).Host;
+                  return host == "localhost" || 
+                         host == "127.0.0.1" ||
+                         host.EndsWith(".vercel.app") || 
+                         host == "novadis-cri";
+              })
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
