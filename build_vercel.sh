@@ -31,5 +31,5 @@ flutter analyze || echo "L'analyse a trouvé des problèmes, mais on tente quand
 
 # 6. Build de l'application Web
 echo "Lancement du build Flutter Web..."
-# On force le renderer canvaskit qui est plus stable sur certains environnements de build
-flutter build web --release --web-renderer canvaskit --dart-define=API_URL=https://armando-coenobitic-ebony.ngrok-free.dev/api
+# On retire --web-renderer qui semble ne plus être supporté dans cette version
+flutter build web --release --dart-define=API_URL=https://armando-coenobitic-ebony.ngrok-free.dev/api
