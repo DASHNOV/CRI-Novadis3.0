@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../data/local/app_database.dart';
 import '../models/exported_document_model.dart';
 import '../services/base_service_interfaces.dart';
-import '../services/service_factory.dart' as factory;
+import '../services/service_factory.dart' as serviceFactory;
 
 // ============================================================
 // Providers de services
@@ -18,13 +18,13 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 /// Provider pour le service PDF
 final pdfGeneratorServiceProvider = Provider<BasePdfGeneratorService>((ref) {
   final database = ref.watch(databaseProvider);
-  return factory.getPdfService(database);
+  return serviceFactory.getPdfService(database);
 });
 
 /// Provider pour le service CSV Dashboard
 final dashboardCsvServiceProvider = Provider<BaseDashboardCsvService>((ref) {
   final database = ref.watch(databaseProvider);
-  return factory.getDashboardCsvService(database);
+  return serviceFactory.getDashboardCsvService(database);
 });
 
 /// Provider pour le service CSV Technicien
@@ -32,13 +32,13 @@ final technicianStatsCsvServiceProvider = Provider<BaseTechnicianStatsCsvService
   ref,
 ) {
   final database = ref.watch(databaseProvider);
-  return factory.getTechnicianStatsService(database);
+  return serviceFactory.getTechnicianStatsService(database);
 });
 
 /// Provider pour le service de gestion de fichiers
 final fileManagementServiceProvider = Provider<BaseFileManagementService>((ref) {
   final database = ref.watch(databaseProvider);
-  return factory.getFileService(database);
+  return serviceFactory.getFileService(database);
 });
 
 // ============================================================

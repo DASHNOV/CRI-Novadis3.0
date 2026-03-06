@@ -84,7 +84,9 @@ class CriRemoteRepository {
               priority: ServicePriority.normale,
               requestDescription: item['workDescription']?.toString() ?? '',
               actionsPerformed: item['workDescription']?.toString() ?? '',
-              interventionDurationMinutes: ((item['duration'] as num?)?.toDouble() ?? 1.0 * 60).toInt(),
+              interventionDurationMinutes: (item['duration'] != null) 
+                  ? ((item['duration'] as num).toDouble()).toInt()
+                  : 60,
               resolutionStatus: ResolutionStatus.resolu,
               technicianName: technicianName,
               createdAt: date,
