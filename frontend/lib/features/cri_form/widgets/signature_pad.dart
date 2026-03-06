@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:signature/signature.dart';
 import 'package:novadis_cri/core/utils/file_utils.dart';
 
@@ -90,24 +89,14 @@ class _SignaturePadWidgetState extends State<SignaturePadWidget> {
         throw Exception('Impossible de générer l\'image de signature');
       }
 
-      if (kIsWeb) {
-        setState(() {
-          _savedPath = 'web_signature_${DateTime.now().millisecondsSinceEpoch}';
-        });
-        widget.onSignatureSaved(_savedPath);
-      } else {
-        final directory = await getApplicationDocumentsDirectory();
-        final fileName = 'signature_${DateTime.now().millisecondsSinceEpoch}.png';
-        final filePath = '${directory.path}/signatures/$fileName';
+      final fileName = 'signature_${DateTime.now().millisecondsSinceEpoch}.png';
+      final filePath = await _fileUtils.saveSignature(signature, fileName);
 
-        await _fileUtils.saveBytesToFile(signature, filePath);
+      setState(() {
+        _savedPath = filePath;
+      });
 
-        setState(() {
-          _savedPath = filePath;
-        });
-
-        widget.onSignatureSaved(filePath);
-      }
+      widget.onSignatureSaved(filePath);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

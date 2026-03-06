@@ -129,6 +129,9 @@ final siteDetailsProvider = FutureProvider.autoDispose
       return repository.getSiteDetails(siteId);
     });
 
+/// Mode de vue du dashboard
+enum DashboardViewMode { general, parSite, parTechnicien }
+
 /// Provider pour le mode de vue
 final dashboardViewModeProvider = StateProvider<DashboardViewMode>(
   (ref) => DashboardViewMode.general,
