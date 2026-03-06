@@ -118,15 +118,14 @@ class FileManagementService implements BaseFileManagementService {
     String? criId,
     Map<String, dynamic>? metadata,
   }) async {
-    if (file is! File) throw Exception('File must be a dart:io File on native');
-    final fileSize = await file.length();
-    final filename = p.basename(file.path);
+    final fileSize = await (file as dynamic).length();
+    final filename = p.basename((file as dynamic).path);
 
     return await _database.insertExportedDocument(
       ExportedDocumentTableCompanion.insert(
         criId: Value(criId),
         filename: filename,
-        filePath: file.path,
+        filePath: (file as dynamic).path,
         fileType: fileType.name,
         fileSize: fileSize,
         exportType: exportType.name,

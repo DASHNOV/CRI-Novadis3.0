@@ -167,7 +167,7 @@ class PdfGeneratorService implements BasePdfGeneratorService {
     final output = await getApplicationDocumentsDirectory();
     final novadisDir = Directory(p.join(output.path, 'Novadis', 'CRI'));
     if (!await novadisDir.exists()) await novadisDir.create(recursive: true);
-    final file = File(p.join(novadisDir.path, '$filename.pdf'));
+    final dynamic file = File(p.join(novadisDir.path, '$filename.pdf'));
     await file.writeAsBytes(await pdf.save());
     return file;
   }

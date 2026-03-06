@@ -7,7 +7,7 @@ import 'file_utils_stub.dart';
 class FileUtilsNative implements FileUtils {
   @override
   Future<void> saveBytesToFile(Uint8List bytes, String path) async {
-    final file = File(path);
+    final dynamic file = File(path);
     final directory = Directory(file.parent.path);
     if (!await directory.exists()) {
       await directory.create(recursive: true);

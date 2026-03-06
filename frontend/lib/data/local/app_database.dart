@@ -3,10 +3,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Import conditionnel
-import 'connection_stub.dart'
+import 'connection_native.dart'
     if (dart.library.js_interop) 'connection_web.dart'
-    if (dart.library.html) 'connection_web.dart'
-    if (dart.library.io) 'connection_native.dart';
+    if (dart.library.html) 'connection_web.dart';
 
 import 'tables/cri_service_table.dart';
 import 'tables/cri_projet_table.dart';

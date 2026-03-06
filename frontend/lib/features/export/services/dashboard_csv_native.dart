@@ -138,7 +138,7 @@ class DashboardCsvService implements BaseDashboardCsvService {
     final output = await getApplicationDocumentsDirectory();
     final exportDir = Directory(p.join(output.path, 'Novadis', 'Exports', subfolder));
     if (!await exportDir.exists()) await exportDir.create(recursive: true);
-    final file = File(p.join(exportDir.path, '${filename}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv'));
+    final dynamic file = File(p.join(exportDir.path, '${filename}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv'));
     final utf8Bom = [0xEF, 0xBB, 0xBF];
     final bytes = utf8.encode(csv);
     await file.writeAsBytes([...utf8Bom, ...bytes]);
