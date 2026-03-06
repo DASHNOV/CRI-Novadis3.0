@@ -91,21 +91,10 @@ builder.Services.AddCors(options => {
     // ✅ Politique restreinte pour l'application mobile et web Vercel
     options.AddPolicy("AllowMobileApp", policy =>
     {
-        policy.SetIsOriginAllowed(origin => 
-              {
-                  var uri = new Uri(origin);
-                  var host = uri.Host;
-                  return host == "localhost" || 
-                         host == "127.0.0.1" ||
-                         host.EndsWith(".vercel.app") || 
-                         host.EndsWith(".ngrok-free.app") ||
-                         host.EndsWith(".ngrok-free.dev") ||
-                         host == "novadis-cri";
-              })
+        policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials()
-              .WithExposedHeaders("Token-Expired", "Content-Disposition");
+              .WithExposedHeaders("Token-Expired", "Content-Disposition", "ngrok-skip-browser-warning");
     });
 });
 
