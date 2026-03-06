@@ -93,15 +93,19 @@ builder.Services.AddCors(options => {
     {
         policy.SetIsOriginAllowed(origin => 
               {
-                  var host = new Uri(origin).Host;
+                  var uri = new Uri(origin);
+                  var host = uri.Host;
                   return host == "localhost" || 
                          host == "127.0.0.1" ||
                          host.EndsWith(".vercel.app") || 
+                         host.EndsWith(".ngrok-free.app") ||
+                         host.EndsWith(".ngrok-free.dev") ||
                          host == "novadis-cri";
               })
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials();
+              .AllowCredentials()
+              .WithExposedHeaders("Token-Expired", "Content-Disposition");
     });
 });
 
@@ -191,9 +195,12 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-// ✅ Middleware de logging des requêtes (pour le débogage réseau)
+// ✅ Middleware de configuration Ngrok et logging
 app.Use(async (context, next) =>
 {
+    // Skip ngrok browser warning
+    context.Response.Headers.Append("ngrok-skip-browser-warning", "true");
+    
     var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
     logger.LogInformation($"Requête entrante: {context.Request.Method} {context.Request.Path} depuis {context.Connection.RemoteIpAddress}");
     await next.Invoke();
