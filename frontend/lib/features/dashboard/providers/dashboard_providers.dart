@@ -129,23 +129,15 @@ final siteDetailsProvider = FutureProvider.autoDispose
       return repository.getSiteDetails(siteId);
     });
 
-/// Provider pour forcer le rafraîchissement
-final dashboardRefreshProvider = StateProvider<int>((ref) => 0);
-
-/// Extension pour rafraîchir les données
-extension DashboardRefresh on WidgetRef {
-  void refreshDashboard() {
-    final repository = read(dashboardRepositoryProvider);
-    repository.clearCache();
-    invalidate(dashboardDataProvider);
-    read(dashboardRefreshProvider.notifier).state++;
-  }
-}
-
-/// Mode de vue du dashboard
-enum DashboardViewMode { general, parSite, parTechnicien }
-
 /// Provider pour le mode de vue
 final dashboardViewModeProvider = StateProvider<DashboardViewMode>(
   (ref) => DashboardViewMode.general,
 );
+
+/// Extension pour faciliter le rafraîchissement des données
+extension DashboardRefX on WidgetRef {
+  void refreshDashboard() {
+    read(dashboardRepositoryProvider).clearCache();
+    invalidate(dashboardDataProvider);
+  }
+}

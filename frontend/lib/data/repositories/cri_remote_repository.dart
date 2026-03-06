@@ -17,20 +17,31 @@ class CriRemoteRepository {
   Future<List<dynamic>> getAllCris() async {
     try {
       final response = await _dio.get('/CRI');
-      final List<dynamic> rawData = response.data['data'];
+      final dynamic responseData = response.data['data'];
+      
+      if (responseData == null || responseData is! List) {
+        return [];
+      }
 
+      final List<dynamic> rawData = responseData;
       final List<dynamic> result = [];
+      
       for (var item in rawData) {
-        final String type = item['interventionType'];
-        final String? jsonData = item['data'];
+        try {
+          final String? type = item['interventionType'];
+          final String? jsonData = item['data'];
 
-        if (jsonData != null) {
-          final Map<String, dynamic> modelData = jsonDecode(jsonData);
-          if (type == 'Project') {
-            result.add(CriProjetModel.fromJson(modelData));
-          } else {
-            result.add(CriServiceModel.fromJson(modelData));
+          if (jsonData != null && jsonData.isNotEmpty) {
+            final Map<String, dynamic> modelData = jsonDecode(jsonData);
+            if (type == 'Project') {
+              result.add(CriProjetModel.fromJson(modelData));
+            } else {
+              result.add(CriServiceModel.fromJson(modelData));
+            }
           }
+        } catch (e) {
+          // Skip individual corrupt items
+          continue;
         }
       }
       return result;
