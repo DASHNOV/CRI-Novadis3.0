@@ -18,18 +18,17 @@ if [ -d "$PROJECT_ROOT/frontend" ]; then
   cd "$PROJECT_ROOT/frontend"
 fi
 
-echo "Nettoyage des dépendances pour le Web..."
-# On retire uniquement sqlite3_flutter_libs qui est le plus suspect
+echo "Nettoyage agressif des dépendances natives pour le Web..."
+# On retire toutes les dépendances purement natives qui peuvent bloquer dart2js
 sed -i '/sqlite3_flutter_libs/d' pubspec.yaml
+sed -i '/path_provider/d' pubspec.yaml
+sed -i '/open_file_plus/d' pubspec.yaml
+sed -i '/permission_handler/d' pubspec.yaml
 
 # 4. Récupérer les dépendances
 flutter pub get
 
-# 5. Analyse (pour voir s'il y a des erreurs Dart cachées)
-echo "Analyse du code..."
-flutter analyze || echo "L'analyse a trouvé des problèmes, mais on tente quand même le build."
-
-# 6. Build de l'application Web
+# 5. Build de l'application Web
 echo "Lancement du build Flutter Web..."
-# On retire --web-renderer qui semble ne plus être supporté dans cette version
-flutter build web --release --dart-define=API_URL=https://armando-coenobitic-ebony.ngrok-free.dev/api
+# On force le renderer html car Canvaskit peut parfois saturer la RAM sur Vercel
+flutter build web --release --web-renderer html --dart-define=API_URL=https://armando-coenobitic-ebony.ngrok-free.dev/api
