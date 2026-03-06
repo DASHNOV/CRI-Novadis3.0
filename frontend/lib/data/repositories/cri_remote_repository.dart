@@ -32,12 +32,63 @@ class CriRemoteRepository {
           final String? jsonData = item['data'];
 
           if (jsonData != null && jsonData.isNotEmpty) {
-            final Map<String, dynamic> modelData = jsonDecode(jsonData);
-            if (type == 'Project') {
-              result.add(CriProjetModel.fromJson(modelData));
-            } else {
-              result.add(CriServiceModel.fromJson(modelData));
+            try {
+              final Map<String, dynamic> modelData = jsonDecode(jsonData);
+              if (type == 'Project') {
+                result.add(CriProjetModel.fromJson(modelData));
+              } else {
+                result.add(CriServiceModel.fromJson(modelData));
+              }
+              continue; // Successfully decoded from JSON
+            } catch (e) {
+              // If JSON decode fails, fallback to creating from flat properties
             }
+          }
+
+          // FALLBACK: Create minimal model from flat properties if JSON is missing/corrupt
+          final id = item['id']?.toString() ?? '';
+          final date = DateTime.tryParse(item['interventionDate']?.toString() ?? '') ?? DateTime.now();
+          final clientName = item['clientName']?.toString() ?? 'Client Inconnu';
+          final techName = '${item['technicianFirstName'] ?? ''} ${item['technicianLastName'] ?? ''}'.trim();
+          final technicianName = techName.isNotEmpty ? techName : (item['technicianEmail']?.toString() ?? 'Technicien');
+
+          if (type == 'Project') {
+            result.add(CriProjetModel(
+              id: id,
+              interventionDate: date,
+              startTime: date,
+              endTime: date.add(const Duration(hours: 2)),
+              clientName: clientName,
+              site: item['clientSite']?.toString() ?? '',
+              address: item['clientAddress']?.toString(),
+              projectName: 'Projet sans titre',
+              projectNumber: 'PRJ-SQL',
+              projectPhase: ProjectPhase.etude,
+              interventionType: ProjetInterventionType.installationMateriel,
+              workDescription: item['workDescription']?.toString() ?? '',
+              projectStatus: ProjectStatus.enCours,
+              technicianName: technicianName,
+              createdAt: date,
+            ));
+          } else {
+            result.add(CriServiceModel(
+              id: id,
+              interventionDate: date,
+              startTime: date,
+              endTime: date.add(const Duration(hours: 1)),
+              ticketNumber: 'TICK-SQL',
+              clientName: clientName,
+              site: item['clientSite']?.toString() ?? '',
+              address: item['clientAddress']?.toString(),
+              requestType: ServiceRequestType.depannage,
+              priority: ServicePriority.normale,
+              requestDescription: item['workDescription']?.toString() ?? '',
+              actionsPerformed: item['workDescription']?.toString() ?? '',
+              interventionDurationMinutes: ((item['duration'] as num?)?.toDouble() ?? 1.0 * 60).toInt(),
+              resolutionStatus: ResolutionStatus.resolu,
+              technicianName: technicianName,
+              createdAt: date,
+            ));
           }
         } catch (e) {
           // Skip individual corrupt items

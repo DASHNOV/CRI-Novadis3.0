@@ -16,7 +16,7 @@ class AdminMainScreen extends StatefulWidget {
 }
 
 class _AdminMainScreenState extends State<AdminMainScreen> {
-  int _currentIndex = 0;
+  int _currentIndex = 2; // Vue Globale par défaut pour l'admin
 
   final List<Widget> _screens = const [
     PersonalHomeScreen(), // L'admin voit aussi ses stats personnelles
