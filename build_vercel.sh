@@ -30,5 +30,5 @@ flutter pub get
 
 # 5. Build de l'application Web
 echo "Lancement du build Flutter Web..."
-# On force le renderer html car Canvaskit peut parfois saturer la RAM sur Vercel
-flutter build web --release --web-renderer html --dart-define=API_URL=https://armando-coenobitic-ebony.ngrok-free.dev/api
+# On retire complètement l'option --web-renderer qui n'est plus supportée
+flutter build web --release --dart-define=API_URL=https://armando-coenobitic-ebony.ngrok-free.dev/api
