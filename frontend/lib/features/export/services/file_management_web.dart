@@ -37,5 +37,3 @@ class FileManagementService implements BaseFileManagementService {
   }) async => throw UnimplementedError();
 }
 
-BaseFileManagementService createFileService(AppDatabase db) => FileManagementService(db);
-

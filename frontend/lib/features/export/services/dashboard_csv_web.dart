@@ -23,5 +23,3 @@ class DashboardCsvService implements BaseDashboardCsvService {
   Future<List<dynamic>> exportAll({required DateTime startDate, required DateTime endDate}) async => throw UnimplementedError();
 }
 
-BaseDashboardCsvService createDashboardCsvService(AppDatabase database) => DashboardCsvService(database);
-

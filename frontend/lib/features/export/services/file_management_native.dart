@@ -137,6 +137,4 @@ class FileManagementService implements BaseFileManagementService {
   }
 }
 
-BaseFileManagementService createFileService(AppDatabase db) => FileManagementService(db);
-
 

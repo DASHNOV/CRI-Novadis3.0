@@ -68,6 +68,4 @@ class TechnicianStatsCsvService implements BaseTechnicianStatsCsvService {
   }
 }
 
-BaseTechnicianStatsCsvService createTechnicianStatsCsvService(AppDatabase database) => TechnicianStatsCsvService(database);
-
 

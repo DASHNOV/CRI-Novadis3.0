@@ -155,6 +155,4 @@ class SiteStats {
   double get resolutionRate => count > 0 ? (resolvedCount / count) * 100 : 0;
 }
 
-BaseDashboardCsvService createDashboardCsvService(AppDatabase database) => DashboardCsvService(database);
-
 

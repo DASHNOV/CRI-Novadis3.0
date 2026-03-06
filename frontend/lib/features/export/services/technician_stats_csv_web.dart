@@ -13,5 +13,3 @@ class TechnicianStatsCsvService implements BaseTechnicianStatsCsvService {
   }) async => throw UnimplementedError();
 }
 
-BaseTechnicianStatsCsvService createTechnicianStatsCsvService(AppDatabase database) => TechnicianStatsCsvService(database);
-
