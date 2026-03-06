@@ -3,6 +3,7 @@ import 'base_service_interfaces.dart';
 
 // Import conditionnel des implémentations pour le type concret
 import 'technician_stats_csv_web.dart' 
+    if (dart.library.js_interop) 'technician_stats_csv_web.dart'
     if (dart.library.io) 'technician_stats_csv_native.dart' as impl;
 
 export 'base_service_interfaces.dart';

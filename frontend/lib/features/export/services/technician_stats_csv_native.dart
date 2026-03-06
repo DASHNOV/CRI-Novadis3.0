@@ -17,7 +17,7 @@ class TechnicianStatsCsvService implements BaseTechnicianStatsCsvService {
   TechnicianStatsCsvService(this._database);
 
   @override
-  Future<File> exportTechnicianStats({
+  Future<dynamic> exportTechnicianStats({
     required String technicianName,
     required DateTime startDate,
     required DateTime endDate,
@@ -56,7 +56,7 @@ class TechnicianStatsCsvService implements BaseTechnicianStatsCsvService {
     return await _saveCSV(csv, 'stats_tech_${technicianName.replaceAll(' ', '_')}', 'Techniciens');
   }
 
-  Future<File> _saveCSV(String csv, String filename, String subfolder) async {
+  Future<dynamic> _saveCSV(String csv, String filename, String subfolder) async {
     final output = await getApplicationDocumentsDirectory();
     final exportDir = Directory(p.join(output.path, 'Novadis', 'Exports', subfolder));
     if (!await exportDir.exists()) await exportDir.create(recursive: true);

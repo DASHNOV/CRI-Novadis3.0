@@ -17,7 +17,7 @@ class DashboardCsvService implements BaseDashboardCsvService {
   DashboardCsvService(this._database);
 
   @override
-  Future<File> exportInterventions({
+  Future<dynamic> exportInterventions({
     required DateTime startDate,
     required DateTime endDate,
     String? interventionType,
@@ -53,7 +53,8 @@ class DashboardCsvService implements BaseDashboardCsvService {
     return await _saveCSV(csv, 'interventions_$period', 'Dashboard');
   }
 
-  Future<File> exportKPISynthesis({required DateTime startDate, required DateTime endDate}) async {
+  @override
+  Future<dynamic> exportKPISynthesis({required DateTime startDate, required DateTime endDate}) async {
     final criServices = await _database.getAllCriService();
     final criProjets = await _database.getAllCriProjet();
 
@@ -92,7 +93,8 @@ class DashboardCsvService implements BaseDashboardCsvService {
     return await _saveCSV(csv, 'kpi_synthese_$period', 'Dashboard');
   }
 
-  Future<File> exportTopSites({required DateTime startDate, required DateTime endDate, int limit = 10}) async {
+  @override
+  Future<dynamic> exportTopSites({required DateTime startDate, required DateTime endDate, int limit = 10}) async {
     final criServices = await _database.getAllCriService();
     final criProjets = await _database.getAllCriProjet();
 
@@ -123,7 +125,8 @@ class DashboardCsvService implements BaseDashboardCsvService {
     return await _saveCSV(csv, 'top_sites_$period', 'Dashboard');
   }
 
-  Future<List<File>> exportAll({required DateTime startDate, required DateTime endDate}) async {
+  @override
+  Future<List<dynamic>> exportAll({required DateTime startDate, required DateTime endDate}) async {
     return await Future.wait([
       exportInterventions(startDate: startDate, endDate: endDate),
       exportKPISynthesis(startDate: startDate, endDate: endDate),
@@ -131,7 +134,7 @@ class DashboardCsvService implements BaseDashboardCsvService {
     ]);
   }
 
-  Future<File> _saveCSV(String csv, String filename, String subfolder) async {
+  Future<dynamic> _saveCSV(String csv, String filename, String subfolder) async {
     final output = await getApplicationDocumentsDirectory();
     final exportDir = Directory(p.join(output.path, 'Novadis', 'Exports', subfolder));
     if (!await exportDir.exists()) await exportDir.create(recursive: true);

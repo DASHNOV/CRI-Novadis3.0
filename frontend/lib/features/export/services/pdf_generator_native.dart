@@ -24,7 +24,7 @@ class PdfGeneratorService implements BasePdfGeneratorService {
   static const lightGray = PdfColor.fromInt(0xFFE0E0E0);
 
   @override
-  Future<File> generateCriServicePDF(String criId) async {
+  Future<dynamic> generateCriServicePDF(String criId) async {
     final criData = await _database.getCriServiceById(criId);
     if (criData == null) {
       throw Exception('CRI Service non trouvé: $criId');
@@ -68,7 +68,7 @@ class PdfGeneratorService implements BasePdfGeneratorService {
   }
 
   @override
-  Future<File> generateCriProjetPDF(String criId) async {
+  Future<dynamic> generateCriProjetPDF(String criId) async {
     final criData = await _database.getCriProjetById(criId);
     if (criData == null) {
       throw Exception('CRI Projet non trouvé: $criId');
@@ -163,7 +163,7 @@ class PdfGeneratorService implements BasePdfGeneratorService {
     pdf.addPage(pw.Page(build: (context) => pw.Center(child: pw.Text('Photos'))));
   }
 
-  Future<File> _savePDF(pw.Document pdf, String filename) async {
+  Future<dynamic> _savePDF(pw.Document pdf, String filename) async {
     final output = await getApplicationDocumentsDirectory();
     final novadisDir = Directory(p.join(output.path, 'Novadis', 'CRI'));
     if (!await novadisDir.exists()) await novadisDir.create(recursive: true);
