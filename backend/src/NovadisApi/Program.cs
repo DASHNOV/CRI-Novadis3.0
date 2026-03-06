@@ -96,6 +96,7 @@ builder.Services.AddCors(options => {
                 "app://novadis-cri", 
                 "https://crinovadis.vercel.app"
               )
+              .SetIsOriginAllowedToAllowWildcardSubdomains()
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
