@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:novadis_cri/services/stats_api_service.dart';
 import 'package:novadis_cri/features/documents/pages/documents_page.dart';
+import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/data/models/cri_model.dart';
 import 'package:novadis_cri/features/history/widgets/cri_details_dialog.dart';
 
@@ -90,7 +91,9 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: ContentContainer(
+        maxWidth: 1400,
+        child: Column(
         children: [
           // Filter chips
           Container(
@@ -154,15 +157,34 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
                 ? _buildEmptyState()
                 : RefreshIndicator(
                     onRefresh: _loadCRIs,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _cris.length,
-                      itemBuilder: (context, index) =>
-                          _buildCriCard(_cris[index]),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth >= 1000) {
+                          return GridView.builder(
+                            padding: const EdgeInsets.all(16),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 2.5,
+                            ),
+                            itemCount: _cris.length,
+                            itemBuilder: (context, index) =>
+                                _buildCriCard(_cris[index]),
+                          );
+                        }
+                        return ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _cris.length,
+                          itemBuilder: (context, index) =>
+                              _buildCriCard(_cris[index]),
+                        );
+                      },
                     ),
                   ),
           ),
         ],
+        ),
       ),
     );
   }

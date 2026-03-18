@@ -15,6 +15,7 @@ import 'package:novadis_cri/data/repositories/site_summary_repository.dart';
 import 'package:novadis_cri/data/models/site_summary_model.dart';
 import 'package:novadis_cri/features/cri_form/widgets/site_summary_card.dart';
 import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
+import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'dart:async';
 
 /// Page de formulaire CRI Service avec 8 sections
@@ -258,7 +259,9 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       ),
       body: FormBuilder(
         key: _formKey,
-        child: Stack(
+        child: ContentContainer(
+          maxWidth: 900,
+          child: Stack(
           children: [
             Positioned.fill(
               child: Padding(
@@ -333,6 +336,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                 ),
               ),
           ],
+        ),
         ),
       ),
       bottomNavigationBar: state.lastAutoSave != null
@@ -499,136 +503,158 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Nom du client *', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          FormBuilderField<String>(
-            name: 'clientName',
-            initialValue: state.currentCri?.clientName ?? '',
-            validator: FormBuilderValidators.required(errorText: 'Nom requis'),
-            builder: (FormFieldState<String> field) {
-              return Autocomplete<String>(
-                initialValue: TextEditingValue(text: field.value ?? ''),
-                optionsBuilder: (TextEditingValue textEditingValue) async {
-                  if (textEditingValue.text.isEmpty) {
-                    return const Iterable<String>.empty();
-                  }
-                  return await ref
-                      .read(criRemoteRepositoryProvider)
-                      .searchClients(textEditingValue.text);
-                },
-                onSelected: (String selection) {
-                  field.didChange(selection);
-                  ref
-                      .read(criServiceFormProvider.notifier)
-                      .updateClientInfo(clientName: selection);
-                },
-                fieldViewBuilder:
-                    (
-                      context,
-                      textEditingController,
-                      focusNode,
-                      onFieldSubmitted,
-                    ) {
-                      // Synchronize initial value if needed
-                      if (textEditingController.text != field.value &&
-                          field.value != null &&
-                          !focusNode.hasFocus) {
-                        textEditingController.text = field.value!;
-                      }
-                      return TextField(
-                        controller: textEditingController,
-                        focusNode: focusNode,
-                        decoration: InputDecoration(
-                          hintText: 'Nom du client',
-                          prefixIcon: const Icon(Icons.business),
-                          errorText: field.errorText,
-                        ),
-                        textCapitalization: TextCapitalization.words,
-                        onChanged: (val) {
-                          field.didChange(val);
-                          ref
-                              .read(criServiceFormProvider.notifier)
-                              .updateClientInfo(clientName: val);
-                        },
-                        onSubmitted: (String value) {
-                          onFieldSubmitted();
-                        },
-                      );
-                    },
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          Text('Site *', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          FormBuilderField<String>(
-            name: 'site',
-            initialValue: state.currentCri?.site ?? '',
-            validator: FormBuilderValidators.required(errorText: 'Site requis'),
-            builder: (FormFieldState<String> field) {
-              return Autocomplete<String>(
-                initialValue: TextEditingValue(text: field.value ?? ''),
-                optionsBuilder: (TextEditingValue textEditingValue) async {
-                  if (textEditingValue.text.isEmpty) {
-                    return const Iterable<String>.empty();
-                  }
-                  final clientName = state.currentCri?.clientName ?? '';
-                  return await ref
-                      .read(criRemoteRepositoryProvider)
-                      .searchSites(clientName, textEditingValue.text);
-                },
-                onSelected: (String selection) {
-                  field.didChange(selection);
-                  ref
-                      .read(criServiceFormProvider.notifier)
-                      .updateClientInfo(site: selection);
-                  _fetchSiteSummary(selection);
-                },
-                fieldViewBuilder:
-                    (
-                      context,
-                      textEditingController,
-                      focusNode,
-                      onFieldSubmitted,
-                    ) {
-                      if (textEditingController.text != field.value &&
-                          field.value != null &&
-                          !focusNode.hasFocus) {
-                        textEditingController.text = field.value!;
-                      }
-                      return TextField(
-                        controller: textEditingController,
-                        focusNode: focusNode,
-                        decoration: InputDecoration(
-                          hintText: 'Site',
-                          prefixIcon: const Icon(Icons.location_on),
-                          errorText: field.errorText,
-                        ),
-                        textCapitalization: TextCapitalization.words,
-                        onChanged: (val) {
-                          field.didChange(val);
-                          ref
-                              .read(criServiceFormProvider.notifier)
-                              .updateClientInfo(site: val);
-
-                          if (val.trim().length >= 3) {
-                            _debounceTimer?.cancel();
-                            _debounceTimer = Timer(
-                              const Duration(milliseconds: 1000),
-                              () {
-                                _fetchSiteSummary(val);
+          LayoutBuilder(builder: (context, constraints) {
+            final field1 = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Nom du client *', style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                FormBuilderField<String>(
+                  name: 'clientName',
+                  initialValue: state.currentCri?.clientName ?? '',
+                  validator: FormBuilderValidators.required(errorText: 'Nom requis'),
+                  builder: (FormFieldState<String> field) {
+                    return Autocomplete<String>(
+                      initialValue: TextEditingValue(text: field.value ?? ''),
+                      optionsBuilder: (TextEditingValue textEditingValue) async {
+                        if (textEditingValue.text.isEmpty) {
+                          return const Iterable<String>.empty();
+                        }
+                        return await ref
+                            .read(criRemoteRepositoryProvider)
+                            .searchClients(textEditingValue.text);
+                      },
+                      onSelected: (String selection) {
+                        field.didChange(selection);
+                        ref
+                            .read(criServiceFormProvider.notifier)
+                            .updateClientInfo(clientName: selection);
+                      },
+                      fieldViewBuilder:
+                          (
+                            context,
+                            textEditingController,
+                            focusNode,
+                            onFieldSubmitted,
+                          ) {
+                            // Synchronize initial value if needed
+                            if (textEditingController.text != field.value &&
+                                field.value != null &&
+                                !focusNode.hasFocus) {
+                              textEditingController.text = field.value!;
+                            }
+                            return TextField(
+                              controller: textEditingController,
+                              focusNode: focusNode,
+                              decoration: InputDecoration(
+                                hintText: 'Nom du client',
+                                prefixIcon: const Icon(Icons.business),
+                                errorText: field.errorText,
+                              ),
+                              textCapitalization: TextCapitalization.words,
+                              onChanged: (val) {
+                                field.didChange(val);
+                                ref
+                                    .read(criServiceFormProvider.notifier)
+                                    .updateClientInfo(clientName: val);
+                              },
+                              onSubmitted: (String value) {
+                                onFieldSubmitted();
                               },
                             );
-                          }
-                        },
-                        onSubmitted: (String value) {
-                          onFieldSubmitted();
-                        },
-                      );
-                    },
+                          },
+                    );
+                  },
+                ),
+              ],
+            );
+            final field2 = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Site *', style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                FormBuilderField<String>(
+                  name: 'site',
+                  initialValue: state.currentCri?.site ?? '',
+                  validator: FormBuilderValidators.required(errorText: 'Site requis'),
+                  builder: (FormFieldState<String> field) {
+                    return Autocomplete<String>(
+                      initialValue: TextEditingValue(text: field.value ?? ''),
+                      optionsBuilder: (TextEditingValue textEditingValue) async {
+                        if (textEditingValue.text.isEmpty) {
+                          return const Iterable<String>.empty();
+                        }
+                        final clientName = state.currentCri?.clientName ?? '';
+                        return await ref
+                            .read(criRemoteRepositoryProvider)
+                            .searchSites(clientName, textEditingValue.text);
+                      },
+                      onSelected: (String selection) {
+                        field.didChange(selection);
+                        ref
+                            .read(criServiceFormProvider.notifier)
+                            .updateClientInfo(site: selection);
+                        _fetchSiteSummary(selection);
+                      },
+                      fieldViewBuilder:
+                          (
+                            context,
+                            textEditingController,
+                            focusNode,
+                            onFieldSubmitted,
+                          ) {
+                            if (textEditingController.text != field.value &&
+                                field.value != null &&
+                                !focusNode.hasFocus) {
+                              textEditingController.text = field.value!;
+                            }
+                            return TextField(
+                              controller: textEditingController,
+                              focusNode: focusNode,
+                              decoration: InputDecoration(
+                                hintText: 'Site',
+                                prefixIcon: const Icon(Icons.location_on),
+                                errorText: field.errorText,
+                              ),
+                              textCapitalization: TextCapitalization.words,
+                              onChanged: (val) {
+                                field.didChange(val);
+                                ref
+                                    .read(criServiceFormProvider.notifier)
+                                    .updateClientInfo(site: val);
+
+                                if (val.trim().length >= 3) {
+                                  _debounceTimer?.cancel();
+                                  _debounceTimer = Timer(
+                                    const Duration(milliseconds: 1000),
+                                    () {
+                                      _fetchSiteSummary(val);
+                                    },
+                                  );
+                                }
+                              },
+                              onSubmitted: (String value) {
+                                onFieldSubmitted();
+                              },
+                            );
+                          },
+                    );
+                  },
+                ),
+              ],
+            );
+            if (constraints.maxWidth > 600) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: field1),
+                  const SizedBox(width: 16),
+                  Expanded(child: field2),
+                ],
               );
-            },
-          ),
+            }
+            return Column(children: [field1, const SizedBox(height: 16), field2]);
+          }),
           const SizedBox(height: 16),
           Text('Adresse *', style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
@@ -801,39 +827,60 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Type de demande *', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          FormBuilderDropdown<ServiceRequestType>(
-            name: 'requestType',
-            initialValue:
-                state.currentCri?.requestType ?? ServiceRequestType.depannage,
-            decoration: const InputDecoration(
-              hintText: 'Type de demande',
-              prefixIcon: Icon(Icons.category),
-            ),
-            items: ServiceRequestType.values.map((type) {
-              return DropdownMenuItem(value: type, child: Text(type.label));
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                ref
-                    .read(criServiceFormProvider.notifier)
-                    .updateRequestInfo(requestType: value);
-              }
-            },
-          ),
-          const SizedBox(height: 16),
-          const SizedBox(height: 16),
-          Text('Priorité *', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          PrioritySelector(
-            selectedPriority: state.currentCri?.priority,
-            onPriorityChanged: (priority) {
-              ref
-                  .read(criServiceFormProvider.notifier)
-                  .updateRequestInfo(priority: priority);
-            },
-          ),
+          LayoutBuilder(builder: (context, constraints) {
+            final field1 = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Type de demande *', style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                FormBuilderDropdown<ServiceRequestType>(
+                  name: 'requestType',
+                  initialValue:
+                      state.currentCri?.requestType ?? ServiceRequestType.depannage,
+                  decoration: const InputDecoration(
+                    hintText: 'Type de demande',
+                    prefixIcon: Icon(Icons.category),
+                  ),
+                  items: ServiceRequestType.values.map((type) {
+                    return DropdownMenuItem(value: type, child: Text(type.label));
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      ref
+                          .read(criServiceFormProvider.notifier)
+                          .updateRequestInfo(requestType: value);
+                    }
+                  },
+                ),
+              ],
+            );
+            final field2 = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Priorité *', style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                PrioritySelector(
+                  selectedPriority: state.currentCri?.priority,
+                  onPriorityChanged: (priority) {
+                    ref
+                        .read(criServiceFormProvider.notifier)
+                        .updateRequestInfo(priority: priority);
+                  },
+                ),
+              ],
+            );
+            if (constraints.maxWidth > 600) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: field1),
+                  const SizedBox(width: 16),
+                  Expanded(child: field2),
+                ],
+              );
+            }
+            return Column(children: [field1, const SizedBox(height: 16), field2]);
+          }),
           const SizedBox(height: 16),
           Text(
             'Description de la demande *',

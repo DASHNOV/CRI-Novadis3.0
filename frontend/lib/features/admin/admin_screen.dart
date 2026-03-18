@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/data/local/local_storage_service.dart';
 import 'package:novadis_cri/core/storage/storage_service.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
+import 'package:novadis_cri/core/widgets/content_container.dart';
 
 /// Écran d'administration
 /// Affiche des statistiques et options de gestion
@@ -120,7 +121,9 @@ class AdminScreen extends HookConsumerWidget {
           final totalSites = stats['totalSites'] as int;
           final typeCount = stats['typeCount'] as Map<String, int>;
 
-          return ListView(
+          return ContentContainer(
+            maxWidth: 1200,
+            child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
               // En-tête
@@ -294,6 +297,7 @@ class AdminScreen extends HookConsumerWidget {
                 ),
               ),
             ],
+            ),
           );
         },
       ),

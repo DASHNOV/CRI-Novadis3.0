@@ -166,10 +166,11 @@ class KpiGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Pour tablettes/desktop
         int columns = crossAxisCount;
-        if (constraints.maxWidth > 600) {
+        double aspectRatio = 1.3;
+        if (constraints.maxWidth > 800) {
           columns = 4;
+          aspectRatio = 1.5;
         }
 
         return GridView.builder(
@@ -179,7 +180,7 @@ class KpiGrid extends StatelessWidget {
             crossAxisCount: columns,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 1.3, // Carte plus rectangulaire
+            childAspectRatio: aspectRatio,
           ),
           itemCount: cards.length,
           itemBuilder: (context, index) {

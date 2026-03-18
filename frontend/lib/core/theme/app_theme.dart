@@ -147,6 +147,14 @@ class AppTheme {
         thickness: 1,
         space: 24,
       ),
+
+      // NavigationRail (desktop)
+      navigationRailTheme: NavigationRailThemeData(
+        selectedIconTheme: const IconThemeData(color: primaryBlue),
+        unselectedIconTheme: IconThemeData(color: Colors.grey[500]),
+        indicatorColor: lightGray,
+        backgroundColor: white,
+      ),
     );
   }
 }

@@ -8,6 +8,7 @@ import 'package:novadis_cri/services/stats_api_service.dart';
 import 'package:novadis_cri/features/cri_form/cri_form_screen.dart';
 
 import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
+import 'package:novadis_cri/core/widgets/content_container.dart';
 
 /// Page d'accueil personnalisée pour le technicien
 /// Affiche ses statistiques personnelles et ses derniers CRI
@@ -88,25 +89,28 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // En-tête de bienvenue
-                    _buildWelcomeHeader(dateStr, userName),
-                    const SizedBox(height: 24),
+                child: ContentContainer(
+                  maxWidth: 1200,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // En-tête de bienvenue
+                      _buildWelcomeHeader(dateStr, userName),
+                      const SizedBox(height: 24),
 
-                    // Statistiques personnelles
-                    _buildStatsRow(),
-                    const SizedBox(height: 28),
+                      // Statistiques personnelles
+                      _buildStatsRow(),
+                      const SizedBox(height: 28),
 
-                    // Derniers CRI
-                    _buildRecentCRIsSection(),
-                    const SizedBox(height: 24),
+                      // Derniers CRI
+                      _buildRecentCRIsSection(),
+                      const SizedBox(height: 24),
 
-                    // Bouton nouveau CRI
-                    _buildQuickActionButton(),
-                    const SizedBox(height: 20),
-                  ],
+                      // Bouton nouveau CRI
+                      _buildQuickActionButton(),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -212,7 +216,29 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
             ),
           )
         else
-          ...(_recentCris.map((cri) => _buildCriCard(cri))),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth >= 1000) {
+                // Desktop: 2-column grid
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 3.0,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: _recentCris.length,
+                  itemBuilder: (context, index) => _buildCriCard(_recentCris[index]),
+                );
+              }
+              // Mobile: simple list
+              return Column(
+                children: _recentCris.map((cri) => _buildCriCard(cri)).toList(),
+              );
+            },
+          ),
       ],
     );
   }

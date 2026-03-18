@@ -11,6 +11,8 @@ import 'package:novadis_cri/features/dashboard/widgets/intervention_list_item.da
 import 'package:novadis_cri/features/dashboard/widgets/kpi_card_widget.dart';
 import 'package:novadis_cri/features/dashboard/widgets/time_evolution_chart_widget.dart';
 
+import 'package:novadis_cri/core/widgets/content_container.dart';
+import 'package:novadis_cri/core/theme/responsive.dart';
 import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
 
 /// Page principale du Dashboard avec design modernisé
@@ -32,7 +34,9 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
     return Scaffold(
       backgroundColor: AppTheme.lightGray,
       body: SafeArea(
-        child: CustomScrollView(
+        child: ContentContainer(
+          maxWidth: 1400,
+          child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             // App Bar Custom
@@ -77,7 +81,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
 
             // Content
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: Responsive.responsiveHorizontalPadding(context)),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   const SizedBox(height: 16),
@@ -154,6 +158,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
             const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
           ],
         ),
+        ),
       ),
     );
   }
@@ -209,51 +214,49 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
   }
 
   Widget _buildGeneralView(AsyncValue<DashboardData> dataAsync) {
-    return Column(
+    // Chart Section
+    final widget1 = Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: dataAsync.when(
+        data: (data) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Évolution de l\'activité',
+              style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+                color: AppTheme.darkBlue,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 24),
+            TimeEvolutionChartWidget(
+              data: data.timeEvolution,
+              title: '',
+              showGrid: true,
+              animate: true,
+            ),
+          ],
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Erreur: $err')),
+      ),
+    );
+
+    // TOP SITES SUMMARY
+    final widget2 = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Chart Section
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: dataAsync.when(
-            data: (data) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Évolution de l\'activité',
-                  style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
-                    color: AppTheme.darkBlue,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                TimeEvolutionChartWidget(
-                  data: data.timeEvolution,
-                  title: '',
-                  showGrid: true,
-                  animate: true,
-                ),
-              ],
-            ),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => Center(child: Text('Erreur: $err')),
-          ),
-        ),
-
-        const SizedBox(height: 32),
-
-        // TOP SITES SUMMARY
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -281,10 +284,13 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           loading: () => const LinearProgressIndicator(),
           error: (e, s) => const SizedBox.shrink(),
         ),
+      ],
+    );
 
-        const SizedBox(height: 32),
-
-        // TECHNICIAN WORKLOAD SUMMARY
+    // TECHNICIAN WORKLOAD SUMMARY
+    final widget3 = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -312,9 +318,13 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           loading: () => const LinearProgressIndicator(),
           error: (e, s) => const SizedBox.shrink(),
         ),
+      ],
+    );
 
-        const SizedBox(height: 32),
-
+    // RECENT INTERVENTIONS
+    final widget4 = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -353,6 +363,47 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           error: (e, s) => Text('Erreur: $e'),
         ),
       ],
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= 1000) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: widget1),
+                  const SizedBox(width: 24),
+                  Expanded(child: widget2),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: widget3),
+                  const SizedBox(width: 24),
+                  Expanded(child: widget4),
+                ],
+              ),
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            widget1,
+            const SizedBox(height: 16),
+            widget2,
+            const SizedBox(height: 16),
+            widget3,
+            const SizedBox(height: 16),
+            widget4,
+          ],
+        );
+      },
     );
   }
 

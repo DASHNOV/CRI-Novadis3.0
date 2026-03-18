@@ -9,6 +9,7 @@ import '../widgets/export_options_sheet.dart';
 import '../widgets/document_search_bar.dart';
 import '../widgets/document_filter_chips.dart';
 import '../widgets/empty_documents_state.dart';
+import 'package:novadis_cri/core/widgets/content_container.dart';
 
 /// Page principale de gestion des documents exportés
 class DocumentsPage extends ConsumerStatefulWidget {
@@ -111,22 +112,25 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage>
           ],
         ),
       ),
-      body: Column(
-        children: [
-          // Filtres
-          const DocumentFilterChips(),
+      body: ContentContainer(
+        maxWidth: 1400,
+        child: Column(
+          children: [
+            // Filtres
+            const DocumentFilterChips(),
 
-          // Liste des documents
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildDocumentList(DocumentFileType.pdf),
-                _buildDocumentList(DocumentFileType.csv),
-              ],
+            // Liste des documents
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildDocumentList(DocumentFileType.pdf),
+                  _buildDocumentList(DocumentFileType.csv),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showExportOptions(),
@@ -174,15 +178,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage>
         // Trier les documents
         final sortedDocs = _sortDocuments(documents, sortOption);
 
-        return RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(exportedDocumentsProvider);
-          },
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: sortedDocs.length,
-            itemBuilder: (context, index) {
-              final doc = sortedDocs[index];
+        Widget buildDocItem(ExportedDocument doc) {
               final model = ExportedDocumentModel(
                 id: doc.id,
                 criId: doc.criId,
@@ -206,6 +202,34 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage>
                 onShare: () => _shareDocument(model),
                 onRename: () => _renameDocument(model),
                 onDelete: () => _deleteDocument(model),
+              );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(exportedDocumentsProvider);
+          },
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth >= 1000) {
+                // Desktop: 2-column grid
+                return GridView.builder(
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 4.0,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: sortedDocs.length,
+                  itemBuilder: (context, index) => buildDocItem(sortedDocs[index]),
+                );
+              }
+              // Mobile: simple list
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: sortedDocs.length,
+                itemBuilder: (context, index) => buildDocItem(sortedDocs[index]),
               );
             },
           ),

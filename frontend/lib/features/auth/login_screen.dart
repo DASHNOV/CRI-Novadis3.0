@@ -49,9 +49,11 @@ class LoginScreen extends HookConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -137,6 +139,7 @@ class LoginScreen extends HookConsumerWidget {
                 ),
               ],
             ),
+          ),
           ),
         ),
       ),

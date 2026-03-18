@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:novadis_cri/services/stats_api_service.dart';
 import 'package:novadis_cri/features/documents/pages/documents_page.dart';
+import 'package:novadis_cri/core/widgets/content_container.dart';
 
 /// Historique global - tous les CRI de tous les techniciens (admin uniquement)
 class GlobalHistoryScreen extends ConsumerStatefulWidget {
@@ -172,7 +173,9 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: ContentContainer(
+        maxWidth: 1400,
+        child: Column(
         children: [
           // KPI Section (Performance Indicators)
           if (!_isLoading && _cris.isNotEmpty)
@@ -367,15 +370,34 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                 ? _buildEmptyState()
                 : RefreshIndicator(
                     onRefresh: _loadData,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: sortedCris.length,
-                      itemBuilder: (context, index) =>
-                          _buildGlobalCriCard(sortedCris[index]),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth >= 1000) {
+                          return GridView.builder(
+                            padding: const EdgeInsets.all(16),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 2.5,
+                            ),
+                            itemCount: sortedCris.length,
+                            itemBuilder: (context, index) =>
+                                _buildGlobalCriCard(sortedCris[index]),
+                          );
+                        }
+                        return ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: sortedCris.length,
+                          itemBuilder: (context, index) =>
+                              _buildGlobalCriCard(sortedCris[index]),
+                        );
+                      },
                     ),
                   ),
           ),
         ],
+        ),
       ),
     );
   }

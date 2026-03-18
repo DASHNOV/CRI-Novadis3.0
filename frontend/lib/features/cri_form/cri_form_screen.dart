@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:novadis_cri/core/widgets/content_container.dart';
 
 /// Écran de sélection du type de CRI à créer
 /// Permet de choisir entre CRI Projet et CRI Service
@@ -13,72 +14,86 @@ class CriFormScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Nouveau CRI')),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Text(
-                'Quel type de CRI souhaitez-vous créer ?',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Sélectionnez le formulaire adapté à votre intervention',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 48),
+        child: ContentContainer(
+          maxWidth: 700,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth > 500;
+                final projetCard = _CriTypeCard(
+                  icon: Icons.folder_outlined,
+                  title: 'CRI Projet',
+                  description:
+                      'Pour les interventions liées à des projets structurés : installations, migrations, déploiements...',
+                  features: const [
+                    'Suivi par phase de projet',
+                    'Numéro de projet (PRJ-YYYY-NNN)',
+                    'Gestion du statut projet',
+                  ],
+                  color: theme.colorScheme.primary,
+                  onTap: () => context.push('/cri/new/projet'),
+                );
+                final serviceCard = _CriTypeCard(
+                  icon: Icons.build_outlined,
+                  title: 'CRI Service',
+                  description:
+                      'Pour les interventions de maintenance, dépannage ou support technique avec ticket.',
+                  features: const [
+                    'Numéro de ticket (TICK-YYYY-NNNNN)',
+                    'Gestion des priorités',
+                    'Satisfaction client',
+                  ],
+                  color: theme.colorScheme.tertiary,
+                  onTap: () => context.push('/cri/new/service'),
+                );
 
-              // CRI Projet Card
-              _CriTypeCard(
-                icon: Icons.folder_outlined,
-                title: 'CRI Projet',
-                description:
-                    'Pour les interventions liées à des projets structurés : installations, migrations, déploiements...',
-                features: const [
-                  'Suivi par phase de projet',
-                  'Numéro de projet (PRJ-YYYY-NNN)',
-                  'Gestion du statut projet',
-                ],
-                color: theme.colorScheme.primary,
-                onTap: () => context.push('/cri/new/projet'),
-              ),
-              const SizedBox(height: 24),
-
-              // CRI Service Card
-              _CriTypeCard(
-                icon: Icons.build_outlined,
-                title: 'CRI Service',
-                description:
-                    'Pour les interventions de maintenance, dépannage ou support technique avec ticket.',
-                features: const [
-                  'Numéro de ticket (TICK-YYYY-NNNNN)',
-                  'Gestion des priorités',
-                  'Satisfaction client',
-                ],
-                color: theme.colorScheme.tertiary,
-                onTap: () => context.push('/cri/new/service'),
-              ),
-
-              const Spacer(),
-
-              // Note
-              Text(
-                'Les deux formulaires incluent : photos, signatures, et sauvegarde hors-ligne',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
-                  fontStyle: FontStyle.italic,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Quel type de CRI souhaitez-vous créer ?',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Sélectionnez le formulaire adapté à votre intervention',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 48),
+                    if (isWide)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: projetCard),
+                          const SizedBox(width: 24),
+                          Expanded(child: serviceCard),
+                        ],
+                      )
+                    else ...[
+                      projetCard,
+                      const SizedBox(height: 24),
+                      serviceCard,
+                    ],
+                    const Spacer(),
+                    Text(
+                      'Les deux formulaires incluent : photos, signatures, et sauvegarde hors-ligne',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.outline,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
