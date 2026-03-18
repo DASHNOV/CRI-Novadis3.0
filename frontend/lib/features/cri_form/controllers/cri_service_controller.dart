@@ -105,17 +105,21 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     String? clientName,
     String? site,
     String? ville,
+    String? codePostal,
+    String? pays,
     String? address,
     String? clientContact,
     String? phone,
     String? email,
-    String? departement,
   }) {
     if (state.currentCri == null) return;
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         clientName: clientName,
-        site: site ?? ville,
+        site: site,
+        ville: ville,
+        codePostal: codePostal,
+        pays: pays,
         address: address,
         clientContact: clientContact,
         phone: phone,

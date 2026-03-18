@@ -25,7 +25,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -36,6 +36,14 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (m, from, to) async {
         if (from < 2) {
           await m.addColumn(criServiceTable, criServiceTable.cybersecurityRecommendations);
+        }
+        if (from < 3) {
+          await m.addColumn(criProjetTable, criProjetTable.ville);
+          await m.addColumn(criProjetTable, criProjetTable.codePostal);
+          await m.addColumn(criProjetTable, criProjetTable.pays);
+          await m.addColumn(criServiceTable, criServiceTable.ville);
+          await m.addColumn(criServiceTable, criServiceTable.codePostal);
+          await m.addColumn(criServiceTable, criServiceTable.pays);
         }
       },
     );

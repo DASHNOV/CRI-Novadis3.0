@@ -16,6 +16,9 @@ class CriProjetTable extends Table {
   TextColumn get clientName => text().withLength(min: 1, max: 255)();
   TextColumn get site => text().withLength(min: 1, max: 255)();
   TextColumn get address => text().nullable()();
+  TextColumn get ville => text().nullable()();
+  TextColumn get codePostal => text().nullable()();
+  TextColumn get pays => text().nullable()();
   TextColumn get clientContact => text().nullable()();
   TextColumn get phone => text().nullable()();
   TextColumn get email => text().nullable()();

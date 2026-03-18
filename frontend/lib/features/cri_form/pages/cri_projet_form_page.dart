@@ -10,6 +10,8 @@ import 'package:novadis_cri/features/cri_form/controllers/cri_projet_controller.
 import 'package:novadis_cri/features/cri_form/widgets/photo_picker.dart';
 import 'package:novadis_cri/features/cri_form/widgets/signature_pad.dart';
 import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
+import 'package:novadis_cri/data/models/site_model.dart';
+import 'package:novadis_cri/features/cri_form/widgets/site_selector.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
 
 /// Page de formulaire CRI Projet avec 6 sections
@@ -26,6 +28,21 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
   final _formKey = GlobalKey<FormBuilderState>();
   int _currentStep = 0;
   final bool _autoSaveEnabled = true;
+
+  // Controllers pour auto-complétion des champs à la sélection d'un site
+  final _addressController = TextEditingController();
+  final _villeController = TextEditingController();
+  final _codePostalController = TextEditingController();
+  final _paysController = TextEditingController();
+
+  @override
+  void dispose() {
+    _addressController.dispose();
+    _villeController.dispose();
+    _codePostalController.dispose();
+    _paysController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -44,6 +61,40 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
     } else {
       controller.initNewForm(technicianName: technicianName);
     }
+
+    // Initialiser les controllers avec les valeurs existantes
+    final cri = ref.read(criProjetFormProvider).currentCri;
+    if (cri != null) {
+      _addressController.text = cri.address ?? '';
+      _villeController.text = cri.ville ?? '';
+      _codePostalController.text = cri.codePostal ?? '';
+      _paysController.text = cri.pays ?? '';
+    }
+  }
+
+  /// Appelé quand un site est sélectionné depuis le dropdown.
+  /// Auto-remplit les champs adresse, ville, code postal et pays.
+  void _onSiteSelected(SiteModel site) {
+    final notifier = ref.read(criProjetFormProvider.notifier);
+    notifier.updateClientInfo(
+      site: site.nomDuSite,
+      address: site.adresse,
+      ville: site.ville,
+      codePostal: site.codePostal,
+      pays: site.pays,
+    );
+
+    // Mettre à jour les controllers de texte
+    _addressController.text = site.adresse ?? '';
+    _villeController.text = site.ville ?? '';
+    _codePostalController.text = site.codePostal ?? '';
+    _paysController.text = site.pays ?? '';
+
+    // Mettre à jour les champs FormBuilder
+    _formKey.currentState?.fields['address']?.didChange(site.adresse ?? '');
+    _formKey.currentState?.fields['ville']?.didChange(site.ville ?? '');
+    _formKey.currentState?.fields['codePostal']?.didChange(site.codePostal ?? '');
+    _formKey.currentState?.fields['pays']?.didChange(site.pays ?? '');
   }
 
   Future<void> _autoSave() async {
@@ -405,67 +456,15 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
                 ),
               ],
             );
-            final field2 = Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Site *', style: theme.textTheme.titleSmall),
-                const SizedBox(height: 8),
-                FormBuilderField<String>(
-                  name: 'site',
-                  initialValue: state.currentCri?.site ?? '',
-                  validator: FormBuilderValidators.required(errorText: 'Site requis'),
-                  builder: (FormFieldState<String> field) {
-                    return Autocomplete<String>(
-                      initialValue: TextEditingValue(text: field.value ?? ''),
-                      optionsBuilder: (TextEditingValue textEditingValue) async {
-                        if (textEditingValue.text.isEmpty) {
-                          return const Iterable<String>.empty();
-                        }
-                        final clientName = state.currentCri?.clientName ?? '';
-                        return await ref
-                            .read(criRemoteRepositoryProvider)
-                            .searchSites(clientName, textEditingValue.text);
-                      },
-                      onSelected: (String selection) {
-                        field.didChange(selection);
-                        ref
-                            .read(criProjetFormProvider.notifier)
-                            .updateClientInfo(site: selection);
-                      },
-                      fieldViewBuilder:
-                          (
-                            context,
-                            textEditingController,
-                            focusNode,
-                            onFieldSubmitted,
-                          ) {
-                            if (textEditingController.text != field.value &&
-                                field.value != null &&
-                                !focusNode.hasFocus) {
-                              textEditingController.text = field.value!;
-                            }
-                            return TextField(
-                              controller: textEditingController,
-                              focusNode: focusNode,
-                              decoration: InputDecoration(
-                                hintText: 'Site',
-                                prefixIcon: const Icon(Icons.location_on),
-                                errorText: field.errorText,
-                              ),
-                              textCapitalization: TextCapitalization.words,
-                              onChanged: (val) {
-                                field.didChange(val);
-                                ref
-                                    .read(criProjetFormProvider.notifier)
-                                    .updateClientInfo(site: val);
-                              },
-                              onSubmitted: (_) => onFieldSubmitted(),
-                            );
-                          },
-                    );
-                  },
-                ),
-              ],
+            final field2 = SiteSelector(
+              initialValue: state.currentCri?.site ?? '',
+              repository: ref.read(criRemoteRepositoryProvider),
+              onSiteSelected: _onSiteSelected,
+              onSiteTextChanged: (val) {
+                ref
+                    .read(criProjetFormProvider.notifier)
+                    .updateClientInfo(site: val);
+              },
             );
             if (constraints.maxWidth > 600) {
               return Row(
@@ -484,7 +483,8 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
           const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'address',
-            initialValue: state.currentCri?.address ?? '',
+            controller: _addressController,
+            initialValue: null,
             decoration: const InputDecoration(
               hintText: 'Adresse',
               prefixIcon: Icon(Icons.home),
@@ -501,62 +501,99 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Ville *', style: theme.textTheme.titleSmall),
-                    const SizedBox(height: 8),
-                    FormBuilderTextField(
-                      name: 'ville',
-                      initialValue: state.currentCri?.ville ?? '',
-                      decoration: const InputDecoration(
-                        hintText: 'Ville',
-                        prefixIcon: Icon(Icons.location_city),
-                      ),
-                      validator: FormBuilderValidators.required(
-                        errorText: 'Ville requise',
-                      ),
-                      onChanged: (value) {
-                        ref
-                            .read(criProjetFormProvider.notifier)
-                            .updateClientInfo(ville: value);
-                      },
-                    ),
-                  ],
+          LayoutBuilder(builder: (context, constraints) {
+            final villeField = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Ville *', style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                FormBuilderTextField(
+                  name: 'ville',
+                  controller: _villeController,
+                  initialValue: null,
+                  decoration: const InputDecoration(
+                    hintText: 'Ville',
+                    prefixIcon: Icon(Icons.location_city),
+                  ),
+                  validator: FormBuilderValidators.required(
+                    errorText: 'Ville requise',
+                  ),
+                  onChanged: (value) {
+                    ref
+                        .read(criProjetFormProvider.notifier)
+                        .updateClientInfo(ville: value);
+                  },
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Département *', style: theme.textTheme.titleSmall),
-                    const SizedBox(height: 8),
-                    FormBuilderTextField(
-                      name: 'departement',
-                      initialValue: state.currentCri?.departement ?? '',
-                      decoration: const InputDecoration(
-                        hintText: 'Département',
-                        prefixIcon: Icon(Icons.map),
-                      ),
-                      validator: FormBuilderValidators.required(
-                        errorText: 'Requis',
-                      ),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) {
-                        ref
-                            .read(criProjetFormProvider.notifier)
-                            .updateClientInfo(departement: value);
-                      },
-                    ),
-                  ],
+              ],
+            );
+            final codePostalField = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Code postal *', style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                FormBuilderTextField(
+                  name: 'codePostal',
+                  controller: _codePostalController,
+                  initialValue: null,
+                  decoration: const InputDecoration(
+                    hintText: 'Code postal',
+                    prefixIcon: Icon(Icons.markunread_mailbox),
+                  ),
+                  validator: FormBuilderValidators.required(
+                    errorText: 'Requis',
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    ref
+                        .read(criProjetFormProvider.notifier)
+                        .updateClientInfo(codePostal: value);
+                  },
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+            final paysField = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Pays', style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                FormBuilderTextField(
+                  name: 'pays',
+                  controller: _paysController,
+                  initialValue: null,
+                  decoration: const InputDecoration(
+                    hintText: 'Pays',
+                    prefixIcon: Icon(Icons.flag),
+                  ),
+                  onChanged: (value) {
+                    ref
+                        .read(criProjetFormProvider.notifier)
+                        .updateClientInfo(pays: value);
+                  },
+                ),
+              ],
+            );
+            if (constraints.maxWidth > 600) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 2, child: villeField),
+                  const SizedBox(width: 16),
+                  Expanded(child: codePostalField),
+                  const SizedBox(width: 16),
+                  Expanded(child: paysField),
+                ],
+              );
+            }
+            return Column(children: [
+              villeField,
+              const SizedBox(height: 16),
+              Row(children: [
+                Expanded(child: codePostalField),
+                const SizedBox(width: 16),
+                Expanded(child: paysField),
+              ]),
+            ]);
+          }),
           const SizedBox(height: 16),
           Text('Contact client *', style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),

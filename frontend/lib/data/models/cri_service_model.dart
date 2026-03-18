@@ -17,6 +17,9 @@ class CriServiceModel {
   final String clientName;
   final String site;
   final String? address;
+  final String? ville;
+  final String? codePostal;
+  final String? pays;
   final String? clientContact;
   final String? phone;
   final String? email;
@@ -67,6 +70,9 @@ class CriServiceModel {
     required this.clientName,
     required this.site,
     this.address,
+    this.ville,
+    this.codePostal,
+    this.pays,
     this.clientContact,
     this.phone,
     this.email,
@@ -94,9 +100,6 @@ class CriServiceModel {
     this.syncStatus = 'pending',
     this.isDraft = true,
   });
-
-  /// Alias pour 'site' (ancien nom: ville)
-  String get ville => site;
 
   /// Champ obsolète - retourne une chaîne vide
   String get departement => '';
@@ -141,6 +144,9 @@ class CriServiceModel {
     String? clientName,
     String? site,
     String? address,
+    String? ville,
+    String? codePostal,
+    String? pays,
     String? clientContact,
     String? phone,
     String? email,
@@ -177,6 +183,9 @@ class CriServiceModel {
       clientName: clientName ?? this.clientName,
       site: site ?? this.site,
       address: address ?? this.address,
+      ville: ville ?? this.ville,
+      codePostal: codePostal ?? this.codePostal,
+      pays: pays ?? this.pays,
       clientContact: clientContact ?? this.clientContact,
       phone: phone ?? this.phone,
       email: email ?? this.email,
@@ -220,6 +229,9 @@ class CriServiceModel {
       'clientName': clientName,
       'site': site,
       'address': address,
+      'ville': ville,
+      'codePostal': codePostal,
+      'pays': pays,
       'clientContact': clientContact,
       'phone': phone,
       'email': email,
@@ -260,6 +272,9 @@ class CriServiceModel {
       clientName: Value(clientName),
       site: Value(site),
       address: Value(address),
+      ville: Value(ville),
+      codePostal: Value(codePostal),
+      pays: Value(pays),
       clientContact: Value(clientContact),
       phone: Value(phone),
       email: Value(email),
@@ -299,6 +314,9 @@ class CriServiceModel {
       clientName: db.clientName,
       site: db.site,
       address: db.address,
+      ville: db.ville,
+      codePostal: db.codePostal,
+      pays: db.pays,
       clientContact: db.clientContact,
       phone: db.phone,
       email: db.email,
@@ -341,6 +359,9 @@ class CriServiceModel {
       clientName: json['clientName'] as String,
       site: json['site'] as String,
       address: json['address'] as String?,
+      ville: json['ville'] as String?,
+      codePostal: json['codePostal'] as String?,
+      pays: json['pays'] as String?,
       clientContact: json['clientContact'] as String?,
       phone: json['phone'] as String?,
       email: json['email'] as String?,

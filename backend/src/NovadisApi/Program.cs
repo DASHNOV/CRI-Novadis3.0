@@ -3,9 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NovadisApi.Data;
+using NovadisApi.Models;
 using NovadisApi.Services;
 using NovadisApi.Services.Auth;
 using NovadisApi.Services.Email;
+using System.Globalization;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -244,6 +246,89 @@ if (app.Environment.IsDevelopment())
     catch (Exception ex)
     {
         app.Logger.LogError(ex, "An error occurred while migrating the database");
+    }
+}
+
+// ========================================
+// 🔟 IMPORT DES SITES CSV (au démarrage)
+// ========================================
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<NovadisDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        // Créer la table Sites si elle n'existe pas
+        dbContext.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Sites')
+            BEGIN
+                CREATE TABLE Sites (
+                    Numero int NOT NULL PRIMARY KEY,
+                    NomDuSite nvarchar(500) NOT NULL,
+                    Adresse nvarchar(500) NULL,
+                    Ville nvarchar(255) NULL,
+                    CodePostal nvarchar(20) NULL,
+                    Pays nvarchar(100) NULL,
+                    ResponsableDorigine nvarchar(255) NULL,
+                    DateDeCreation datetime2 NULL
+                );
+                CREATE INDEX IX_Sites_NomDuSite ON Sites(NomDuSite);
+                CREATE INDEX IX_Sites_Ville ON Sites(Ville);
+                CREATE INDEX IX_Sites_CodePostal ON Sites(CodePostal);
+            END");
+
+        // Importer le CSV seulement si la table est vide
+        var siteCount = dbContext.Sites.Count();
+        if (siteCount == 0)
+        {
+            var csvPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..",
+                "Liste Sites NovaDIS - extract Gx 20260318.csv");
+            if (!File.Exists(csvPath))
+                csvPath = Path.Combine(Directory.GetCurrentDirectory(),
+                    "Liste Sites NovaDIS - extract Gx 20260318.csv");
+
+            if (File.Exists(csvPath))
+            {
+                var lines = File.ReadAllLines(csvPath, Encoding.Latin1);
+                var imported = 0;
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    var line = lines[i].Trim();
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    var fields = line.Split(';');
+                    if (fields.Length < 8 || !int.TryParse(fields[0].Trim(), out var numero)) continue;
+
+                    dbContext.Sites.Add(new Site
+                    {
+                        Numero = numero,
+                        NomDuSite = fields[1].Trim(),
+                        Adresse = string.IsNullOrWhiteSpace(fields[2].Trim()) ? null : fields[2].Trim(),
+                        Ville = string.IsNullOrWhiteSpace(fields[3].Trim()) ? null : fields[3].Trim(),
+                        CodePostal = string.IsNullOrWhiteSpace(fields[4].Trim()) ? null : fields[4].Trim(),
+                        Pays = string.IsNullOrWhiteSpace(fields[5].Trim()) ? null : fields[5].Trim(),
+                        ResponsableDorigine = string.IsNullOrWhiteSpace(fields[6].Trim()) ? null : fields[6].Trim(),
+                        DateDeCreation = DateTime.TryParseExact(fields[7].Trim(), "dd/MM/yyyy",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d : null
+                    });
+                    imported++;
+                }
+                dbContext.SaveChanges();
+                logger.LogInformation("Imported {Count} sites from CSV", imported);
+            }
+            else
+            {
+                logger.LogWarning("CSV file not found, skipping site import");
+            }
+        }
+        else
+        {
+            logger.LogInformation("Sites table already contains {Count} entries, skipping import", siteCount);
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error during site import");
     }
 }
 

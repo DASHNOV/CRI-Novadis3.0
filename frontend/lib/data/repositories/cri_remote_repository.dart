@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novadis_cri/core/network/dio_provider.dart';
 import 'package:novadis_cri/data/models/cri_projet_model.dart';
 import 'package:novadis_cri/data/models/cri_service_model.dart';
+import 'package:novadis_cri/data/models/site_model.dart';
 import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
 import 'package:novadis_cri/data/local/tables/cri_service_table.dart';
 import 'dart:convert';
@@ -216,6 +217,23 @@ class CriRemoteRepository {
       );
       final List<dynamic> data = response.data['data'] ?? [];
       return data.cast<String>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Recherche des sites NovaDIS depuis la base de données
+  Future<List<SiteModel>> searchSitesFromDatabase(String query) async {
+    try {
+      if (query.length < 2) return [];
+      final response = await _dio.get(
+        '/Sites/search',
+        queryParameters: {'q': query},
+      );
+      final List<dynamic> data = response.data['data'] ?? [];
+      return data
+          .map<SiteModel>((e) => SiteModel.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return [];
     }

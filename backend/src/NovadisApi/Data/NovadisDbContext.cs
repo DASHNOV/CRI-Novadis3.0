@@ -16,6 +16,9 @@ namespace NovadisApi.Data
         public DbSet<CRIPhoto> CRIPhotos { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
 
+        // Table des sites NovaDIS
+        public DbSet<Site> Sites { get; set; }
+
         // Tables pour l'authentification
         public DbSet<AuthAttempt> AuthAttempts { get; set; }
         public DbSet<UserToken> UserTokens { get; set; }
@@ -67,6 +70,16 @@ namespace NovadisApi.Data
                 entity.HasIndex(e => e.Email);
                 entity.Property(e => e.Token).IsRequired();
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
+            });
+
+            // Configuration Site
+            modelBuilder.Entity<Site>(entity =>
+            {
+                entity.HasKey(e => e.Numero);
+                entity.Property(e => e.Numero).ValueGeneratedNever();
+                entity.HasIndex(e => e.NomDuSite);
+                entity.HasIndex(e => e.Ville);
+                entity.HasIndex(e => e.CodePostal);
             });
 
             // Configuration CRIForm
