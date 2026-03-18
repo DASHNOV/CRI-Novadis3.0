@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:open_file_plus/open_file_plus.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -23,7 +23,7 @@ class FileManagementService implements BaseFileManagementService {
         throw Exception('Le fichier n\'existe pas: $filePath');
       }
 
-      final result = await OpenFile.open(filePath);
+      final result = await OpenFilex.open(filePath);
 
       if (result.type == ResultType.done) {
         return true;
