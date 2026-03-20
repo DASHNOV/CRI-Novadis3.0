@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/core/config/api_config.dart';
@@ -19,7 +19,7 @@ final dioProvider = Provider<Dio>((ref) {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        if (kDebugMode) 'ngrok-skip-browser-warning': 'true',
+        'ngrok-skip-browser-warning': 'true',
       },
     ),
   );
@@ -54,7 +54,7 @@ final dioProvider = Provider<Dio>((ref) {
                   headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    if (kDebugMode) 'ngrok-skip-browser-warning': 'true',
+                    'ngrok-skip-browser-warning': 'true',
                   },
                 ),
               );
