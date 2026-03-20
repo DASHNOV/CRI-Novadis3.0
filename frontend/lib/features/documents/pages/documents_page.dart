@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import '../../../data/local/app_database.dart';
 import '../../export/providers/export_providers.dart';
 import '../../export/models/exported_document_model.dart';
@@ -10,6 +11,7 @@ import '../widgets/document_search_bar.dart';
 import '../widgets/document_filter_chips.dart';
 import '../widgets/empty_documents_state.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Page principale de gestion des documents exportés
 class DocumentsPage extends ConsumerStatefulWidget {
@@ -38,89 +40,208 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage>
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeAnimationProvider);
     final selectedDocs = ref.watch(selectedDocumentsProvider);
     final hasSelection = selectedDocs.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(
-        title: _isSearching
-            ? DocumentSearchBar(
-                onChanged: (query) {
-                  ref.read(searchQueryProvider.notifier).state = query;
-                },
-                onClose: () {
-                  setState(() => _isSearching = false);
-                  // Réinitialiser la recherche
-                  ref.read(searchQueryProvider.notifier).state = '';
-                  final currentFilter = ref.read(documentFilterProvider);
-                  ref.read(documentFilterProvider.notifier).state =
-                      currentFilter.clearSearch();
-                },
-              )
-            : const Text('Mes Documents'),
-        actions: [
-          if (!_isSearching && !hasSelection) ...[
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () => setState(() => _isSearching = true),
-              tooltip: 'Rechercher',
+      backgroundColor: AppTheme.background,
+      body: Column(
+        children: [
+          // ─── Modern toolbar ───
+          Container(
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              border: Border(
+                bottom: BorderSide(color: AppTheme.border.withValues(alpha: 0.5)),
+              ),
             ),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.sort),
-              tooltip: 'Trier',
-              onSelected: (value) {
-                final sortOption = DocumentSortOption.values.firstWhere(
-                  (e) => e.name == value,
-                );
-                ref.read(documentSortProvider.notifier).state = sortOption;
-              },
-              itemBuilder: (context) => DocumentSortOption.values
-                  .map(
-                    (option) => PopupMenuItem(
-                      value: option.name,
-                      child: Text(option.label),
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  // Title row + actions
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppTheme.space20,
+                      AppTheme.space12,
+                      AppTheme.space12,
+                      0,
                     ),
-                  )
-                  .toList(),
-            ),
-          ],
-          if (hasSelection) ...[
-            IconButton(
-              icon: const Icon(Icons.share),
-              onPressed: () => _shareSelected(),
-              tooltip: 'Partager',
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () => _deleteSelected(),
-              tooltip: 'Supprimer',
-            ),
-            IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () {
-                ref.read(selectedDocumentsProvider.notifier).state = {};
-              },
-              tooltip: 'Annuler',
-            ),
-          ],
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.picture_as_pdf), text: 'CRI (PDF)'),
-            Tab(icon: Icon(Icons.table_chart), text: 'Exports (CSV)'),
-          ],
-        ),
-      ),
-      body: ContentContainer(
-        maxWidth: 1400,
-        child: Column(
-          children: [
-            // Filtres
-            const DocumentFilterChips(),
+                    child: Row(
+                      children: [
+                        if (_isSearching)
+                          Expanded(
+                            child: DocumentSearchBar(
+                              onChanged: (query) {
+                                ref.read(searchQueryProvider.notifier).state =
+                                    query;
+                              },
+                              onClose: () {
+                                setState(() => _isSearching = false);
+                                ref.read(searchQueryProvider.notifier).state =
+                                    '';
+                                final currentFilter =
+                                    ref.read(documentFilterProvider);
+                                ref
+                                    .read(documentFilterProvider.notifier)
+                                    .state = currentFilter.clearSearch();
+                              },
+                            ),
+                          )
+                        else ...[
+                          Expanded(
+                            child: Text(
+                              'Mes Documents',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimary,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (!_isSearching && !hasSelection) ...[
+                          _ToolbarIconButton(
+                            icon: Icons.search_rounded,
+                            tooltip: 'Rechercher',
+                            onPressed: () =>
+                                setState(() => _isSearching = true),
+                          ),
+                          const SizedBox(width: AppTheme.space4),
+                          PopupMenuButton<String>(
+                            icon: Icon(
+                              Icons.swap_vert_rounded,
+                              color: AppTheme.textSecondary,
+                              size: 20,
+                            ),
+                            tooltip: 'Trier',
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.radiusMd,
+                              ),
+                            ),
+                            onSelected: (value) {
+                              final sortOption =
+                                  DocumentSortOption.values.firstWhere(
+                                (e) => e.name == value,
+                              );
+                              ref.read(documentSortProvider.notifier).state =
+                                  sortOption;
+                            },
+                            itemBuilder: (context) => DocumentSortOption.values
+                                .map(
+                                  (option) => PopupMenuItem(
+                                    value: option.name,
+                                    child: Text(option.label),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ],
+                        if (hasSelection) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppTheme.space12,
+                              vertical: AppTheme.space4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.radiusFull,
+                              ),
+                            ),
+                            child: Text(
+                              '${selectedDocs.length}',
+                              style: const TextStyle(
+                                color: AppTheme.primary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppTheme.space8),
+                          _ToolbarIconButton(
+                            icon: Icons.share_outlined,
+                            tooltip: 'Partager',
+                            onPressed: () => _shareSelected(),
+                          ),
+                          _ToolbarIconButton(
+                            icon: Icons.delete_outline_rounded,
+                            tooltip: 'Supprimer',
+                            color: AppTheme.error,
+                            onPressed: () => _deleteSelected(),
+                          ),
+                          _ToolbarIconButton(
+                            icon: Icons.close_rounded,
+                            tooltip: 'Annuler',
+                            onPressed: () {
+                              ref
+                                  .read(selectedDocumentsProvider.notifier)
+                                  .state = {};
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
 
-            // Liste des documents
-            Expanded(
+                  // ─── Modern TabBar ───
+                  Container(
+                    margin: const EdgeInsets.only(top: AppTheme.space8),
+                    child: TabBar(
+                      controller: _tabController,
+                      labelColor: AppTheme.primary,
+                      unselectedLabelColor: AppTheme.textTertiary,
+                      indicatorColor: AppTheme.primary,
+                      indicatorWeight: 2.5,
+                      indicatorSize: TabBarIndicatorSize.label,
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                      dividerColor: Colors.transparent,
+                      tabs: const [
+                        Tab(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.picture_as_pdf_rounded, size: 18),
+                              SizedBox(width: 8),
+                              Text('CRI (PDF)'),
+                            ],
+                          ),
+                        ),
+                        Tab(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.table_chart_outlined, size: 18),
+                              SizedBox(width: 8),
+                              Text('Exports (CSV)'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ─── Filtres ───
+          const DocumentFilterChips(),
+
+          // ─── Liste des documents ───
+          Expanded(
+            child: ContentContainer(
+              maxWidth: 1400,
               child: TabBarView(
                 controller: _tabController,
                 children: [
@@ -129,13 +250,25 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage>
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+
+      // ─── Modern FAB ───
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showExportOptions(),
-        icon: const Icon(Icons.add),
-        label: const Text('Nouveau'),
+        backgroundColor: AppTheme.primary,
+        foregroundColor: Colors.white,
+        elevation: 2,
+        highlightElevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        ),
+        icon: const Icon(Icons.add_rounded, size: 20),
+        label: const Text(
+          'Nouveau',
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        ),
       ),
     );
   }
@@ -235,20 +368,63 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage>
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
+      // ─── Shimmer loading placeholder ───
+      loading: () => Padding(
+        padding: const EdgeInsets.all(AppTheme.space16),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text('Erreur: $error'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => ref.invalidate(exportedDocumentsProvider),
-              child: const Text('Réessayer'),
+          children: List.generate(
+            5,
+            (index) => Padding(
+              padding: const EdgeInsets.only(bottom: AppTheme.space12),
+              child: _ShimmerPlaceholder(delay: index * 100),
             ),
-          ],
+          ),
+        ),
+      ),
+      error: (error, stack) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.space32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppTheme.space16),
+                decoration: BoxDecoration(
+                  color: AppTheme.errorLight,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  size: 32,
+                  color: AppTheme.error,
+                ),
+              ),
+              const SizedBox(height: AppTheme.space16),
+              Text(
+                'Erreur de chargement',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: AppTheme.space8),
+              Text(
+                '$error',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppTheme.textTertiary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppTheme.space20),
+              OutlinedButton.icon(
+                onPressed: () => ref.invalidate(exportedDocumentsProvider),
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text('Réessayer'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -563,5 +739,140 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage>
         );
       }
     }
+  }
+}
+
+// ─── Toolbar icon button ───
+class _ToolbarIconButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+  final Color? color;
+
+  const _ToolbarIconButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: 20),
+      color: color ?? AppTheme.textSecondary,
+      tooltip: tooltip,
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Shimmer loading placeholder ───
+class _ShimmerPlaceholder extends StatefulWidget {
+  final int delay;
+  const _ShimmerPlaceholder({this.delay = 0});
+
+  @override
+  State<_ShimmerPlaceholder> createState() => _ShimmerPlaceholderState();
+}
+
+class _ShimmerPlaceholderState extends State<_ShimmerPlaceholder>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.3, end: 0.7).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+    // Stagger animation
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ShimmerAnimatedContainer(
+      animation: _animation,
+    );
+  }
+}
+
+class _ShimmerAnimatedContainer extends AnimatedWidget {
+  const _ShimmerAnimatedContainer({
+    required Animation<double> animation,
+  }) : super(listenable: animation);
+
+  @override
+  Widget build(BuildContext context) {
+    final double value = (listenable as Animation<double>).value;
+    return Container(
+      height: 72,
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVariant.withValues(alpha: value),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: AppTheme.space16),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppTheme.border.withValues(alpha: value),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            ),
+          ),
+          const SizedBox(width: AppTheme.space12),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 14,
+                  width: 180,
+                  decoration: BoxDecoration(
+                    color: AppTheme.border.withValues(alpha: value),
+                    borderRadius: BorderRadius.circular(
+                      AppTheme.radiusSm,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 10,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color: AppTheme.border.withValues(alpha: value * 0.6),
+                    borderRadius: BorderRadius.circular(
+                      AppTheme.radiusSm,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

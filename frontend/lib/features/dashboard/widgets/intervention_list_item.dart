@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
 
-class MobileInterventionListItem extends StatelessWidget {
+class MobileInterventionListItem extends StatefulWidget {
   final String type;
   final String client;
   final DateTime date;
@@ -18,82 +18,106 @@ class MobileInterventionListItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.withOpacity(0.1)),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Icon Container
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppTheme.lightBlue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Icon(
-                    _getIconForType(type),
-                    color: AppTheme.lightBlue,
-                    size: 24,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
+  State<MobileInterventionListItem> createState() =>
+      _MobileInterventionListItemState();
+}
 
-              // Infos
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      type,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: AppTheme.darkBlue,
+class _MobileInterventionListItemState
+    extends State<MobileInterventionListItem> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: AppTheme.animFast,
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: _isHovered ? AppTheme.surfaceVariant : AppTheme.surface,
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          border: Border.all(
+            color: _isHovered
+                ? AppTheme.primary.withValues(alpha: 0.2)
+                : AppTheme.border.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onTap,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  // Icon Container
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        _getIconForType(widget.type),
+                        color: AppTheme.primary,
+                        size: 22,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      client,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
+                  ),
+                  const SizedBox(width: 14),
+
+                  // Infos
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 12,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(width: 4),
                         Text(
-                          _formatDate(date),
+                          widget.type,
                           style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: AppTheme.textPrimary,
                           ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.client,
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today,
+                              size: 12,
+                              color: AppTheme.textTertiary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatDate(widget.date),
+                              style: TextStyle(
+                                color: AppTheme.textTertiary,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-              // Status Badge
-              _buildStatusBadge(status),
-            ],
+                  // Status Badge
+                  _buildStatusBadge(widget.status),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -107,24 +131,24 @@ class MobileInterventionListItem extends StatelessWidget {
     switch (status.toLowerCase()) {
       case 'completed':
       case 'terminé':
-        color = const Color(0xFF10B981); // Green
+        color = AppTheme.success;
         label = 'Terminé';
         break;
       case 'in_progress':
       case 'en cours':
-        color = const Color(0xFFF59E0B); // Orange
+        color = AppTheme.warning;
         label = 'En cours';
         break;
       default:
-        color = Colors.grey;
+        color = AppTheme.textTertiary;
         label = status;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Text(
         label,
@@ -148,4 +172,3 @@ class MobileInterventionListItem extends StatelessWidget {
     return '${date.day}/${date.month}/${date.year}';
   }
 }
-

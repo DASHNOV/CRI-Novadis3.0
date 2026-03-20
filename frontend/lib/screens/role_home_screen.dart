@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:novadis_cri/core/storage/storage_service.dart';
 import 'package:novadis_cri/models/user_role.dart';
-import 'package:novadis_cri/navigation/app_navigator.dart';
+import 'package:novadis_cri/screens/technician/technician_main_screen.dart';
+import 'package:novadis_cri/screens/admin/admin_main_screen.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Écran pivot qui détermine l'interface à afficher selon le rôle utilisateur.
 /// Lit le rôle depuis le StorageService et redirige vers l'écran approprié.
@@ -32,7 +34,6 @@ class _RoleHomeScreenState extends ConsumerState<RoleHomeScreen> {
         if (roleStr != null && roleStr.isNotEmpty) {
           _role = UserRole.fromString(roleStr);
         } else {
-          // Par défaut, rôle technicien si pas trouvé
           _role = UserRole.technician;
         }
         _isLoading = false;
@@ -42,6 +43,7 @@ class _RoleHomeScreenState extends ConsumerState<RoleHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeAnimationProvider);
     if (_isLoading || _role == null) {
       return const Scaffold(
         body: Center(
@@ -57,6 +59,9 @@ class _RoleHomeScreenState extends ConsumerState<RoleHomeScreen> {
       );
     }
 
-    return AppNavigator.getMainScreen(_role!);
+    return switch (_role!) {
+      UserRole.admin => const AdminMainScreen(),
+      UserRole.technician => const TechnicianMainScreen(),
+    };
   }
 }

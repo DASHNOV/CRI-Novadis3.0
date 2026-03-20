@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/data/models/site_summary_model.dart';
 
 class SiteSummaryCard extends StatelessWidget {
@@ -19,10 +20,14 @@ class SiteSummaryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      elevation: 4,
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowMd,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
@@ -31,16 +36,16 @@ class SiteSummaryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
+              color: AppTheme.primaryLight,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(AppTheme.radiusLg),
               ),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.analytics_outlined,
-                  color: colorScheme.onPrimaryContainer,
+                  color: AppTheme.textOnPrimary,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -48,7 +53,7 @@ class SiteSummaryCard extends StatelessWidget {
                     'RÉSUMÉ DU SITE : ${summary.siteName.toUpperCase()}',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: colorScheme.onPrimaryContainer,
+                      color: AppTheme.textOnPrimary,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -56,7 +61,7 @@ class SiteSummaryCard extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: onDismiss,
-                  color: colorScheme.onPrimaryContainer,
+                  color: AppTheme.textOnPrimary,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -68,12 +73,12 @@ class SiteSummaryCard extends StatelessWidget {
           if (summary.chronicityAlert)
             Container(
               padding: const EdgeInsets.all(12),
-              color: Colors.orange.shade100,
+              color: AppTheme.warning.withValues(alpha: 0.1),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.deepOrange,
+                    color: AppTheme.warning,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -83,7 +88,7 @@ class SiteSummaryCard extends StatelessWidget {
                         Text(
                           'ALERTE : Problème chronique détecté',
                           style: theme.textTheme.labelLarge?.copyWith(
-                            color: Colors.deepOrange,
+                            color: AppTheme.warning,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -91,7 +96,7 @@ class SiteSummaryCard extends StatelessWidget {
                           Text(
                             summary.chronicProblemDescription!,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.deepOrange.shade900,
+                              color: AppTheme.warning,
                             ),
                           ),
                       ],
@@ -125,10 +130,10 @@ class SiteSummaryCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: colorScheme.outline.withOpacity(0.2),
+                        color: colorScheme.outline.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Column(
@@ -205,14 +210,14 @@ class SiteSummaryCard extends StatelessWidget {
           context,
           'Interventions (6 mois)',
           summary.recurrenceLast6Months.toString(),
-          summary.recurrenceLast6Months > 5 ? Colors.orange : Colors.green,
+          summary.recurrenceLast6Months > 5 ? AppTheme.warning : AppTheme.success,
         ),
         if (summary.hasUrgentPendingTickets)
           _buildIndicator(
             context,
             'Urgence',
             'Tickets ouverts',
-            Colors.red,
+            AppTheme.error,
             icon: Icons.priority_high,
           ),
       ],
@@ -262,7 +267,7 @@ class SiteSummaryCard extends StatelessWidget {
       title,
       style: theme.textTheme.labelMedium?.copyWith(
         fontWeight: FontWeight.bold,
-        color: theme.colorScheme.primary,
+        color: AppTheme.primary,
         letterSpacing: 1.2,
       ),
     );
@@ -329,15 +334,15 @@ class SiteSummaryCard extends StatelessWidget {
     switch (status.toLowerCase()) {
       case 'résolu':
       case 'resolu':
-        return Colors.green;
+        return AppTheme.success;
       case 'partiel':
       case 'partiellementresolu':
-        return Colors.orange;
+        return AppTheme.warning;
       case 'non résolu':
       case 'nonresolu':
-        return Colors.red;
+        return AppTheme.error;
       default:
-        return Colors.grey;
+        return AppTheme.textTertiary;
     }
   }
 }

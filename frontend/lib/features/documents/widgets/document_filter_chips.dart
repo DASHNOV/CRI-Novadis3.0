@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 
 import '../../export/providers/export_providers.dart';
 
@@ -55,9 +56,13 @@ class DocumentFilterChips extends ConsumerWidget {
               // Réinitialiser aussi la recherche
               ref.read(searchQueryProvider.notifier).state = '';
             },
-            icon: const Icon(Icons.clear_all, size: 16),
-            label: const Text('Tout effacer'),
+            icon: Icon(Icons.clear_all, size: 16, color: AppTheme.textSecondary),
+            label: Text(
+              'Tout effacer',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
             style: TextButton.styleFrom(
+              foregroundColor: AppTheme.textSecondary,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
           ),
@@ -75,14 +80,34 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-      label: Text(label),
-      onDeleted: onDeleted,
-      deleteIcon: const Icon(Icons.close, size: 16),
-      backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-      labelStyle: TextStyle(
-        color: Theme.of(context).colorScheme.onSecondaryContainer,
-        fontSize: 12,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryLight.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppTheme.primary,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 4),
+          GestureDetector(
+            onTap: onDeleted,
+            child: Icon(
+              Icons.close,
+              size: 16,
+              color: AppTheme.primary.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
       ),
     );
   }

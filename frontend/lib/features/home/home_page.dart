@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
 import 'package:novadis_cri/core/storage/storage_service.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Page d'accueil principale après authentification
 /// Dirige l'utilisateur vers les fonctionnalités principales
@@ -14,14 +16,20 @@ class HomePage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeAnimationProvider);
     final userName = ref.watch(userNameProvider);
 
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Novadis CRI'),
+        backgroundColor: AppTheme.surface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Text('Novadis CRI', style: TextStyle(color: AppTheme.textPrimary)),
+        iconTheme: IconThemeData(color: AppTheme.textPrimary),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: AppTheme.textPrimary),
             onPressed: () => context.go(AppRouter.login),
             tooltip: 'Déconnexion',
           ),
@@ -60,10 +68,10 @@ class HomePage extends HookConsumerWidget {
   Widget _buildWelcomeHeader(BuildContext context, String userName) {
     return Column(
       children: [
-        Icon(
+        const Icon(
           Icons.engineering,
           size: 64,
-          color: Theme.of(context).colorScheme.primary,
+          color: AppTheme.primary,
         ),
         const SizedBox(height: 16),
         Text(
@@ -78,7 +86,7 @@ class HomePage extends HookConsumerWidget {
           'Gérez vos comptes rendus d\'intervention',
           style: Theme.of(
             context,
-          ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
+          ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
           textAlign: TextAlign.center,
         ),
       ],
@@ -86,37 +94,39 @@ class HomePage extends HookConsumerWidget {
   }
 
   Widget _buildPrimaryAction(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        boxShadow: AppTheme.shadowMd,
+      ),
       child: InkWell(
         onTap: () => context.push(AppRouter.criForm),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
         child: Container(
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                AppTheme.primary,
+                AppTheme.accent,
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
           ),
           child: Column(
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: AppTheme.surface.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.add_circle_outline,
                   size: 48,
-                  color: Colors.white,
+                  color: AppTheme.textOnPrimary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -125,14 +135,14 @@ class HomePage extends HookConsumerWidget {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppTheme.textOnPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Créer un nouveau CRI Projet ou Service',
-                style: TextStyle(fontSize: 14, color: Colors.white70),
+                style: TextStyle(fontSize: 14, color: AppTheme.textOnPrimary.withValues(alpha: 0.7)),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -159,7 +169,7 @@ class HomePage extends HookConsumerWidget {
               child: _ActionCard(
                 icon: Icons.dashboard_outlined,
                 label: 'Tableau de Bord',
-                color: Colors.blue,
+                color: AppTheme.primary,
                 onTap: () => context.push(AppRouter.dashboard),
               ),
             ),
@@ -168,7 +178,7 @@ class HomePage extends HookConsumerWidget {
               child: _ActionCard(
                 icon: Icons.history,
                 label: 'Historique',
-                color: Colors.orange,
+                color: AppTheme.warning,
                 onTap: () => context.push(AppRouter.history),
               ),
             ),
@@ -182,7 +192,7 @@ class HomePage extends HookConsumerWidget {
               child: _ActionCard(
                 icon: Icons.folder_outlined,
                 label: 'Documents',
-                color: Colors.green,
+                color: AppTheme.success,
                 onTap: () => context.push(AppRouter.documents),
               ),
             ),
@@ -191,7 +201,7 @@ class HomePage extends HookConsumerWidget {
               child: _ActionCard(
                 icon: Icons.admin_panel_settings,
                 label: 'Administration',
-                color: Colors.teal,
+                color: AppTheme.success,
                 onTap: () => context.push(AppRouter.admin),
               ),
             ),
@@ -202,9 +212,13 @@ class HomePage extends HookConsumerWidget {
   }
 
   Widget _buildQuickStats(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -212,10 +226,10 @@ class HomePage extends HookConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.info_outline,
                   size: 20,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: AppTheme.primary,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -260,12 +274,16 @@ class _ActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -273,8 +291,8 @@ class _ActionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
                 ),
                 child: Icon(icon, size: 32, color: color),
               ),
@@ -284,7 +302,7 @@ class _ActionCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey[800],
+                  color: AppTheme.textPrimary,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -318,7 +336,7 @@ class _QuickStatRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
-            Icon(icon, size: 24, color: Theme.of(context).colorScheme.primary),
+            Icon(icon, size: 24, color: AppTheme.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -329,7 +347,7 @@ class _QuickStatRow extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+            Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.textTertiary),
           ],
         ),
       ),

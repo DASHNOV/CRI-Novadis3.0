@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 import 'package:novadis_cri/features/dashboard/config/chart_config.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 
 /// Widget pour la courbe de charge de travail
 class WorkloadCurveChartWidget extends StatefulWidget {
@@ -56,11 +57,15 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -95,11 +100,11 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.timeline, size: 48, color: Colors.grey[400]),
+          Icon(Icons.timeline, size: 48, color: AppTheme.textTertiary),
           const SizedBox(height: 8),
           Text(
             'Aucune donnée disponible',
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -167,7 +172,7 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
       maxY: maxY,
       lineTouchData: LineTouchData(
         touchTooltipData: LineTouchTooltipData(
-          getTooltipColor: (touchedSpot) => Colors.grey[800]!,
+          getTooltipColor: (touchedSpot) => AppTheme.textPrimary,
           tooltipRoundedRadius: 8,
           getTooltipItems: (touchedSpots) {
             return touchedSpots.map((spot) {
@@ -204,7 +209,7 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
         horizontalLines: [
           HorizontalLine(
             y: widget.thresholdHours,
-            color: ChartConfig.thresholdLineColor.withOpacity(0.5),
+            color: ChartConfig.thresholdLineColor.withValues(alpha: 0.5),
             strokeWidth: 2,
             dashArray: [8, 4],
             label: HorizontalLineLabel(
@@ -243,7 +248,7 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
                 radius: isSelected ? 6 : ChartConfig.dotRadius,
                 color: color,
                 strokeWidth: 2,
-                strokeColor: Colors.white,
+                strokeColor: AppTheme.surface,
               );
             },
           ),
@@ -253,8 +258,8 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                const Color(0xFF8B5CF6).withOpacity(0.3),
-                const Color(0xFF8B5CF6).withOpacity(0.0),
+                const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                const Color(0xFF8B5CF6).withValues(alpha: 0.0),
               ],
             ),
           ),
@@ -290,7 +295,7 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
           ),
         ),
         const SizedBox(width: 6),
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+        Text(label, style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
       ],
     );
   }
@@ -303,14 +308,14 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
         alerts.add(
           _buildAlertBadge(
             '⚠️ Surcharge ${data.weekLabel}: ${ChartConfig.formatHours(data.totalHours)}',
-            Colors.red,
+            AppTheme.error,
           ),
         );
       } else if (data.totalHours < 30 && data.totalHours > 0) {
         alerts.add(
           _buildAlertBadge(
             'ℹ️ Charge faible ${data.weekLabel}: ${ChartConfig.formatHours(data.totalHours)}',
-            Colors.blue,
+            AppTheme.primary,
           ),
         );
       }
@@ -328,15 +333,15 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         message,
         style: TextStyle(
           fontSize: 11,
-          color: color.shade700,
+          color: color,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -351,14 +356,10 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
   }
 
   Color _getStatusColor(double hours) {
-    if (hours > 48) return Colors.red;
-    if (hours > widget.thresholdHours) return Colors.orange;
-    if (hours < 30) return Colors.blue;
+    if (hours > 48) return AppTheme.error;
+    if (hours > widget.thresholdHours) return AppTheme.warning;
+    if (hours < 30) return AppTheme.primary;
     return const Color(0xFF8B5CF6);
   }
-}
-
-extension on Color {
-  Color get shade700 => HSLColor.fromColor(this).withLightness(0.35).toColor();
 }
 

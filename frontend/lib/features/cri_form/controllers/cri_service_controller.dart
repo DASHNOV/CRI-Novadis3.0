@@ -78,7 +78,7 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
         );
       }
     } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: 'Erreur: $e');
+      state = state.copyWith(isLoading: false, errorMessage: 'Erreur lors du chargement du CRI');
     }
   }
 
@@ -263,7 +263,7 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(isSaving: false, errorMessage: 'Erreur: $e');
+      state = state.copyWith(isSaving: false, errorMessage: 'Erreur lors de la sauvegarde');
       return false;
     }
   }
@@ -291,7 +291,7 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     } catch (e) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: 'Erreur submition: $e',
+        errorMessage: 'Erreur lors de la soumission',
       );
       return false;
     }

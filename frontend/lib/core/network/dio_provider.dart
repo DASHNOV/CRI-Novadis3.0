@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/core/config/api_config.dart';
+import 'package:novadis_cri/core/config/app_router.dart';
 import 'package:novadis_cri/core/network/isolate_transformer.dart';
 import 'package:novadis_cri/core/storage/storage_service.dart';
 
@@ -17,7 +19,7 @@ final dioProvider = Provider<Dio>((ref) {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'ngrok-skip-browser-warning': 'true',
+        if (kDebugMode) 'ngrok-skip-browser-warning': 'true',
       },
     ),
   );
@@ -52,7 +54,7 @@ final dioProvider = Provider<Dio>((ref) {
                   headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'ngrok-skip-browser-warning': 'true',
+                    if (kDebugMode) 'ngrok-skip-browser-warning': 'true',
                   },
                 ),
               );
@@ -97,12 +99,19 @@ final dioProvider = Provider<Dio>((ref) {
             } catch (refreshError) {
               // Refresh failed (token expired or revoked)
               await storage.clearTokens();
-              // TODO: Navigate to Login (Need a way to signal this to UI, e.g. stream)
-              // For now, just let the error propagate
+              // Redirect to login via the global navigator key
+              final context = AppRouter.navigatorKey.currentContext;
+              if (context != null) {
+                GoRouter.of(context).go(AppRouter.login);
+              }
             }
           } else {
             // No refresh token available, clear any stale data
             await storage.clearTokens();
+            final context = AppRouter.navigatorKey.currentContext;
+            if (context != null) {
+              GoRouter.of(context).go(AppRouter.login);
+            }
           }
         }
         return handler.next(e);

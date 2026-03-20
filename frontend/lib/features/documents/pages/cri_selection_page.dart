@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import '../providers/documents_providers.dart';
 import '../../export/providers/export_providers.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Page de sélection d'un CRI pour l'exportation PDF
 class CriSelectionPage extends ConsumerStatefulWidget {
@@ -25,39 +27,71 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeAnimationProvider);
     final reportsAsync = ref.watch(availableReportsProvider);
 
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Sélectionner un CRI'),
+        backgroundColor: AppTheme.surface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
+          preferredSize: const Size.fromHeight(64),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) => setState(() => _searchQuery = value),
-              decoration: InputDecoration(
-                hintText: 'Rechercher un client, site ou numéro...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+            padding: const EdgeInsets.fromLTRB(
+              AppTheme.space16,
+              0,
+              AppTheme.space16,
+              AppTheme.space12,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceVariant,
+                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) => setState(() => _searchQuery = value),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.textPrimary,
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                decoration: InputDecoration(
+                  hintText: 'Rechercher un client, site ou numéro...',
+                  hintStyle: TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.textTertiary,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: AppTheme.textTertiary,
+                    size: 20,
+                  ),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: AppTheme.textTertiary,
+                            size: 18,
+                          ),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.transparent,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: AppTheme.space12,
+                  ),
+                ),
               ),
             ),
           ),
@@ -74,30 +108,50 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
 
           if (filteredReports.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.assignment_late_outlined,
-                    size: 64,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outline.withOpacity(0.5),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _searchQuery.isEmpty
-                        ? 'Aucun rapport terminé trouvé'
-                        : 'Aucun résultat pour "$_searchQuery"',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.space32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(AppTheme.space20),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceVariant,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _searchQuery.isEmpty
+                            ? Icons.assignment_outlined
+                            : Icons.search_off_rounded,
+                        size: 40,
+                        color: AppTheme.textTertiary,
+                      ),
                     ),
-                  ),
-                  if (_searchQuery.isEmpty) ...[
-                    const SizedBox(height: 8),
-                    const Text('Assurez-vous d\'avoir validé vos rapports.'),
+                    const SizedBox(height: AppTheme.space16),
+                    Text(
+                      _searchQuery.isEmpty
+                          ? 'Aucun rapport terminé trouvé'
+                          : 'Aucun résultat pour "$_searchQuery"',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (_searchQuery.isEmpty) ...[
+                      const SizedBox(height: AppTheme.space8),
+                      Text(
+                        'Assurez-vous d\'avoir validé vos rapports.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.textTertiary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             );
           }
@@ -108,7 +162,7 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
               return ref.read(availableReportsProvider.future);
             },
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppTheme.space16),
               itemCount: filteredReports.length,
               itemBuilder: (context, index) {
                 final report = filteredReports[index];
@@ -117,19 +171,58 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(
+        loading: () => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 48),
-              const SizedBox(height: 16),
-              const Text('Erreur lors de la récupération des rapports'),
-              TextButton(
-                onPressed: () => ref.refresh(availableReportsProvider),
-                child: const Text('Réessayer'),
+              CircularProgressIndicator(color: AppTheme.primary),
+              SizedBox(height: AppTheme.space16),
+              Text(
+                'Chargement des rapports...',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.textTertiary,
+                ),
               ),
             ],
+          ),
+        ),
+        error: (err, stack) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.space32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppTheme.space16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.errorLight,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.error_outline_rounded,
+                    color: AppTheme.error,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.space16),
+                Text(
+                  'Erreur lors de la récupération des rapports',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppTheme.space16),
+                OutlinedButton.icon(
+                  onPressed: () => ref.refresh(availableReportsProvider),
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Réessayer'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -146,114 +239,160 @@ class _CriReportCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFormat = DateFormat('dd/MM/yyyy');
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      clipBehavior: Clip.antiAlias,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Theme.of(context).dividerColor.withOpacity(0.5),
-        ),
+    final bool isProjet = report.isProjet;
+    final Color typeBadgeColor =
+        isProjet ? AppTheme.accent : AppTheme.primary;
+    final Color typeBadgeBg =
+        isProjet ? AppTheme.accent.withValues(alpha: 0.08) : AppTheme.infoLight;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.space12),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
       ),
-      child: InkWell(
-        onTap: () => _showExportConfirm(context, ref),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: report.isProjet
-                          ? Colors.purple.withOpacity(0.1)
-                          : Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      report.isProjet ? 'Projet' : 'Service',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: report.isProjet ? Colors.purple : Colors.blue,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    report.nIntervention,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                report.clientName,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on_outlined,
-                    size: 14,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      report.siteName,
-                      style: Theme.of(context).textTheme.bodySmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today_outlined,
-                        size: 14,
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        dateFormat.format(report.date),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                  FilledButton.icon(
-                    onPressed: () => _showExportConfirm(context, ref),
-                    icon: const Icon(Icons.picture_as_pdf, size: 16),
-                    label: const Text('Exporter'),
-                    style: FilledButton.styleFrom(
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        child: InkWell(
+          onTap: () => _showExportConfirm(context, ref),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.space16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header: type badge + intervention number
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 0,
+                        horizontal: AppTheme.space8,
+                        vertical: AppTheme.space4,
                       ),
-                      minimumSize: const Size(0, 32),
+                      decoration: BoxDecoration(
+                        color: typeBadgeBg,
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusFull,
+                        ),
+                      ),
+                      child: Text(
+                        isProjet ? 'Projet' : 'Service',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: typeBadgeColor,
+                        ),
+                      ),
                     ),
+                    Text(
+                      report.nIntervention,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppTheme.space12),
+
+                // Client name
+                Text(
+                  report.clientName,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
                   ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: AppTheme.space4),
+
+                // Location
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: AppTheme.textTertiary,
+                    ),
+                    const SizedBox(width: AppTheme.space4),
+                    Expanded(
+                      child: Text(
+                        report.siteName,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Separator
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppTheme.space12,
+                  ),
+                  child: Divider(
+                    height: 1,
+                    color: AppTheme.border.withValues(alpha: 0.5),
+                  ),
+                ),
+
+                // Footer: date + export button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 14,
+                          color: AppTheme.textTertiary,
+                        ),
+                        const SizedBox(width: AppTheme.space4),
+                        Text(
+                          dateFormat.format(report.date),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    FilledButton.icon(
+                      onPressed: () => _showExportConfirm(context, ref),
+                      icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
+                      label: const Text('Exporter'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.space16,
+                          vertical: 0,
+                        ),
+                        minimumSize: const Size(0, 34),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusMd,
+                          ),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -326,26 +465,63 @@ class _ExportProgressDialogState extends ConsumerState<_ExportProgressDialog> {
     final progress = ref.watch(exportProgressProvider);
 
     return AlertDialog(
-      title: const Text('Génération du PDF'),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+      ),
+      contentPadding: const EdgeInsets.fromLTRB(
+        AppTheme.space24,
+        AppTheme.space24,
+        AppTheme.space24,
+        AppTheme.space24,
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 8),
-          const CircularProgressIndicator(),
-          const SizedBox(height: 24),
+          // Animated progress indicator
+          Container(
+            padding: const EdgeInsets.all(AppTheme.space16),
+            decoration: BoxDecoration(
+              color: AppTheme.infoLight,
+              shape: BoxShape.circle,
+            ),
+            child: const SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                color: AppTheme.primary,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppTheme.space20),
+          Text(
+            'Génération du PDF',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: AppTheme.space8),
           Text(
             progress?.status ?? 'Préparation du document...',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: TextStyle(
+              fontSize: 14,
+              color: AppTheme.textSecondary,
+            ),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          const SizedBox(height: AppTheme.space4),
+          Text(
             'Veuillez patienter',
-            style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+            style: TextStyle(
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+              color: AppTheme.textTertiary,
+            ),
           ),
         ],
       ),
     );
   }
 }
-

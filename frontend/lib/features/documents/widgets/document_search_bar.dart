@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 
 /// Barre de recherche pour les documents
 class DocumentSearchBar extends StatefulWidget {
@@ -26,22 +27,35 @@ class _DocumentSearchBarState extends State<DocumentSearchBar> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: _controller,
-      autofocus: true,
-      decoration: InputDecoration(
-        hintText: 'Rechercher par nom, client, numéro...',
-        border: InputBorder.none,
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () {
-            _controller.clear();
-            widget.onChanged('');
-            widget.onClose();
-          },
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
       ),
-      onChanged: widget.onChanged,
+      child: TextField(
+        controller: _controller,
+        autofocus: true,
+        decoration: InputDecoration(
+          hintText: 'Rechercher par nom, client, numéro...',
+          hintStyle: TextStyle(color: AppTheme.textTertiary),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          prefixIcon: Icon(
+            Icons.search,
+            color: AppTheme.textSecondary,
+          ),
+          suffixIcon: IconButton(
+            icon: Icon(Icons.clear, color: AppTheme.textSecondary),
+            onPressed: () {
+              _controller.clear();
+              widget.onChanged('');
+              widget.onClose();
+            },
+          ),
+        ),
+        onChanged: widget.onChanged,
+      ),
     );
   }
 }

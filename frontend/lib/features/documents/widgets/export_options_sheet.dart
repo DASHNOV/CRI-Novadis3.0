@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:novadis_cri/core/config/app_router.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/features/dashboard/providers/dashboard_providers.dart';
 import 'package:novadis_cri/features/export/providers/export_providers.dart';
 
@@ -15,8 +16,8 @@ class ExportOptionsSheet extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -28,33 +29,38 @@ class ExportOptionsSheet extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppTheme.primaryLight.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.add_circle_outline,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: AppTheme.primary,
                 ),
               ),
               const SizedBox(width: 12),
               Text(
                 'Nouveau document',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 24),
 
           if (kIsWeb)
-            const Center(
+            Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
+                padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Text(
                   'L\'export de documents n\'est pas disponible sur le Web.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: AppTheme.textTertiary,
+                  ),
                 ),
               ),
             )
@@ -62,7 +68,7 @@ class ExportOptionsSheet extends ConsumerWidget {
             // Options d'export
             _ExportOption(
               icon: Icons.picture_as_pdf,
-              iconColor: Colors.red,
+              iconColor: AppTheme.error,
               title: 'Exporter CRI en PDF',
               subtitle: 'Générer un rapport PDF pour un CRI',
               onTap: () {
@@ -74,7 +80,7 @@ class ExportOptionsSheet extends ConsumerWidget {
 
             _ExportOption(
               icon: Icons.dashboard,
-              iconColor: Colors.blue,
+              iconColor: AppTheme.primary,
               title: 'Exporter Dashboard (CSV)',
               subtitle: 'Exporter les statistiques du dashboard',
               onTap: () {
@@ -86,7 +92,7 @@ class ExportOptionsSheet extends ConsumerWidget {
 
             _ExportOption(
               icon: Icons.person,
-              iconColor: Colors.green,
+              iconColor: AppTheme.success,
               title: 'Exporter Stats Technicien (CSV)',
               subtitle: 'Exporter les statistiques d\'un technicien',
               onTap: () {
@@ -108,15 +114,22 @@ class ExportOptionsSheet extends ConsumerWidget {
       builder: (dialogContext) => Consumer(
         builder: (context, ref, child) {
           return AlertDialog(
-            title: const Text('Export Dashboard'),
+            backgroundColor: AppTheme.surface,
+            title: Text(
+              'Export Dashboard',
+              style: TextStyle(color: AppTheme.textPrimary),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Choisissez le type d\'export :'),
+                Text(
+                  'Choisissez le type d\'export :',
+                  style: TextStyle(color: AppTheme.textSecondary),
+                ),
                 const SizedBox(height: 16),
                 ListTile(
-                  leading: const Icon(Icons.list),
+                  leading: const Icon(Icons.list, color: AppTheme.primary),
                   title: const Text('Interventions globales'),
                   onTap: () {
                     _pickDateAndExport(
@@ -132,7 +145,7 @@ class ExportOptionsSheet extends ConsumerWidget {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.analytics),
+                  leading: const Icon(Icons.analytics, color: AppTheme.primary),
                   title: const Text('Synthèse KPI'),
                   onTap: () {
                     _pickDateAndExport(
@@ -148,7 +161,7 @@ class ExportOptionsSheet extends ConsumerWidget {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.leaderboard),
+                  leading: const Icon(Icons.leaderboard, color: AppTheme.primary),
                   title: const Text('Top Sites'),
                   onTap: () {
                     _pickDateAndExport(
@@ -164,7 +177,7 @@ class ExportOptionsSheet extends ConsumerWidget {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.all_inclusive),
+                  leading: const Icon(Icons.all_inclusive, color: AppTheme.primary),
                   title: const Text('Tout exporter'),
                   onTap: () {
                     _pickDateAndExport(
@@ -204,8 +217,15 @@ class ExportOptionsSheet extends ConsumerWidget {
             data: (technicians) {
               if (technicians.isEmpty) {
                 return AlertDialog(
-                  title: const Text('Export Stats Technicien'),
-                  content: const Text('Aucun technicien trouvé.'),
+                  backgroundColor: AppTheme.surface,
+                  title: Text(
+                    'Export Stats Technicien',
+                    style: TextStyle(color: AppTheme.textPrimary),
+                  ),
+                  content: Text(
+                    'Aucun technicien trouvé.',
+                    style: TextStyle(color: AppTheme.textSecondary),
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(dialogContext),
@@ -222,11 +242,18 @@ class ExportOptionsSheet extends ConsumerWidget {
               return StatefulBuilder(
                 builder: (context, setState) {
                   return AlertDialog(
-                    title: const Text('Export Stats Technicien'),
+                    backgroundColor: AppTheme.surface,
+                    title: Text(
+                      'Export Stats Technicien',
+                      style: TextStyle(color: AppTheme.textPrimary),
+                    ),
                     content: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('Sélectionnez le technicien :'),
+                        Text(
+                          'Sélectionnez le technicien :',
+                          style: TextStyle(color: AppTheme.textSecondary),
+                        ),
                         const SizedBox(height: 12),
                         DropdownButton<String>(
                           isExpanded: true,
@@ -275,8 +302,15 @@ class ExportOptionsSheet extends ConsumerWidget {
             },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, stack) => AlertDialog(
-              title: const Text('Erreur'),
-              content: Text('Erreur lors du chargement: $error'),
+              backgroundColor: AppTheme.surface,
+              title: Text(
+                'Erreur',
+                style: TextStyle(color: AppTheme.textPrimary),
+              ),
+              content: Text(
+                'Erreur lors du chargement: $error',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
@@ -310,7 +344,7 @@ class ExportOptionsSheet extends ConsumerWidget {
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(
               context,
-            ).colorScheme.copyWith(primary: Theme.of(context).primaryColor),
+            ).colorScheme.copyWith(primary: AppTheme.primary),
           ),
           child: child!,
         );
@@ -336,7 +370,7 @@ class ExportOptionsSheet extends ConsumerWidget {
         ScaffoldMessenger.of(dialogContext).showSnackBar(
           const SnackBar(
             content: Text('Export réussi !'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.success,
             duration: Duration(seconds: 2),
           ),
         );
@@ -359,7 +393,7 @@ class ExportOptionsSheet extends ConsumerWidget {
         ScaffoldMessenger.of(dialogContext).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de l\'export: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -389,19 +423,20 @@ class _ExportOption extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).dividerColor),
-            borderRadius: BorderRadius.circular(12),
+            color: AppTheme.surface,
+            border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
+                  color: iconColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: iconColor, size: 28),
@@ -413,17 +448,18 @@ class _ExportOption extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                      style: TextStyle(
+                        color: AppTheme.textTertiary,
+                        fontSize: 13,
                       ),
                     ),
                   ],
@@ -432,7 +468,7 @@ class _ExportOption extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: Theme.of(context).textTheme.bodySmall?.color,
+                color: AppTheme.textTertiary,
               ),
             ],
           ),
@@ -441,4 +477,3 @@ class _ExportOption extends StatelessWidget {
     );
   }
 }
-

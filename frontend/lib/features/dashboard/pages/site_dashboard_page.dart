@@ -7,6 +7,7 @@ import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 import 'package:novadis_cri/features/dashboard/providers/dashboard_providers.dart';
 import 'package:novadis_cri/features/dashboard/widgets/intervention_trend_chart_widget.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Dashboard spécifique à un Site
 class SiteDashboardPage extends ConsumerWidget {
@@ -87,16 +88,18 @@ class SiteDashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeAnimationProvider);
     final siteDetailsAsync = ref.watch(siteDetailsProvider(siteId));
 
     return Scaffold(
-      backgroundColor: AppTheme.lightGray,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Dashboard Site'),
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.surface,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.darkBlue),
+          icon: Icon(Icons.arrow_back, color: AppTheme.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
@@ -112,25 +115,25 @@ class SiteDashboardPage extends ConsumerWidget {
     return CustomScrollView(
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppTheme.space16),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Header avec Gradient
               _SiteHeaderCard(details: details),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTheme.space16),
 
               // Statistiques Globales du Site
-              const Text(
+              Text(
                 'Performance du Site',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.darkBlue,
+                  color: AppTheme.textPrimary,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppTheme.space12),
               _SiteStatsRow(details: details),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppTheme.space24),
 
               // Graphique nombre d'interventions
               InterventionTrendChartWidget(
@@ -138,41 +141,40 @@ class SiteDashboardPage extends ConsumerWidget {
                 title: 'Interventions',
                 subtitle: 'Nombre d\'interventions au fil du temps',
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppTheme.space24),
 
-              // Liste des techniciens (Simulée pour l'instant car absente du modèle SiteDetailsData actuel, mais demandée)
-              // On va extraire les techniciens de l'historique des interventions pour l'instant
+              // Liste des techniciens
               _TechniciansList(history: details.interventionHistory),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: AppTheme.space24),
 
               // Historique Interactif
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Historique Interventions',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.darkBlue,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   Text(
                     '${details.interventionHistory.length} totales',
-                    style: const TextStyle(
-                      color: Color(0xFF64748B),
+                    style: TextStyle(
+                      color: AppTheme.textTertiary,
                       fontSize: 13,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppTheme.space12),
             ]),
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.space16),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
               final intervention = details.interventionHistory[index];
@@ -195,7 +197,7 @@ class SiteDashboardPage extends ConsumerWidget {
             }, childCount: details.interventionHistory.length),
           ),
         ),
-        const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+        const SliverPadding(padding: EdgeInsets.only(bottom: AppTheme.space24)),
       ],
     );
   }
@@ -211,31 +213,31 @@ class _SiteHeaderCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
         gradient: const LinearGradient(
-          colors: [AppTheme.primaryBlue, AppTheme.darkBlue],
+          colors: [AppTheme.primary, AppTheme.accent],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.3),
-            blurRadius: 10,
+            color: AppTheme.primary.withValues(alpha: 0.25),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppTheme.space24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppTheme.space12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
                 ),
                 child: const Icon(
                   Icons.business,
@@ -243,7 +245,7 @@ class _SiteHeaderCard extends StatelessWidget {
                   size: 32,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppTheme.space16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,11 +258,11 @@ class _SiteHeaderCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppTheme.space4),
                     Text(
                       details.clientName,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 16,
                       ),
                     ),
@@ -270,20 +272,20 @@ class _SiteHeaderCard extends StatelessWidget {
             ],
           ),
           if (details.address != null) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: AppTheme.space20),
             Row(
               children: [
                 Icon(
                   Icons.location_on_outlined,
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   size: 18,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppTheme.space8),
                 Expanded(
                   child: Text(
                     details.address!,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 14,
                     ),
                   ),
@@ -311,11 +313,11 @@ class _SiteStatsRow extends StatelessWidget {
             label: 'Total Interv.',
             value: details.totalInterventions.toString(),
             icon: Icons.assignment,
-            color: AppTheme.lightBlue,
+            color: AppTheme.primary,
           ),
         ),
 
-        const SizedBox(width: 12),
+        const SizedBox(width: AppTheme.space12),
         Expanded(
           child: _StatCard(
             label: 'Temps Moy.',
@@ -323,7 +325,7 @@ class _SiteStatsRow extends StatelessWidget {
                 ? '${details.averageResolutionTime!.round()}m'
                 : '-',
             icon: Icons.timer,
-            color: const Color(0xFF10B981), // Emerald
+            color: AppTheme.success,
           ),
         ),
       ],
@@ -347,43 +349,38 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppTheme.space16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border),
+        boxShadow: AppTheme.shadowSm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(AppTheme.space8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
             ),
             child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppTheme.space12),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: AppTheme.darkBlue,
+              color: AppTheme.textPrimary,
             ),
           ),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: Color(0xFF64748B),
+              color: AppTheme.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -408,21 +405,21 @@ class _TechniciansList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Techniciens Intervenants',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppTheme.darkBlue,
+            color: AppTheme.textPrimary,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppTheme.space12),
         SizedBox(
           height: 90,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: techs.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, __) => const SizedBox(width: AppTheme.space12),
             itemBuilder: (context, index) {
               final techName = techs[index];
               return GestureDetector(
@@ -436,31 +433,43 @@ class _TechniciansList extends StatelessWidget {
                 child: Container(
                   width: 80,
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.lightGray),
+                    color: AppTheme.surface,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                    border: Border.all(color: AppTheme.border),
+                    boxShadow: AppTheme.shadowSm,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundColor: AppTheme.lightBlue.withOpacity(0.2),
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [AppTheme.primary, AppTheme.accent],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        alignment: Alignment.center,
                         child: Text(
                           techName.isNotEmpty ? techName[0].toUpperCase() : '?',
                           style: const TextStyle(
-                            color: AppTheme.primaryBlue,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppTheme.space8),
                       Text(
                         techName.split(' ').first,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
+                          color: AppTheme.textPrimary,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -496,13 +505,13 @@ class _TimelineItem extends StatelessWidget {
     switch (intervention.status.toLowerCase()) {
       case 'résolu':
       case 'terminé':
-        statusColor = const Color(0xFF10B981); // Emerald
+        statusColor = AppTheme.success;
         break;
       case 'en cours':
-        statusColor = AppTheme.lightBlue;
+        statusColor = AppTheme.primaryLight;
         break;
       default:
-        statusColor = AppTheme.alertRed;
+        statusColor = AppTheme.error;
     }
 
     return IntrinsicHeight(
@@ -518,32 +527,33 @@ class _TimelineItem extends StatelessWidget {
                   width: 12,
                   height: 12,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppTheme.surface,
                     shape: BoxShape.circle,
                     border: Border.all(color: statusColor, width: 3),
                   ),
                 ),
                 if (!isLast)
                   Expanded(
-                    child: Container(width: 2, color: AppTheme.lightGray),
+                    child: Container(width: 2, color: AppTheme.border),
                   ),
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppTheme.space12),
           // Carte
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.only(bottom: AppTheme.space16),
               child: InkWell(
                 onTap: onTap,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppTheme.space12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.lightGray),
+                    color: AppTheme.surface,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                    border: Border.all(color: AppTheme.border),
+                    boxShadow: AppTheme.shadowSm,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -553,20 +563,20 @@ class _TimelineItem extends StatelessWidget {
                         children: [
                           Text(
                             dateFormat.format(intervention.date),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF64748B),
+                              color: AppTheme.textTertiary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
+                              horizontal: 10,
+                              vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4),
+                              color: statusColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                             ),
                             child: Text(
                               intervention.status,
@@ -579,21 +589,21 @@ class _TimelineItem extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppTheme.space8),
                       Text(
                         intervention.type,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.darkBlue,
+                          color: AppTheme.textPrimary,
                           fontSize: 15,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppTheme.space4),
                       Text(
                         'Tech: ${intervention.technicianName}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -607,5 +617,3 @@ class _TimelineItem extends StatelessWidget {
     );
   }
 }
-
-

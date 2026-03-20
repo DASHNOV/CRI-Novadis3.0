@@ -4,6 +4,7 @@ import 'package:novadis_cri/data/models/cri_projet_model.dart';
 import 'package:novadis_cri/data/local/app_database.dart';
 import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
+import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
 
 /// État du formulaire CRI Projet
 class CriProjetFormState {
@@ -92,7 +93,7 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Erreur lors du chargement: $e',
+        errorMessage: 'Erreur lors du chargement du CRI',
       );
     }
   }
@@ -262,7 +263,7 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(isSaving: false, errorMessage: 'Erreur: $e');
+      state = state.copyWith(isSaving: false, errorMessage: 'Erreur lors de la sauvegarde');
       return false;
     }
   }
@@ -294,7 +295,7 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     } catch (e) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: 'Erreur submition: $e',
+        errorMessage: 'Erreur lors de la soumission',
       );
       return false;
     }
@@ -314,6 +315,5 @@ final criProjetFormProvider =
     });
 
 final currentTechnicianNameProvider = Provider<String>((ref) {
-  // Todo: Get from Auth state if possible
-  return 'Technicien';
+  return ref.watch(userNameProvider) ?? 'Technicien';
 });

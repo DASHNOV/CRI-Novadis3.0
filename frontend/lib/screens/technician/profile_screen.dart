@@ -2,160 +2,353 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
-
 import 'package:novadis_cri/features/auth/data/auth_service.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
+import 'package:novadis_cri/core/theme/responsive.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:gap/gap.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
-/// Écran Profil du technicien
-/// Affiche les infos utilisateur et bouton de déconnexion
+/// Ecran Profil du technicien
+/// Affiche les infos utilisateur et bouton de deconnexion
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeAnimationProvider);
+    final isDesktop = Responsive.isDesktopOrLarger(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil'), elevation: 0),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-
-            // Avatar
-            CircleAvatar(
-              radius: 48,
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.primary.withOpacity(0.1),
-              child: Icon(
-                Icons.person,
-                size: 48,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+      backgroundColor: AppTheme.background,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: isDesktop ? AppTheme.space40 : AppTheme.space24,
+              vertical: AppTheme.space32,
             ),
-            const SizedBox(height: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // --- Custom header ---
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Profil',
+                    style: GoogleFonts.inter(
+                      fontSize: isDesktop ? 26 : 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ),
+                const Gap(32),
 
-            Text(
-              'Technicien',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
+                // --- Avatar ---
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.primary, AppTheme.accent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primary.withValues(alpha: 0.25),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      'T',
+                      style: GoogleFonts.inter(
+                        fontSize: 36,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                )
+                    .animate()
+                    .fadeIn(duration: AppTheme.animNormal)
+                    .scale(
+                      begin: const Offset(0.9, 0.9),
+                      end: const Offset(1, 1),
+                      duration: AppTheme.animNormal,
+                    ),
+                const Gap(20),
 
-            Text(
-              'Novadis CRI v1.0.0',
-              style: TextStyle(color: Colors.grey[500]),
-            ),
+                Text(
+                  'Technicien',
+                  style: GoogleFonts.inter(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const Gap(4),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                  ),
+                  child: Text(
+                    'Novadis CRI v1.0.0',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textTertiary,
+                    ),
+                  ),
+                ),
 
-            const SizedBox(height: 40),
+                const Gap(36),
 
-            // Section informations
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.info_outline, color: Colors.blue),
-                    title: const Text('À propos'),
-                    subtitle: const Text('Informations sur l\'application'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      showDialog(
+                // --- A propos section ---
+                _buildSectionCard(
+                  context: context,
+                  children: [
+                    _buildMenuTile(
+                      context: context,
+                      icon: Icons.info_outline_rounded,
+                      iconColor: AppTheme.primary,
+                      iconBg: AppTheme.primary.withValues(alpha: 0.08),
+                      title: 'A propos',
+                      subtitle: 'Informations sur l\'application',
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('A propos'),
+                            content: const Text(
+                              'Novadis CRI v1.0.0\n\n'
+                              'Application de gestion des comptes rendus '
+                              'd\'intervention.\n\n'
+                              '(c) 2025 Novadis - Tous droits reserves',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Fermer'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    Divider(
+                      height: 1,
+                      color: AppTheme.border.withValues(alpha: 0.5),
+                      indent: 56,
+                    ),
+                    _buildMenuTile(
+                      context: context,
+                      icon: Icons.help_outline_rounded,
+                      iconColor: AppTheme.success,
+                      iconBg: AppTheme.success.withValues(alpha: 0.08),
+                      title: 'Aide',
+                      subtitle: 'Centre d\'aide et documentation',
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Fonctionnalite a venir')),
+                        );
+                      },
+                    ),
+                  ],
+                )
+                    .animate()
+                    .fadeIn(
+                        duration: AppTheme.animNormal,
+                        delay: const Duration(milliseconds: 100))
+                    .slideY(begin: 0.04, end: 0),
+
+                const Gap(40),
+
+                // --- Logout ---
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final confirmed = await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('À propos'),
-                          content: const Text(
-                            'Novadis CRI v1.0.0\n\n'
-                            'Application de gestion des comptes rendus '
-                            'd\'intervention.\n\n'
-                            '© 2025 Novadis - Tous droits réservés',
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusXl),
+                          ),
+                          title: Text(
+                            'Deconnexion',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          content: Text(
+                            'Voulez-vous vraiment vous deconnecter ?',
+                            style: GoogleFonts.inter(
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
                           actions: [
                             TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Fermer'),
+                              onPressed: () => Navigator.pop(context, false),
+                              child: Text(
+                                'Annuler',
+                                style: GoogleFonts.inter(
+                                  color: AppTheme.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppTheme.error,
+                              ),
+                              child: Text(
+                                'Deconnexion',
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       );
-                    },
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.help_outline,
-                      color: Colors.green,
-                    ),
-                    title: const Text('Aide'),
-                    subtitle: const Text('Centre d\'aide'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Fonctionnalité à venir')),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
 
-            const Spacer(),
-
-            // Bouton déconnexion
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Déconnexion'),
-                      content: const Text(
-                        'Voulez-vous vraiment vous déconnecter ?',
+                      if (confirmed == true && context.mounted) {
+                        try {
+                          await ref.read(authServiceProvider).logout();
+                        } catch (_) {}
+                        if (context.mounted) {
+                          context.go(AppRouter.login);
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.logout_rounded, size: 18),
+                    label: Text(
+                      'Se deconnecter',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Annuler'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.red,
-                          ),
-                          child: const Text('Déconnexion'),
-                        ),
-                      ],
                     ),
-                  );
-
-                  if (confirmed == true && context.mounted) {
-                    try {
-                      await ref.read(authServiceProvider).logout();
-                    } catch (_) {}
-                    if (context.mounted) {
-                      context.go(AppRouter.login);
-                    }
-                  }
-                },
-                icon: const Icon(Icons.logout, color: Colors.red),
-                label: const Text(
-                  'Se déconnecter',
-                  style: TextStyle(color: Colors.red),
-                ),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  side: const BorderSide(color: Colors.red),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.error,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: BorderSide(
+                          color: AppTheme.error.withValues(alpha: 0.3), width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusLg),
+                      ),
+                      backgroundColor: AppTheme.errorLight.withValues(alpha: 0.3),
+                    ),
                   ),
+                )
+                    .animate()
+                    .fadeIn(
+                        duration: AppTheme.animNormal,
+                        delay: const Duration(milliseconds: 200))
+                    .slideY(begin: 0.04, end: 0),
+
+                const Gap(24),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionCard({
+    required BuildContext context,
+    required List<Widget> children,
+  }) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.6)),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(children: children),
+    );
+  }
+
+  Widget _buildMenuTile({
+    required BuildContext context,
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBg,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                ),
+                child: Icon(icon, size: 18, color: iconColor),
+              ),
+              const Gap(14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const Gap(2),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.textTertiary,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: AppTheme.textTertiary,
+              ),
+            ],
+          ),
         ),
       ),
     );

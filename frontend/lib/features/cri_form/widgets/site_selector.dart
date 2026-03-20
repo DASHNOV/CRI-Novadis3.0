@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:novadis_cri/data/models/site_model.dart';
 import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
@@ -63,22 +64,30 @@ class _SiteSelectorState extends State<SiteSelector> {
               optionsViewBuilder: (context, onSelected, options) {
                 return Align(
                   alignment: Alignment.topLeft,
-                  child: Material(
-                    elevation: 4,
-                    borderRadius: BorderRadius.circular(8),
-                    child: ConstrainedBox(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                      border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+                      boxShadow: AppTheme.shadowMd,
+                    ),
+                    child: Material(
+                      elevation: 0,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                      color: Colors.transparent,
+                      child: ConstrainedBox(
                       constraints: const BoxConstraints(
                         maxHeight: 300,
                         maxWidth: 500,
                       ),
                       child: options.isEmpty
-                          ? const Padding(
-                              padding: EdgeInsets.all(16),
+                          ? Padding(
+                              padding: const EdgeInsets.all(16),
                               child: Text(
                                 'Aucun site trouvé',
                                 style: TextStyle(
                                   fontStyle: FontStyle.italic,
-                                  color: Colors.grey,
+                                  color: AppTheme.textTertiary,
                                 ),
                               ),
                             )
@@ -89,9 +98,10 @@ class _SiteSelectorState extends State<SiteSelector> {
                               itemBuilder: (context, index) {
                                 final site = options.elementAt(index);
                                 return ListTile(
-                                  leading: const Icon(
+                                  leading: Icon(
                                     Icons.location_on,
                                     size: 20,
+                                    color: AppTheme.primary,
                                   ),
                                   title: Text(
                                     site.nomDuSite,
@@ -109,7 +119,7 @@ class _SiteSelectorState extends State<SiteSelector> {
                                         site.codePostal,
                                     ].join(' '),
                                     style: TextStyle(
-                                      color: theme.colorScheme.outline,
+                                      color: AppTheme.textTertiary,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -119,6 +129,7 @@ class _SiteSelectorState extends State<SiteSelector> {
                               },
                             ),
                     ),
+                  ),
                   ),
                 );
               },

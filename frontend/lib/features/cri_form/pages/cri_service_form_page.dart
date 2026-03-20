@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/core/utils/form_validators.dart';
 import 'package:novadis_cri/data/local/tables/cri_service_table.dart';
 import 'package:novadis_cri/features/cri_form/controllers/cri_service_controller.dart';
@@ -18,7 +19,9 @@ import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 import 'package:novadis_cri/data/models/site_model.dart';
 import 'package:novadis_cri/features/cri_form/widgets/site_selector.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
+import 'package:novadis_cri/features/cri_form/widgets/form_shared_widgets.dart';
 import 'dart:async';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Page de formulaire CRI Service avec 8 sections
 class CriServiceFormPage extends ConsumerStatefulWidget {
@@ -75,7 +78,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
         setState(() => _siteSummary = summary);
       }
     } catch (e) {
-      print('Error fetching summary: $e');
+      debugPrint('Error fetching summary: $e');
     }
   }
 
@@ -190,7 +193,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppTheme.warning,
           duration: const Duration(seconds: 5),
         ),
       );
@@ -203,7 +206,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(customValidationError),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppTheme.warning,
           duration: const Duration(seconds: 5),
         ),
       );
@@ -212,7 +215,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
 
     // Afficher un indicateur de chargement
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Row(
           children: [
             SizedBox(
@@ -220,14 +223,14 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: Colors.white,
+                color: AppTheme.surface,
               ),
             ),
-            SizedBox(width: 16),
-            Text('Soumission en cours...'),
+            const SizedBox(width: 16),
+            const Text('Soumission en cours...'),
           ],
         ),
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
 
@@ -241,7 +244,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('CRI Service enregistré avec succès'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppTheme.success,
         ),
       );
       context.pop();
@@ -251,11 +254,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(state.errorMessage ?? 'Erreur lors de la soumission'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.error,
           duration: const Duration(seconds: 8),
           action: SnackBarAction(
             label: 'Détails',
-            textColor: Colors.white,
+            textColor: AppTheme.surface,
             onPressed: () {
               showDialog(
                 context: context,
@@ -279,31 +282,23 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeAnimationProvider);
     final state = ref.watch(criServiceFormProvider);
     final theme = Theme.of(context);
 
     if (state.isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('CRI Service')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
+      return const CriFormLoadingScaffold(title: 'CRI Service');
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.criId == null ? 'Nouveau CRI Service' : 'Modifier CRI Service',
-        ),
-        actions: [
+      backgroundColor: AppTheme.background,
+      appBar: buildCriFormAppBar(
+        title: widget.criId == null ? 'Nouveau CRI Service' : 'Modifier CRI Service',
+        isDirty: state.isDirty,
+        onSaveDraft: () => ref.read(criServiceFormProvider.notifier).saveDraft(),
+        extraActions: [
           if (state.currentCri != null)
             PriorityChip(priority: state.currentCri!.priority, showIcon: true),
-          if (state.isDirty)
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: () =>
-                  ref.read(criServiceFormProvider.notifier).saveDraft(),
-              tooltip: 'Sauvegarder brouillon',
-            ),
         ],
       ),
       body: FormBuilder(
@@ -320,39 +315,14 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                   onStepContinue: _onStepContinue,
                   onStepCancel: _onStepCancel,
                   onStepTapped: (index) => setState(() => _currentStep = index),
-                  controlsBuilder: (context, details) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Row(
-                        children: [
-                          if (_currentStep < 8)
-                            FilledButton(
-                              onPressed: details.onStepContinue,
-                              child: const Text('Suivant'),
-                            )
-                          else
-                            FilledButton(
-                              onPressed: state.isSaving ? null : _submit,
-                              child: state.isSaving
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text('Soumettre'),
-                            ),
-                          const SizedBox(width: 12),
-                          if (_currentStep > 0)
-                            OutlinedButton(
-                              onPressed: details.onStepCancel,
-                              child: const Text('Précédent'),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
+                  controlsBuilder: (context, details) => buildCriFormControls(
+                    context,
+                    details,
+                    currentStep: _currentStep,
+                    lastStep: 8,
+                    isSaving: state.isSaving,
+                    onSubmit: _submit,
+                  ),
                   steps: [
                     _buildGeneralStep(state, theme),
                     _buildClientStep(state, theme),
@@ -373,7 +343,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                 left: 0,
                 right: 0,
                 child: Container(
-                  color: theme.scaffoldBackgroundColor.withOpacity(0.95),
+                  color: AppTheme.background.withValues(alpha: 0.95),
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: SiteSummaryCard(
                     summary: _siteSummary!,
@@ -388,17 +358,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
         ),
         ),
       ),
-      bottomNavigationBar: state.lastAutoSave != null
-          ? Container(
-              padding: const EdgeInsets.all(8),
-              color: theme.colorScheme.surfaceContainerHighest,
-              child: Text(
-                'Dernière sauvegarde: ${DateFormat('HH:mm').format(state.lastAutoSave!)}',
-                style: theme.textTheme.bodySmall,
-                textAlign: TextAlign.center,
-              ),
-            )
-          : null,
+      bottomNavigationBar: CriFormAutoSaveBar(lastAutoSave: state.lastAutoSave),
     );
   }
 
@@ -412,7 +372,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Date d\'intervention *', style: theme.textTheme.titleSmall),
+          Text('Date d\'intervention *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
           const SizedBox(height: 8),
           FormBuilderDateTimePicker(
             name: 'interventionDate',
@@ -441,7 +405,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Heure début *', style: theme.textTheme.titleSmall),
+                    Text('Heure début *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
                     const SizedBox(height: 8),
                     FormBuilderDateTimePicker(
                       name: 'startTime',
@@ -472,7 +440,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Heure fin *', style: theme.textTheme.titleSmall),
+                    Text('Heure fin *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
                     const SizedBox(height: 8),
                     FormBuilderDateTimePicker(
                       name: 'endTime',
@@ -506,14 +478,19 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 'Durée calculée: ${state.currentCri!.formattedDuration}',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.primary,
+                style: const TextStyle(
+                  color: AppTheme.primary,
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           const SizedBox(height: 16),
-          Text('Numéro de ticket *', style: theme.textTheme.titleSmall),
+          Text('Numéro de ticket *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
           const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'ticketNumber',
@@ -526,7 +503,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                 message: 'Ex: TICK-2024-00001',
                 child: Icon(
                   Icons.info_outline,
-                  color: theme.colorScheme.outline,
+                  color: AppTheme.textTertiary,
                 ),
               ),
             ),
@@ -556,7 +533,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             final field1 = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Nom du client *', style: theme.textTheme.titleSmall),
+                Text('Nom du client *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
                 const SizedBox(height: 8),
                 FormBuilderField<String>(
                   name: 'clientName',
@@ -649,7 +630,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             return Column(children: [field1, const SizedBox(height: 16), field2]);
           }),
           const SizedBox(height: 16),
-          Text('Adresse *', style: theme.textTheme.titleSmall),
+          Text('Adresse *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
           const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'address',
@@ -675,7 +660,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             final villeField = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Ville *', style: theme.textTheme.titleSmall),
+                Text('Ville *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
                 const SizedBox(height: 8),
                 FormBuilderTextField(
                   name: 'ville',
@@ -699,7 +688,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             final codePostalField = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Code postal *', style: theme.textTheme.titleSmall),
+                Text('Code postal *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
                 const SizedBox(height: 8),
                 FormBuilderTextField(
                   name: 'codePostal',
@@ -724,7 +717,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             final paysField = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Pays', style: theme.textTheme.titleSmall),
+                Text('Pays', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
                 const SizedBox(height: 8),
                 FormBuilderTextField(
                   name: 'pays',
@@ -765,7 +762,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             ]);
           }),
           const SizedBox(height: 16),
-          Text('Contact client *', style: theme.textTheme.titleSmall),
+          Text('Contact client *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
           const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'clientContact',
@@ -791,7 +792,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Téléphone *', style: theme.textTheme.titleSmall),
+                    Text('Téléphone *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
                     const SizedBox(height: 8),
                     FormBuilderTextField(
                       name: 'phone',
@@ -821,7 +826,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Email *', style: theme.textTheme.titleSmall),
+                    Text('Email *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
                     const SizedBox(height: 8),
                     FormBuilderTextField(
                       name: 'email',
@@ -862,7 +871,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             final field1 = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Type de demande *', style: theme.textTheme.titleSmall),
+                Text('Type de demande *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
                 const SizedBox(height: 8),
                 FormBuilderDropdown<ServiceRequestType>(
                   name: 'requestType',
@@ -888,7 +901,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             final field2 = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Priorité *', style: theme.textTheme.titleSmall),
+                Text('Priorité *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
                 const SizedBox(height: 8),
                 PrioritySelector(
                   selectedPriority: state.currentCri?.priority,
@@ -915,7 +932,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
           const SizedBox(height: 16),
           Text(
             'Description de la demande *',
-            style: theme.textTheme.titleSmall,
+            style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(height: 8),
           FormBuilderTextField(
@@ -956,7 +977,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Diagnostic réalisé *', style: theme.textTheme.titleSmall),
+          Text('Diagnostic réalisé *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
           const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'diagnosticPerformed',
@@ -978,7 +1003,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             },
           ),
           const SizedBox(height: 16),
-          Text('Cause identifiée', style: theme.textTheme.titleSmall),
+          Text('Cause identifiée', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
           const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'identifiedCause',
@@ -1011,7 +1040,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Actions réalisées *', style: theme.textTheme.titleSmall),
+          Text('Actions réalisées *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
           const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'actionsPerformed',
@@ -1031,7 +1064,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             },
           ),
           const SizedBox(height: 16),
-          Text('Pièces remplacées', style: theme.textTheme.titleSmall),
+          Text('Pièces remplacées', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
           const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'replacedParts',
@@ -1053,7 +1090,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
           const SizedBox(height: 16),
           Text(
             'Durée intervention (minutes)',
-            style: theme.textTheme.titleSmall,
+            style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(height: 8),
           FormBuilderTextField(
@@ -1066,7 +1107,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
               prefixIcon: const Icon(Icons.timer),
               suffixText: 'min',
               helperText: 'Calculé automatiquement, modifiable',
-              helperStyle: TextStyle(color: theme.colorScheme.outline),
+              helperStyle: TextStyle(color: AppTheme.textTertiary),
             ),
             keyboardType: TextInputType.number,
             validator: FormBuilderValidators.numeric(
@@ -1098,7 +1139,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Statut de résolution *', style: theme.textTheme.titleSmall),
+          Text('Statut de résolution *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
           const SizedBox(height: 8),
           FormBuilderDropdown<ResolutionStatus>(
             name: 'resolutionStatus',
@@ -1121,7 +1166,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             },
           ),
           const SizedBox(height: 16),
-          Text('Tests effectués', style: theme.textTheme.titleSmall),
+          Text('Tests effectués', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
           const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'testsPerformed',
@@ -1140,7 +1189,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             },
           ),
           const SizedBox(height: 16),
-          Text('Recommandations', style: theme.textTheme.titleSmall),
+          Text('Recommandations', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
           const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'recommendations',
@@ -1175,7 +1228,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
         children: [
           Text(
             'Recommandations Cybersécurité',
-            style: theme.textTheme.titleSmall,
+            style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(height: 8),
           FormBuilderTextField(
@@ -1197,7 +1254,10 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
           const SizedBox(height: 8),
           Text(
             'Laissez vide si aucune recommandation.',
-            style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+            style: TextStyle(
+              color: AppTheme.textTertiary,
+              fontSize: 13,
+            ),
           ),
         ],
       ),
@@ -1228,7 +1288,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
           ),
           if (state.currentCri?.additionalInterventionRequired ?? false) ...[
             const SizedBox(height: 16),
-            Text('Date de suivi *', style: theme.textTheme.titleSmall),
+            Text('Date de suivi *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
             const SizedBox(height: 8),
             FormBuilderDateTimePicker(
               name: 'followUpDate',
@@ -1250,7 +1314,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
               },
             ),
             const SizedBox(height: 16),
-            Text('Commentaires de suivi', style: theme.textTheme.titleSmall),
+            Text('Commentaires de suivi', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
             const SizedBox(height: 8),
             FormBuilderTextField(
               name: 'followUpComments',
@@ -1292,7 +1360,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             },
           ),
           const SizedBox(height: 24),
-          Text('Nom du technicien *', style: theme.textTheme.titleSmall),
+          Text('Nom du technicien *', style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                )),
           const SizedBox(height: 8),
           FormBuilderTextField(
             name: 'technicianName',

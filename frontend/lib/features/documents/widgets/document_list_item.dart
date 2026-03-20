@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 
 import '../../export/models/exported_document_model.dart';
 
 /// Widget pour afficher un document dans la liste
-class DocumentListItem extends StatelessWidget {
+class DocumentListItem extends StatefulWidget {
   final ExportedDocumentModel document;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
@@ -25,148 +26,191 @@ class DocumentListItem extends StatelessWidget {
   });
 
   @override
+  State<DocumentListItem> createState() => _DocumentListItemState();
+}
+
+class _DocumentListItemState extends State<DocumentListItem> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: isSelected ? 4 : 1,
-      color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              // Icône du type de fichier
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: _getFileTypeColor(context),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(_getFileTypeIcon(), color: Colors.white, size: 28),
-              ),
-              const SizedBox(width: 12),
-
-              // Informations du document
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Nom du fichier
-                    Text(
-                      document.filename,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: AnimatedContainer(
+          duration: AppTheme.animFast,
+          decoration: BoxDecoration(
+            color: widget.isSelected
+                ? AppTheme.primaryLight.withValues(alpha: 0.1)
+                : _isHovered
+                    ? AppTheme.surfaceVariant
+                    : AppTheme.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            border: Border.all(
+              color: widget.isSelected
+                  ? AppTheme.primary.withValues(alpha: 0.5)
+                  : AppTheme.border.withValues(alpha: 0.5),
+            ),
+            boxShadow: _isHovered ? AppTheme.shadowSm : null,
+          ),
+          child: InkWell(
+            onTap: widget.onTap,
+            onLongPress: widget.onLongPress,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  // Icône du type de fichier
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: _getFileTypeColor(),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                     ),
-                    const SizedBox(height: 4),
+                    child: Icon(
+                      _getFileTypeIcon(),
+                      color: AppTheme.textOnPrimary,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
 
-                    // Date et taille
-                    Row(
+                  // Informations du document
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 14,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                        const SizedBox(width: 4),
+                        // Nom du fichier
                         Text(
-                          DateFormat(
-                            'dd/MM/yyyy HH:mm',
-                          ).format(document.createdAt),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        const SizedBox(width: 12),
-                        Icon(
-                          Icons.storage,
-                          size: 14,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          document.formattedSize,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-
-                    // Badge du type d'export
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 6,
-                      children: [
-                        _buildBadge(
-                          context,
-                          document.exportType.label,
-                          _getExportTypeColor(context),
-                        ),
-                        if (document.sharedAt != null)
-                          _buildBadge(context, 'Partagé', Colors.green),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Menu d'actions
-              if (!isSelected)
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: (value) => _handleMenuAction(context, value),
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'open',
-                      child: Row(
-                        children: [
-                          Icon(Icons.open_in_new),
-                          SizedBox(width: 12),
-                          Text('Ouvrir'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'share',
-                      child: Row(
-                        children: [
-                          Icon(Icons.share),
-                          SizedBox(width: 12),
-                          Text('Partager'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'rename',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit),
-                          SizedBox(width: 12),
-                          Text('Renommer'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, color: Colors.red),
-                          SizedBox(width: 12),
-                          Text(
-                            'Supprimer',
-                            style: TextStyle(color: Colors.red),
+                          widget.document.filename,
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
-                        ],
-                      ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+
+                        // Date et taille
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today,
+                              size: 14,
+                              color: AppTheme.textTertiary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              DateFormat(
+                                'dd/MM/yyyy HH:mm',
+                              ).format(widget.document.createdAt),
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Icon(
+                              Icons.storage,
+                              size: 14,
+                              color: AppTheme.textTertiary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              widget.document.formattedSize,
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Badge du type d'export
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 6,
+                          children: [
+                            _buildBadge(
+                              context,
+                              widget.document.exportType.label,
+                              _getExportTypeColor(),
+                            ),
+                            if (widget.document.sharedAt != null)
+                              _buildBadge(
+                                  context, 'Partagé', AppTheme.success),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                )
-              else
-                const Icon(Icons.check_circle, color: Colors.green),
-            ],
+                  ),
+
+                  // Menu d'actions
+                  if (!widget.isSelected)
+                    PopupMenuButton<String>(
+                      icon: Icon(
+                        Icons.more_vert,
+                        color: AppTheme.textSecondary,
+                      ),
+                      onSelected: (value) =>
+                          _handleMenuAction(context, value),
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'open',
+                          child: Row(
+                            children: [
+                              Icon(Icons.open_in_new),
+                              SizedBox(width: 12),
+                              Text('Ouvrir'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'share',
+                          child: Row(
+                            children: [
+                              Icon(Icons.share),
+                              SizedBox(width: 12),
+                              Text('Partager'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'rename',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit),
+                              SizedBox(width: 12),
+                              Text('Renommer'),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, color: AppTheme.error),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Supprimer',
+                                style: TextStyle(color: AppTheme.error),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    const Icon(Icons.check_circle, color: AppTheme.success),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -177,13 +221,13 @@ class DocumentListItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        style: TextStyle(
           color: color,
           fontWeight: FontWeight.w600,
           fontSize: 11,
@@ -193,7 +237,7 @@ class DocumentListItem extends StatelessWidget {
   }
 
   IconData _getFileTypeIcon() {
-    switch (document.fileType) {
+    switch (widget.document.fileType) {
       case DocumentFileType.pdf:
         return Icons.picture_as_pdf;
       case DocumentFileType.csv:
@@ -201,47 +245,46 @@ class DocumentListItem extends StatelessWidget {
     }
   }
 
-  Color _getFileTypeColor(BuildContext context) {
-    switch (document.fileType) {
+  Color _getFileTypeColor() {
+    switch (widget.document.fileType) {
       case DocumentFileType.pdf:
-        return Colors.red;
+        return AppTheme.error;
       case DocumentFileType.csv:
-        return Colors.green;
+        return AppTheme.success;
     }
   }
 
-  Color _getExportTypeColor(BuildContext context) {
-    switch (document.exportType) {
+  Color _getExportTypeColor() {
+    switch (widget.document.exportType) {
       case ExportType.cri:
-        return Colors.blue;
+        return AppTheme.primary;
       case ExportType.dashboard:
-        return Colors.orange;
+        return AppTheme.warning;
       case ExportType.technician:
-        return Colors.purple;
+        return AppTheme.accent;
     }
   }
 
   void _handleMenuAction(BuildContext context, String action) {
     switch (action) {
       case 'open':
-        onTap(); // Utilise le callback onTap existant
+        widget.onTap(); // Utilise le callback onTap existant
         break;
       case 'share':
-        if (onShare != null) {
-          onShare!();
+        if (widget.onShare != null) {
+          widget.onShare!();
         }
         break;
       case 'rename':
-        if (onRename != null) {
-          onRename!();
+        if (widget.onRename != null) {
+          widget.onRename!();
         }
         break;
       case 'delete':
-        if (onDelete != null) {
-          onDelete!();
+        if (widget.onDelete != null) {
+          widget.onDelete!();
         }
         break;
     }
   }
 }
-

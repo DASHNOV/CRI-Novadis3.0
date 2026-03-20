@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
+import 'package:novadis_cri/core/theme/responsive.dart';
 
-/// Widget de carte KPI compacte et épurée
-class KpiCard extends StatelessWidget {
+/// Widget de carte KPI – design moderne inspiré Linear/Stripe
+class KpiCard extends StatefulWidget {
   final String title;
   final String value;
   final String? subtitle;
@@ -27,20 +29,42 @@ class KpiCard extends StatelessWidget {
   });
 
   @override
+  State<KpiCard> createState() => _KpiCardState();
+}
+
+class _KpiCardState extends State<KpiCard> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.withOpacity(0.1)),
-      ),
-      color: Colors.white,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: isLoading ? _buildLoadingSkeleton() : _buildContent(context),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: AppTheme.animFast,
+        curve: Curves.easeOut,
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          border: Border.all(
+            color: _isHovered
+                ? AppTheme.border
+                : AppTheme.border.withValues(alpha: 0.5),
+          ),
+          boxShadow: _isHovered ? AppTheme.shadowMd : AppTheme.shadowSm,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onTap,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            child: Padding(
+              padding: const EdgeInsets.all(AppTheme.space16),
+              child: widget.isLoading
+                  ? _buildShimmerSkeleton()
+                  : _buildContent(context),
+            ),
+          ),
         ),
       ),
     );
@@ -56,59 +80,74 @@ class KpiCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(AppTheme.space8),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: widget.iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
               ),
-              child: Icon(icon, color: iconColor, size: 20),
+              child: Icon(widget.icon, color: widget.iconColor, size: 20),
             ),
-            if (trendValue != null) _buildTrendIndicator(),
+            if (widget.trendValue != null) _buildTrendIndicator(),
           ],
         ),
         const Spacer(),
         Text(
-          value,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: AppTheme.darkBlue,
-            fontSize: 24,
+          widget.value,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textPrimary,
+            fontSize: 28,
+            height: 1.1,
+            letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppTheme.space4),
         Text(
-          title,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Colors.grey[600],
-            fontSize: 13,
+          widget.title,
+          style: TextStyle(
+            color: AppTheme.textTertiary,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+        if (widget.subtitle != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            widget.subtitle!,
+            style: TextStyle(
+              color: AppTheme.textTertiary,
+              fontSize: 11,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ],
     );
   }
 
   Widget _buildTrendIndicator() {
-    final isPositive = trendPositive ?? (trendValue! > 0);
-    final color = isPositive
-        ? const Color(0xFF10B981)
-        : const Color(0xFFEF4444); // Green / Red
-    final icon = isPositive ? Icons.arrow_upward : Icons.arrow_downward;
+    final isPositive = widget.trendPositive ?? (widget.trendValue! > 0);
+    final color = isPositive ? AppTheme.success : AppTheme.error;
+    final bgColor = isPositive ? AppTheme.successLight : AppTheme.errorLight;
+    final iconData =
+        isPositive ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: color),
+          Icon(iconData, size: 12, color: color),
           const SizedBox(width: 2),
           Text(
-            '${trendValue!.abs().toStringAsFixed(1)}%',
+            '${widget.trendValue!.abs().toStringAsFixed(1)}%',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
@@ -120,37 +159,41 @@ class KpiCard extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingSkeleton() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(8),
+  Widget _buildShimmerSkeleton() {
+    return Shimmer.fromColors(
+      baseColor: AppTheme.surfaceVariant,
+      highlightColor: AppTheme.surface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+            ),
           ),
-        ),
-        const Spacer(),
-        Container(
-          width: 80,
-          height: 24,
-          margin: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(4),
+          const Spacer(),
+          Container(
+            width: 80,
+            height: 28,
+            margin: const EdgeInsets.only(bottom: AppTheme.space8),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            ),
           ),
-        ),
-        Container(
-          width: 60,
-          height: 14,
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(4),
+          Container(
+            width: 60,
+            height: 12,
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -164,31 +207,22 @@ class KpiGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        int columns = crossAxisCount;
-        double aspectRatio = 1.3;
-        if (constraints.maxWidth > 800) {
-          columns = 4;
-          aspectRatio = 1.5;
-        }
+    final columns = Responsive.kpiColumns(context);
+    final aspectRatio = columns >= 4 ? 1.5 : 1.3;
 
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: aspectRatio,
-          ),
-          itemCount: cards.length,
-          itemBuilder: (context, index) {
-            return cards[index];
-          },
-        );
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columns,
+        crossAxisSpacing: AppTheme.space16,
+        mainAxisSpacing: AppTheme.space16,
+        childAspectRatio: aspectRatio,
+      ),
+      itemCount: cards.length,
+      itemBuilder: (context, index) {
+        return cards[index];
       },
     );
   }
 }
-

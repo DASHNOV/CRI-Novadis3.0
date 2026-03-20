@@ -6,6 +6,8 @@ import 'package:novadis_cri/features/dashboard/widgets/dashboard_common_widgets.
 import 'package:novadis_cri/features/dashboard/widgets/technician_kpi_cards_widget.dart';
 import 'package:novadis_cri/features/dashboard/widgets/skills_radar_chart_widget.dart';
 import 'package:novadis_cri/features/dashboard/widgets/workload_curve_chart_widget.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Page des statistiques par technicien
 /// Accessible uniquement aux rôles admin et manager
@@ -14,6 +16,7 @@ class TechnicianStatisticsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeAnimationProvider);
     final selectedPeriod = ref.watch(selectedPeriodProvider);
     final techniciansAsync = ref.watch(techniciansListProvider);
     final selectedTechnician = ref.watch(selectedTechnicianProvider);
@@ -21,7 +24,14 @@ class TechnicianStatisticsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Statistiques Techniciens'),
+        backgroundColor: AppTheme.surface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Text(
+          'Statistiques Techniciens',
+          style: TextStyle(color: AppTheme.textPrimary),
+        ),
+        iconTheme: IconThemeData(color: AppTheme.textPrimary),
         actions: const [
           ConnectionStatusBadge(isOnline: true),
           SizedBox(width: 16),
@@ -89,29 +99,33 @@ class TechnicianStatisticsPage extends ConsumerWidget {
   }
 
   Widget _buildNoSelectionState() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(40),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.person_search, size: 64, color: Colors.grey[400]),
+              Icon(Icons.person_search, size: 64, color: AppTheme.textTertiary),
               const SizedBox(height: 16),
               Text(
                 'Sélectionnez un technicien',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey[700],
+                  color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Pour afficher ses statistiques de performance',
-                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                style: TextStyle(fontSize: 14, color: AppTheme.textTertiary),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -184,10 +198,12 @@ class TechnicianStatisticsPage extends ConsumerWidget {
   Widget _buildLoadingState() {
     return Column(
       children: [
-        Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+        Container(
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+            boxShadow: AppTheme.shadowSm,
           ),
           child: const Padding(
             padding: EdgeInsets.all(40),
@@ -207,14 +223,18 @@ class TechnicianStatisticsPage extends ConsumerWidget {
   }
 
   Widget _buildErrorWidget(String title, Object error) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            Icon(Icons.error_outline, color: Colors.red[400], size: 48),
+            Icon(Icons.error_outline, color: AppTheme.error, size: 48),
             const SizedBox(height: 12),
             Text(
               title,
@@ -223,7 +243,7 @@ class TechnicianStatisticsPage extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               error.toString(),
-              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
               textAlign: TextAlign.center,
             ),
           ],
@@ -263,26 +283,30 @@ class TechnicianStatisticsPage extends ConsumerWidget {
     IconData scoreIcon;
 
     if (finalScore >= 80) {
-      scoreColor = Colors.green;
+      scoreColor = AppTheme.success;
       scoreLabel = 'Excellent';
       scoreIcon = Icons.emoji_events;
     } else if (finalScore >= 60) {
-      scoreColor = Colors.blue;
+      scoreColor = AppTheme.primary;
       scoreLabel = 'Bon';
       scoreIcon = Icons.thumb_up;
     } else if (finalScore >= 40) {
-      scoreColor = Colors.orange;
+      scoreColor = AppTheme.warning;
       scoreLabel = 'Moyen';
       scoreIcon = Icons.trending_flat;
     } else {
-      scoreColor = Colors.red;
+      scoreColor = AppTheme.error;
       scoreLabel = 'À améliorer';
       scoreIcon = Icons.trending_down;
     }
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Row(
@@ -291,7 +315,7 @@ class TechnicianStatisticsPage extends ConsumerWidget {
               width: 70,
               height: 70,
               decoration: BoxDecoration(
-                color: scoreColor.withOpacity(0.1),
+                color: scoreColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(color: scoreColor, width: 3),
               ),
@@ -328,7 +352,7 @@ class TechnicianStatisticsPage extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Text(
                     'Basé sur: complétion, résolution premier passage et ponctualité',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                   ),
                 ],
               ),
@@ -348,22 +372,26 @@ class _TechnicianProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             CircleAvatar(
               radius: 30,
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: AppTheme.primary,
               child: Text(
                 technician.name.isNotEmpty
                     ? technician.name.split(' ').map((n) => n[0]).take(2).join()
                     : '?',
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppTheme.textOnPrimary,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -387,12 +415,12 @@ class _TechnicianProfileCard extends StatelessWidget {
                       Icon(
                         Icons.email_outlined,
                         size: 14,
-                        color: Colors.grey[600],
+                        color: AppTheme.textSecondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         technician.email,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
                       ),
                     ],
                   ),
@@ -404,14 +432,14 @@ class _TechnicianProfileCard extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppTheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                       ),
                       child: Text(
                         technician.role!,
                         style: const TextStyle(
                           fontSize: 11,
-                          color: Colors.blue,
+                          color: AppTheme.primary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -426,4 +454,3 @@ class _TechnicianProfileCard extends StatelessWidget {
     );
   }
 }
-

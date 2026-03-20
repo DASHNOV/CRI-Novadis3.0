@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:novadis_cri/features/dashboard/pages/main_dashboard_page.dart';
 import 'package:novadis_cri/features/dashboard/providers/dashboard_providers.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Dashboard global - Vue d'ensemble admin avec statistiques et graphiques
 /// Redirige vers la nouvelle implémentation MainDashboardPage
@@ -22,6 +23,7 @@ class _GlobalDashboardScreenState extends ConsumerState<GlobalDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeAnimationProvider);
     return const MainDashboardPage();
   }
 }

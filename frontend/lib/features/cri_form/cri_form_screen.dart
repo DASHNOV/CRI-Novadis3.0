@@ -1,99 +1,245 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
+import 'package:novadis_cri/core/theme/responsive.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:gap/gap.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
-/// Écran de sélection du type de CRI à créer
+/// Ecran de selection du type de CRI a creer
 /// Permet de choisir entre CRI Projet et CRI Service
-class CriFormScreen extends StatelessWidget {
+class CriFormScreen extends ConsumerWidget {
   const CriFormScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeAnimationProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Nouveau CRI')),
+      backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: ContentContainer(
-          maxWidth: 700,
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 500;
-                final projetCard = _CriTypeCard(
-                  icon: Icons.folder_outlined,
-                  title: 'CRI Projet',
-                  description:
-                      'Pour les interventions liées à des projets structurés : installations, migrations, déploiements...',
-                  features: const [
-                    'Suivi par phase de projet',
-                    'Numéro de projet (PRJ-YYYY-NNN)',
-                    'Gestion du statut projet',
-                  ],
-                  color: theme.colorScheme.primary,
-                  onTap: () => context.push('/cri/new/projet'),
-                );
-                final serviceCard = _CriTypeCard(
-                  icon: Icons.build_outlined,
-                  title: 'CRI Service',
-                  description:
-                      'Pour les interventions de maintenance, dépannage ou support technique avec ticket.',
-                  features: const [
-                    'Numéro de ticket (TICK-YYYY-NNNNN)',
-                    'Gestion des priorités',
-                    'Satisfaction client',
-                  ],
-                  color: theme.colorScheme.tertiary,
-                  onTap: () => context.push('/cri/new/service'),
-                );
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Quel type de CRI souhaitez-vous créer ?',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Sélectionnez le formulaire adapté à votre intervention',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 48),
-                    if (isWide)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: projetCard),
-                          const SizedBox(width: 24),
-                          Expanded(child: serviceCard),
-                        ],
-                      )
-                    else ...[
-                      projetCard,
-                      const SizedBox(height: 24),
-                      serviceCard,
-                    ],
-                    const Spacer(),
-                    Text(
-                      'Les deux formulaires incluent : photos, signatures, et sauvegarde hors-ligne',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.outline,
-                        fontStyle: FontStyle.italic,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                );
-              },
+        child: SingleChildScrollView(
+          child: ContentContainer(
+            maxWidth: 900,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.space32,
+              vertical: AppTheme.space24,
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Inline header with back navigation
+                _buildHeader(context),
+                const Gap(AppTheme.space48),
+
+                // Title + subtitle centered
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        'Quel type de CRI souhaitez-vous creer ?',
+                        style: GoogleFonts.inter(
+                          color: AppTheme.textPrimary,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const Gap(AppTheme.space8),
+                      Text(
+                        'Selectionnez le formulaire adapte a votre intervention',
+                        style: GoogleFonts.inter(
+                          color: AppTheme.textTertiary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(duration: AppTheme.animNormal),
+                const Gap(AppTheme.space40),
+
+                // Type selection cards
+                _buildCards(context),
+                const Gap(AppTheme.space40),
+
+                // Footer note
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.space16,
+                      vertical: AppTheme.space12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceVariant,
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusFull),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.info_outline_rounded,
+                          size: 16,
+                          color: AppTheme.textTertiary,
+                        ),
+                        const Gap(AppTheme.space8),
+                        Flexible(
+                          child: Text(
+                            'Photos, signatures et sauvegarde hors-ligne inclus dans les deux formulaires',
+                            style: GoogleFonts.inter(
+                              color: AppTheme.textTertiary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                    .animate()
+                    .fadeIn(duration: AppTheme.animNormal, delay: 400.ms),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        _HeaderBackButton(onPressed: () {
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          } else {
+            context.go('/');
+          }
+        }),
+        const Gap(AppTheme.space12),
+        Text(
+          'Nouveau CRI',
+          style: GoogleFonts.inter(
+            color: AppTheme.textPrimary,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    ).animate().fadeIn(duration: AppTheme.animFast);
+  }
+
+  Widget _buildCards(BuildContext context) {
+    final isWide = !Responsive.isMobile(context);
+
+    final projetCard = _CriTypeCard(
+      icon: Icons.folder_outlined,
+      title: 'CRI Projet',
+      description:
+          'Pour les interventions liees a des projets structures : installations, migrations, deploiements...',
+      features: const [
+        'Suivi par phase de projet',
+        'Numero de projet (PRJ-YYYY-NNN)',
+        'Gestion du statut projet',
+      ],
+      color: AppTheme.primary,
+      colorLight: AppTheme.infoLight,
+      onTap: () => context.push('/cri/new/projet'),
+    );
+
+    final serviceCard = _CriTypeCard(
+      icon: Icons.build_outlined,
+      title: 'CRI Service',
+      description:
+          'Pour les interventions de maintenance, depannage ou support technique avec ticket.',
+      features: const [
+        'Numero de ticket (TICK-YYYY-NNNNN)',
+        'Gestion des priorites',
+        'Satisfaction client',
+      ],
+      color: AppTheme.accent,
+      colorLight: const Color(0xFFEDE9FE),
+      onTap: () => context.push('/cri/new/service'),
+    );
+
+    if (isWide) {
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: projetCard
+                  .animate()
+                  .fadeIn(duration: AppTheme.animNormal, delay: 100.ms)
+                  .slideX(begin: -0.05, end: 0),
+            ),
+            const Gap(AppTheme.space24),
+            Expanded(
+              child: serviceCard
+                  .animate()
+                  .fadeIn(duration: AppTheme.animNormal, delay: 200.ms)
+                  .slideX(begin: 0.05, end: 0),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        projetCard
+            .animate()
+            .fadeIn(duration: AppTheme.animNormal, delay: 100.ms)
+            .slideY(begin: 0.05, end: 0),
+        const Gap(AppTheme.space20),
+        serviceCard
+            .animate()
+            .fadeIn(duration: AppTheme.animNormal, delay: 200.ms)
+            .slideY(begin: 0.05, end: 0),
+      ],
+    );
+  }
+}
+
+// ─── Header back button ───
+
+class _HeaderBackButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  const _HeaderBackButton({required this.onPressed});
+
+  @override
+  State<_HeaderBackButton> createState() => _HeaderBackButtonState();
+}
+
+class _HeaderBackButtonState extends State<_HeaderBackButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: AppTheme.animFast,
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: _isHovered ? AppTheme.surfaceVariant : AppTheme.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            border: Border.all(color: AppTheme.border),
+          ),
+          child: Icon(
+            Icons.arrow_back_rounded,
+            size: 18,
+            color: AppTheme.textSecondary,
           ),
         ),
       ),
@@ -101,13 +247,15 @@ class CriFormScreen extends StatelessWidget {
   }
 }
 
-/// Carte de sélection de type CRI
-class _CriTypeCard extends StatelessWidget {
+// ─── CRI Type Selection Card ───
+
+class _CriTypeCard extends StatefulWidget {
   final IconData icon;
   final String title;
   final String description;
   final List<String> features;
   final Color color;
+  final Color colorLight;
   final VoidCallback onTap;
 
   const _CriTypeCard({
@@ -116,98 +264,158 @@ class _CriTypeCard extends StatelessWidget {
     required this.description,
     required this.features,
     required this.color,
+    required this.colorLight,
     required this.onTap,
   });
 
   @override
+  State<_CriTypeCard> createState() => _CriTypeCardState();
+}
+
+class _CriTypeCardState extends State<_CriTypeCard>
+    with SingleTickerProviderStateMixin {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      elevation: 2,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: color.withOpacity(0.3)),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Row(
-            children: [
-              // Icon
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 32),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() {
+        _isHovered = false;
+        _isPressed = false;
+      }),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) {
+          setState(() => _isPressed = false);
+          widget.onTap();
+        },
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: AnimatedScale(
+          scale: _isPressed ? 0.97 : 1.0,
+          duration: AppTheme.animFast,
+          child: AnimatedContainer(
+            duration: AppTheme.animFast,
+            padding: const EdgeInsets.all(AppTheme.space32),
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+              border: Border.all(
+                color: _isHovered ? widget.color : AppTheme.border,
+                width: _isHovered ? 1.5 : 1.0,
               ),
-              const SizedBox(width: 16),
+              boxShadow: _isHovered ? AppTheme.shadowMd : AppTheme.shadowSm,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Icon in colored circle
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: widget.colorLight,
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.radiusXl),
+                  ),
+                  child: Icon(
+                    widget.icon,
+                    size: 32,
+                    color: widget.color,
+                  ),
+                ),
+                const Gap(AppTheme.space20),
 
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // Title
+                Text(
+                  widget.title,
+                  style: GoogleFonts.inter(
+                    color: AppTheme.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const Gap(AppTheme.space8),
+
+                // Description
+                Text(
+                  widget.description,
+                  style: GoogleFonts.inter(
+                    color: AppTheme.textSecondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    height: 1.5,
+                  ),
+                ),
+                const Gap(AppTheme.space20),
+
+                // Feature list with checkmarks
+                ...widget.features.map(
+                  (feature) => Padding(
+                    padding:
+                        const EdgeInsets.only(bottom: AppTheme.space8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: AppTheme.successLight,
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusFull),
+                          ),
+                          child: const Icon(
+                            Icons.check_rounded,
+                            size: 14,
+                            color: AppTheme.success,
+                          ),
+                        ),
+                        const Gap(AppTheme.space12),
+                        Expanded(
+                          child: Text(
+                            feature,
+                            style: GoogleFonts.inter(
+                              color: AppTheme.textSecondary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const Gap(AppTheme.space12),
+
+                // CTA arrow row
+                Row(
                   children: [
                     Text(
-                      title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: color,
+                      'Commencer',
+                      style: GoogleFonts.inter(
+                        color: widget.color,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: features.map((feature) {
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.check_circle,
-                              size: 14,
-                              color: color.withOpacity(0.7),
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                feature,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      }).toList(),
+                    const Gap(AppTheme.space4),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 18,
+                      color: widget.color,
                     ),
                   ],
                 ),
-              ),
-
-              // Arrow
-              Icon(
-                Icons.arrow_forward_ios,
-                color: color.withOpacity(0.5),
-                size: 20,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 }
-

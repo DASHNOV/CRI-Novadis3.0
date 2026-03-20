@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/features/auth/presentation/providers/permissions_provider.dart';
 
 class ProtectedRoute extends ConsumerWidget {
@@ -23,12 +24,12 @@ class ProtectedRoute extends ConsumerWidget {
     }
 
     return fallback ??
-        const Scaffold(
+        Scaffold(
           body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.lock_outline, size: 64, color: Colors.grey),
+                Icon(Icons.lock_outline, size: 64, color: AppTheme.textTertiary),
                 SizedBox(height: 16),
                 Text(
                   'Accès refusé',

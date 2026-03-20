@@ -10,10 +10,10 @@ import 'package:novadis_cri/features/dashboard/widgets/dashboard_common_widgets.
 import 'package:novadis_cri/features/dashboard/widgets/intervention_list_item.dart';
 import 'package:novadis_cri/features/dashboard/widgets/kpi_card_widget.dart';
 import 'package:novadis_cri/features/dashboard/widgets/time_evolution_chart_widget.dart';
-
 import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/core/theme/responsive.dart';
 import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Page principale du Dashboard avec design modernisé
 class MainDashboardPage extends ConsumerStatefulWidget {
@@ -26,139 +26,147 @@ class MainDashboardPage extends ConsumerStatefulWidget {
 class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeAnimationProvider);
     final selectedPeriod = ref.watch(selectedPeriodProvider);
     final viewMode = ref.watch(dashboardViewModeProvider);
     final dashboardDataAsync = ref.watch(dashboardDataProvider);
     final userName = ref.watch(userNameProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.lightGray,
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: ContentContainer(
           maxWidth: 1400,
           child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // App Bar Custom
-            SliverAppBar(
-              floating: true,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: const Icon(Icons.dashboard, color: AppTheme.darkBlue),
-              title: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: AppTheme.primaryBlue,
-                    radius: 18,
-                    child: const Text(
-                      'N',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // Modern App Bar
+              SliverAppBar(
+                floating: true,
+                backgroundColor: AppTheme.background,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                leading: Container(
+                  margin: const EdgeInsets.only(left: AppTheme.space12),
+                  child: Icon(
+                    Icons.dashboard_rounded,
+                    color: AppTheme.textPrimary,
+                    size: 24,
                   ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Dashboard Global',
-                    style: TextStyle(
-                      color: AppTheme.darkBlue,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22,
-                    ),
+                ),
+                title: Text(
+                  'Dashboard Global',
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    letterSpacing: -0.3,
                   ),
+                ),
+                actions: [
+                  _buildRefreshButton(),
+                  const SizedBox(width: AppTheme.space8),
                 ],
               ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.refresh, color: AppTheme.darkBlue),
-                  onPressed: () => ref.refreshDashboard(),
-                  tooltip: 'Actualiser',
+
+              // Content
+              SliverPadding(
+                padding: EdgeInsets.symmetric(
+                  horizontal:
+                      Responsive.responsiveHorizontalPadding(context),
                 ),
-                const SizedBox(width: 8),
-              ],
-            ),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const SizedBox(height: AppTheme.space16),
 
-            // Content
-            SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: Responsive.responsiveHorizontalPadding(context)),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const SizedBox(height: 16),
+                    // Header Section
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          userName != null && userName.isNotEmpty
+                              ? 'Bonjour $userName,'
+                              : 'Bonjour,',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: AppTheme.space4),
+                        Text(
+                          'Vue d\'ensemble',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: AppTheme.space16),
+                        // Filter Pills (Period)
+                        PeriodFilterWidget(
+                          selectedPeriod: selectedPeriod,
+                          onPeriodChanged: (period) {
+                            ref
+                                .read(selectedPeriodProvider.notifier)
+                                .setPeriod(period);
+                          },
+                        ),
+                        const SizedBox(height: AppTheme.space12),
+                        // View Mode Selector
+                        _ViewModeSelector(
+                          currentMode: viewMode,
+                          onModeChanged: (mode) {
+                            ref.read(dashboardViewModeProvider.notifier).state =
+                                mode;
+                          },
+                        ),
+                      ],
+                    ),
 
-                  // Header Section
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        userName != null && userName.isNotEmpty ? 'Bonjour $userName,' : 'Bonjour,',
-                        style: const TextStyle(
-                          color: Color(0xFF64748B),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Vue d\'ensemble',
-                        style: TextStyle(
-                          color: AppTheme.darkBlue,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Filter Pills (Period)
-                      PeriodFilterWidget(
-                        selectedPeriod: selectedPeriod,
-                        onPeriodChanged: (period) {
-                          ref
-                              .read(selectedPeriodProvider.notifier)
-                              .setPeriod(period);
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      // View Mode Selector
-                      _ViewModeSelector(
-                        currentMode: viewMode,
-                        onModeChanged: (mode) {
-                          ref.read(dashboardViewModeProvider.notifier).state =
-                              mode;
-                        },
-                      ),
+                    const SizedBox(height: AppTheme.space24),
+
+                    // KPI Grid (Common to all views possibly, or adapted)
+                    _buildKpiSection(dashboardDataAsync),
+
+                    const SizedBox(height: AppTheme.space24),
+
+                    // Content based on View Mode
+                    if (viewMode == DashboardViewMode.general) ...[
+                      _buildGeneralView(dashboardDataAsync),
+                    ] else if (viewMode == DashboardViewMode.parSite) ...[
+                      _buildSitesView(ref),
+                    ] else if (viewMode == DashboardViewMode.parTechnicien) ...[
+                      _buildTechniciansView(ref),
                     ],
-                  ),
 
-                  const SizedBox(height: 24),
-
-                  // KPI Grid (Common to all views possibly, or adapted)
-                  _buildKpiSection(dashboardDataAsync),
-
-                  const SizedBox(height: 24),
-
-                  // Content based on View Mode
-                  if (viewMode == DashboardViewMode.general) ...[
-                    _buildGeneralView(dashboardDataAsync),
-                  ] else if (viewMode == DashboardViewMode.parSite) ...[
-                    _buildSitesView(ref),
-                  ] else if (viewMode == DashboardViewMode.parTechnicien) ...[
-                    _buildTechniciansView(ref),
-                  ],
-
-                  const SizedBox(height: 24),
-                ]),
+                    const SizedBox(height: AppTheme.space24),
+                  ]),
+                ),
               ),
-            ),
 
-            // Note: If lists are long, they should be their own slivers.
-            // Ideally we shouldn't put flexible lists inside SliverChildListDelegate,
-            // but for simplicity in this structure we might need to adapt.
-            // We will put the lists in the specific view build methods if probable.
-            // But actually, SliverList delegate builds items.
-            const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
-          ],
+              const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+            ],
+          ),
         ),
-        ),
+      ),
+    );
+  }
+
+  Widget _buildRefreshButton() {
+    return Container(
+      margin: const EdgeInsets.only(right: AppTheme.space4),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+      ),
+      child: IconButton(
+        icon: Icon(Icons.refresh_rounded, color: AppTheme.textSecondary, size: 20),
+        onPressed: () => ref.refreshDashboard(),
+        tooltip: 'Actualiser',
+        splashRadius: 20,
       ),
     );
   }
@@ -185,14 +193,14 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
             title: 'En cours',
             value: data.kpis.pendingInterventions.toString(),
             icon: Icons.pending_actions,
-            iconColor: AppTheme.alertRed,
+            iconColor: AppTheme.error,
             subtitle: 'Action requise',
           ),
           KpiCard(
             title: 'Prévues',
             value: data.kpis.plannedInterventions.toString(),
             icon: Icons.calendar_today,
-            iconColor: AppTheme.lightBlue,
+            iconColor: AppTheme.primaryLight,
             subtitle: 'Futures',
           ),
         ],
@@ -200,11 +208,11 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
       loading: () => KpiGrid(
         cards: List.generate(
           4,
-          (index) => const KpiCard(
+          (index) => KpiCard(
             title: '',
             value: '',
             icon: Icons.help,
-            iconColor: Colors.grey,
+            iconColor: AppTheme.textTertiary,
             isLoading: true,
           ),
         ),
@@ -216,17 +224,12 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
   Widget _buildGeneralView(AsyncValue<DashboardData> dataAsync) {
     // Chart Section
     final widget1 = Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppTheme.space16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
       ),
       child: dataAsync.when(
         data: (data) => Column(
@@ -234,12 +237,14 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           children: [
             Text(
               'Évolution de l\'activité',
-              style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
-                color: AppTheme.darkBlue,
-                fontWeight: FontWeight.bold,
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+                letterSpacing: -0.2,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppTheme.space24),
             TimeEvolutionChartWidget(
               data: data.timeEvolution,
               title: '',
@@ -254,115 +259,99 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
     );
 
     // TOP SITES SUMMARY
-    final widget2 = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Sites les plus actifs',
-              style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextButton(
-              onPressed: () => ref.read(dashboardViewModeProvider.notifier).state = DashboardViewMode.parSite,
-              child: const Text('Voir tous'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        dataAsync.when(
-          data: (data) {
-            final top3 = data.topSites.take(3).toList();
-            if (top3.isEmpty) return const Text('Aucune donnée de site');
-            return Column(
-              children: top3.map((site) => _buildSimpleSiteItem(site)).toList(),
+    final widget2 = _buildSectionCard(
+      title: 'Sites les plus actifs',
+      actionLabel: 'Voir tous',
+      onAction: () => ref.read(dashboardViewModeProvider.notifier).state =
+          DashboardViewMode.parSite,
+      child: dataAsync.when(
+        data: (data) {
+          final top3 = data.topSites.take(3).toList();
+          if (top3.isEmpty) {
+            return Padding(
+              padding: EdgeInsets.all(AppTheme.space16),
+              child: Text('Aucune donnée de site',
+                  style: TextStyle(color: AppTheme.textTertiary)),
             );
-          },
-          loading: () => const LinearProgressIndicator(),
-          error: (e, s) => const SizedBox.shrink(),
+          }
+          return Column(
+            children:
+                top3.map((site) => _buildSimpleSiteItem(site)).toList(),
+          );
+        },
+        loading: () => Padding(
+          padding: EdgeInsets.all(AppTheme.space16),
+          child: LinearProgressIndicator(
+            backgroundColor: AppTheme.surfaceVariant,
+            valueColor: AlwaysStoppedAnimation(AppTheme.primary),
+          ),
         ),
-      ],
+        error: (e, s) => const SizedBox.shrink(),
+      ),
     );
 
     // TECHNICIAN WORKLOAD SUMMARY
-    final widget3 = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Répartition de la charge',
-              style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextButton(
-              onPressed: () => ref.read(dashboardViewModeProvider.notifier).state = DashboardViewMode.parTechnicien,
-              child: const Text('Détails'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        dataAsync.when(
-          data: (data) {
-            final top3Tech = data.technicianWorkload.take(3).toList();
-            if (top3Tech.isEmpty) return const Text('Aucun technicien actif');
-            return Column(
-              children: top3Tech.map((tech) => _buildSimpleTechItem(tech)).toList(),
+    final widget3 = _buildSectionCard(
+      title: 'Répartition de la charge',
+      actionLabel: 'Détails',
+      onAction: () => ref.read(dashboardViewModeProvider.notifier).state =
+          DashboardViewMode.parTechnicien,
+      child: dataAsync.when(
+        data: (data) {
+          final top3Tech = data.technicianWorkload.take(3).toList();
+          if (top3Tech.isEmpty) {
+            return Padding(
+              padding: EdgeInsets.all(AppTheme.space16),
+              child: Text('Aucun technicien actif',
+                  style: TextStyle(color: AppTheme.textTertiary)),
             );
-          },
-          loading: () => const LinearProgressIndicator(),
-          error: (e, s) => const SizedBox.shrink(),
+          }
+          return Column(
+            children: top3Tech
+                .map((tech) => _buildSimpleTechItem(tech))
+                .toList(),
+          );
+        },
+        loading: () => Padding(
+          padding: EdgeInsets.all(AppTheme.space16),
+          child: LinearProgressIndicator(
+            backgroundColor: AppTheme.surfaceVariant,
+            valueColor: AlwaysStoppedAnimation(AppTheme.primary),
+          ),
         ),
-      ],
+        error: (e, s) => const SizedBox.shrink(),
+      ),
     );
 
     // RECENT INTERVENTIONS
-    final widget4 = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Interventions Récentes',
-              style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextButton(
-              onPressed: () => context.push(AppRouter.history),
-              child: const Text('Historique'),
-            ),
-          ],
+    final widget4 = _buildSectionCard(
+      title: 'Interventions Récentes',
+      actionLabel: 'Historique',
+      onAction: () => context.push(AppRouter.history),
+      child: dataAsync.when(
+        data: (data) => Column(
+          children: data.recentInterventions.take(5).map((item) {
+            return MobileInterventionListItem(
+              type: item.type,
+              client: '${item.technicianName} - ${item.durationMinutes} min',
+              date: item.date,
+              status: item.status,
+              onTap: () {
+                context.pushNamed(
+                  'cri-view',
+                  pathParameters: {'id': item.id},
+                  queryParameters: {'type': item.source},
+                );
+              },
+            );
+          }).toList(),
         ),
-        const SizedBox(height: 12),
-        dataAsync.when(
-          data: (data) => Column(
-            children: data.recentInterventions.take(5).map((item) {
-              return MobileInterventionListItem(
-                type: item.type,
-                client: '${item.technicianName} - ${item.durationMinutes} min',
-                date: item.date,
-                status: item.status,
-                onTap: () {
-                  context.pushNamed(
-                    'cri-view',
-                    pathParameters: {'id': item.id},
-                    queryParameters: {'type': item.source},
-                  );
-                },
-              );
-            }).toList(),
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, s) => Text('Erreur: $e'),
+        loading: () => const Padding(
+          padding: EdgeInsets.all(AppTheme.space24),
+          child: Center(child: CircularProgressIndicator()),
         ),
-      ],
+        error: (e, s) => Text('Erreur: $e'),
+      ),
     );
 
     return LayoutBuilder(
@@ -375,16 +364,16 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(child: widget1),
-                  const SizedBox(width: 24),
+                  const SizedBox(width: AppTheme.space24),
                   Expanded(child: widget2),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppTheme.space24),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(child: widget3),
-                  const SizedBox(width: 24),
+                  const SizedBox(width: AppTheme.space24),
                   Expanded(child: widget4),
                 ],
               ),
@@ -395,11 +384,11 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             widget1,
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTheme.space16),
             widget2,
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTheme.space16),
             widget3,
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTheme.space16),
             widget4,
           ],
         );
@@ -407,72 +396,218 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
     );
   }
 
-  Widget _buildSimpleSiteItem(TopSiteData site) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade100),
+  /// Helper to build a consistent section card with title and action
+  Widget _buildSectionCard({
+    required String title,
+    required String actionLabel,
+    required VoidCallback onAction,
+    required Widget child,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
       ),
-      child: ListTile(
-        dense: true,
-        leading: const Icon(Icons.location_on, color: AppTheme.primaryBlue, size: 20),
-        title: Text(site.siteName, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(site.clientName, style: const TextStyle(fontSize: 12)),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryBlue.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTheme.space16,
+              AppTheme.space16,
+              AppTheme.space8,
+              AppTheme.space8,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                TextButton(
+                  onPressed: onAction,
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.primary,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.space12,
+                      vertical: AppTheme.space4,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                    ),
+                  ),
+                  child: Text(
+                    actionLabel,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Text(
-            '${site.visitCount} CRI',
-            style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold, fontSize: 12),
+          Divider(
+            height: 1,
+            color: AppTheme.border.withValues(alpha: 0.5),
           ),
-        ),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimpleSiteItem(TopSiteData site) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         onTap: () => context.pushNamed(
           'site-dashboard',
           pathParameters: {'siteId': site.siteId},
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.space16,
+            vertical: AppTheme.space12,
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppTheme.space8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                ),
+                child: const Icon(Icons.location_on_rounded,
+                    color: AppTheme.primary, size: 18),
+              ),
+              const SizedBox(width: AppTheme.space12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      site.siteName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      site.clientName,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.space8, vertical: AppTheme.space4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                ),
+                child: Text(
+                  '${site.visitCount} CRI',
+                  style: const TextStyle(
+                    color: AppTheme.primary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppTheme.space4),
+              Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.textTertiary, size: 18),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildSimpleTechItem(TechnicianWorkloadData tech) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade100),
-      ),
-      child: ListTile(
-        dense: true,
-        leading: CircleAvatar(
-          radius: 14,
-          backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
-          child: Text(tech.technicianName[0], style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
-        ),
-        title: Text(tech.technicianName, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('${tech.totalHours.toStringAsFixed(1)}h cumulées', style: const TextStyle(fontSize: 12)),
-        trailing: Text(
-          '${tech.interventionCount} interventions',
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
-        ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         onTap: () => context.pushNamed(
           'technician-dashboard',
           pathParameters: {'techId': tech.technicianId},
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.space16,
+            vertical: AppTheme.space12,
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: AppTheme.accent.withValues(alpha: 0.1),
+                child: Text(
+                  tech.technicianName.isNotEmpty
+                      ? tech.technicianName[0].toUpperCase()
+                      : '?',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.accent,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppTheme.space12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tech.technicianName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${tech.totalHours.toStringAsFixed(1)}h cumulées',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '${tech.interventionCount} interventions',
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-
   Widget _buildSitesView(WidgetRef ref) {
-    // We reuse topSitesProvider
     final topSitesAsync = ref.watch(topSitesProvider);
 
     return Column(
@@ -480,56 +615,96 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
       children: [
         Text(
           'Sites les plus actifs',
-          style: AppTheme.lightTheme.textTheme.titleLarge,
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            letterSpacing: -0.3,
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppTheme.space12),
         topSitesAsync.when(
           data: (sites) => Column(
             children: sites
                 .map(
-                  (site) => Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(color: AppTheme.lightGray),
+                  (site) => Container(
+                    margin: const EdgeInsets.only(bottom: AppTheme.space8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface,
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusLg),
+                      border: Border.all(
+                          color: AppTheme.border.withValues(alpha: 0.5)),
+                      boxShadow: AppTheme.shadowSm,
                     ),
-                    child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: AppTheme.lightGray,
-                        child: Icon(
-                          Icons.business,
-                          color: AppTheme.primaryBlue,
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusLg),
+                      child: ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusLg),
                         ),
-                      ),
-                      title: Text(
-                        site.siteName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(site.clientName),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '${site.visitCount} interv.',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.darkBlue,
-                            ),
+                        leading: Container(
+                          padding: const EdgeInsets.all(AppTheme.space8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceVariant,
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusMd),
                           ),
-                          const Icon(Icons.chevron_right),
-                        ],
-                      ),
-                      onTap: () => context.pushNamed(
-                        'site-dashboard',
-                        pathParameters: {'siteId': site.siteId},
+                          child: const Icon(
+                            Icons.business_rounded,
+                            color: AppTheme.primary,
+                            size: 20,
+                          ),
+                        ),
+                        title: Text(
+                          site.siteName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        subtitle: Text(
+                          site.clientName,
+                          style: TextStyle(
+                            color: AppTheme.textTertiary,
+                            fontSize: 13,
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${site.visitCount} interv.',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textPrimary,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(width: AppTheme.space4),
+                            Icon(Icons.chevron_right_rounded,
+                                color: AppTheme.textTertiary, size: 20),
+                          ],
+                        ),
+                        onTap: () => context.pushNamed(
+                          'site-dashboard',
+                          pathParameters: {'siteId': site.siteId},
+                        ),
                       ),
                     ),
                   ),
                 )
                 .toList(),
           ),
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(AppTheme.space24),
+              child: CircularProgressIndicator(),
+            ),
+          ),
           error: (e, s) => Text('Erreur: $e'),
         ),
       ],
@@ -547,82 +722,129 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           children: [
             Text(
               'Activité des Techniciens',
-              style: AppTheme.lightTheme.textTheme.titleLarge,
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                letterSpacing: -0.3,
+              ),
             ),
-            const Icon(Icons.info_outline, size: 18, color: Colors.grey),
+            Icon(Icons.info_outline_rounded,
+                size: 18, color: AppTheme.textTertiary),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppTheme.space12),
         workloadAsync.when(
           data: (workload) => Column(
             children: workload
                 .map(
-                  (tech) => Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(color: AppTheme.lightGray),
+                  (tech) => Container(
+                    margin: const EdgeInsets.only(bottom: AppTheme.space8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface,
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusLg),
+                      border: Border.all(
+                          color: AppTheme.border.withValues(alpha: 0.5)),
+                      boxShadow: AppTheme.shadowSm,
                     ),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
-                        child: Text(
-                          tech.technicianName.isNotEmpty
-                              ? tech.technicianName[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(
-                            color: AppTheme.primaryBlue,
-                            fontWeight: FontWeight.bold,
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusLg),
+                      child: ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusLg),
+                        ),
+                        leading: CircleAvatar(
+                          backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
+                          child: Text(
+                            tech.technicianName.isNotEmpty
+                                ? tech.technicianName[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: AppTheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
-                      title: Text(
-                        tech.technicianName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        '${tech.totalHours.toStringAsFixed(1)}h de travail',
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                '${tech.interventionCount} CRI',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.darkBlue,
-                                ),
-                              ),
-                              Text(
-                                '${tech.completionRate.toStringAsFixed(0)}% résolu',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: tech.completionRate > 80
-                                      ? Colors.green
-                                      : Colors.orange,
-                                ),
-                              ),
-                            ],
+                        title: Text(
+                          tech.technicianName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.chevron_right),
-                        ],
-                      ),
-                      onTap: () => context.pushNamed(
-                        'technician-dashboard',
-                        pathParameters: {'techId': tech.technicianId},
+                        ),
+                        subtitle: Text(
+                          '${tech.totalHours.toStringAsFixed(1)}h de travail',
+                          style: TextStyle(
+                            color: AppTheme.textTertiary,
+                            fontSize: 13,
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '${tech.interventionCount} CRI',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textPrimary,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 1,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: tech.completionRate > 80
+                                        ? AppTheme.successLight
+                                        : AppTheme.warningLight,
+                                    borderRadius: BorderRadius.circular(
+                                        AppTheme.radiusFull),
+                                  ),
+                                  child: Text(
+                                    '${tech.completionRate.toStringAsFixed(0)}% résolu',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: tech.completionRate > 80
+                                          ? AppTheme.success
+                                          : AppTheme.warning,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: AppTheme.space8),
+                            Icon(Icons.chevron_right_rounded,
+                                color: AppTheme.textTertiary, size: 20),
+                          ],
+                        ),
+                        onTap: () => context.pushNamed(
+                          'technician-dashboard',
+                          pathParameters: {'techId': tech.technicianId},
+                        ),
                       ),
                     ),
                   ),
                 )
                 .toList(),
           ),
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(AppTheme.space24),
+              child: CircularProgressIndicator(),
+            ),
+          ),
           error: (e, s) => Text('Erreur: $e'),
         ),
       ],
@@ -644,10 +866,11 @@ class _ViewModeSelector extends StatelessWidget {
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.lightGray),
+        color: AppTheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
       ),
+      padding: const EdgeInsets.all(3),
       child: Row(
         children: [
           _buildItem('Général', DashboardViewMode.general),
@@ -663,16 +886,27 @@ class _ViewModeSelector extends StatelessWidget {
     return Expanded(
       child: GestureDetector(
         onTap: () => onModeChanged(mode),
-        child: Container(
+        child: AnimatedContainer(
+          duration: AppTheme.animFast,
+          curve: Curves.easeOut,
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.primaryBlue : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
+            color: isSelected ? AppTheme.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppTheme.primary.withValues(alpha: 0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
           ),
           alignment: Alignment.center,
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : const Color(0xFF64748B),
+              color: isSelected ? Colors.white : AppTheme.textSecondary,
               fontWeight: FontWeight.w600,
               fontSize: 13,
             ),
@@ -682,5 +916,3 @@ class _ViewModeSelector extends StatelessWidget {
     );
   }
 }
-
-

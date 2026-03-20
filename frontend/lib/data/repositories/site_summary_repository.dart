@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novadis_cri/core/network/dio_provider.dart';
 import 'package:novadis_cri/data/models/site_summary_model.dart';
@@ -32,10 +33,10 @@ class SiteSummaryRepository {
         return null;
       }
       // For other errors, maybe log but don't crash the form
-      print('Error fetching site summary: $e');
+      debugPrint('Error fetching site summary: $e');
       return null;
     } catch (e) {
-      print('Error fetching site summary: $e');
+      debugPrint('Error fetching site summary: $e');
       return null;
     }
   }

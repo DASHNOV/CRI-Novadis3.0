@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 import 'package:novadis_cri/features/dashboard/config/chart_config.dart';
 
@@ -57,18 +58,34 @@ class _TypeDistributionChartWidgetState
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.title, style: ChartConfig.chartTitleStyle),
+            Text(
+              widget.title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary,
+              ),
+            ),
             if (widget.subtitle != null) ...[
               const SizedBox(height: 4),
-              Text(widget.subtitle!, style: ChartConfig.chartSubtitleStyle),
+              Text(
+                widget.subtitle!,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppTheme.textTertiary,
+                ),
+              ),
             ],
             const SizedBox(height: 24),
             SizedBox(
@@ -99,11 +116,11 @@ class _TypeDistributionChartWidgetState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.bar_chart, size: 48, color: Colors.grey[400]),
+          Icon(Icons.bar_chart, size: 48, color: AppTheme.textTertiary),
           const SizedBox(height: 8),
           Text(
             'Aucune donnée disponible',
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -125,7 +142,7 @@ class _TypeDistributionChartWidgetState
         maxY: maxY,
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (group) => Colors.grey[800]!,
+            getTooltipColor: (group) => AppTheme.textPrimary,
             tooltipRoundedRadius: 8,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               final data = widget.data[groupIndex];
@@ -193,7 +210,10 @@ class _TypeDistributionChartWidgetState
           drawVerticalLine: false,
           horizontalInterval: maxY / 5,
           getDrawingHorizontalLine: (value) {
-            return FlLine(color: ChartConfig.gridLineColor, strokeWidth: 1);
+            return FlLine(
+              color: AppTheme.border.withValues(alpha: 0.5),
+              strokeWidth: 1,
+            );
           },
         ),
         borderData: FlBorderData(show: false),
@@ -212,7 +232,7 @@ class _TypeDistributionChartWidgetState
                 backDrawRodData: BackgroundBarChartRodData(
                   show: true,
                   toY: maxY,
-                  color: ChartConfig.gridLineColor.withOpacity(0.1),
+                  color: AppTheme.surfaceVariant.withValues(alpha: 0.5),
                 ),
               ),
             ],
@@ -239,7 +259,7 @@ class _TypeDistributionChartWidgetState
         barTouchData: BarTouchData(
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (group) => Colors.grey[800]!,
+            getTooltipColor: (group) => AppTheme.textPrimary,
             tooltipRoundedRadius: 8,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               final data = widget.data[groupIndex];
@@ -324,7 +344,10 @@ class _TypeDistributionChartWidgetState
             const SizedBox(width: 6),
             Text(
               '${data.type} (${data.count})',
-              style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+              style: TextStyle(
+                fontSize: 11,
+                color: AppTheme.textSecondary,
+              ),
             ),
           ],
         );
@@ -339,4 +362,3 @@ class _TypeDistributionChartWidgetState
     return label;
   }
 }
-

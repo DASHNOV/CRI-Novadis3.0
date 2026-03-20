@@ -6,6 +6,8 @@ import 'package:novadis_cri/data/local/local_storage_service.dart';
 import 'package:novadis_cri/core/storage/storage_service.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Écran d'administration
 /// Affiche des statistiques et options de gestion
@@ -40,6 +42,7 @@ class AdminScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeAnimationProvider);
     final storageService = useMemoized(() => LocalStorageService());
     final statsFuture = useMemoized(() => _loadStats(storageService));
     final refreshKey = useState(0);
@@ -76,27 +79,15 @@ class AdminScreen extends HookConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Administration'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: handleRefresh,
-            tooltip: 'Actualiser',
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: handleLogout,
-            tooltip: 'Se déconnecter',
-          ),
-        ],
-      ),
+      backgroundColor: AppTheme.background,
       body: FutureBuilder<Map<String, dynamic>>(
         key: ValueKey(refreshKey.value),
         future: statsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary),
+            );
           }
 
           if (snapshot.hasError) {
@@ -104,11 +95,34 @@ class AdminScreen extends HookConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(AppTheme.space20),
+                    decoration: BoxDecoration(
+                      color: AppTheme.errorLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.error_outline_rounded,
+                      size: 40,
+                      color: AppTheme.error,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.space16),
                   Text(
                     'Erreur de chargement',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.space8),
+                  Text(
+                    'Impossible de charger les statistiques',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.textTertiary,
+                    ),
                   ),
                 ],
               ),
@@ -124,182 +138,298 @@ class AdminScreen extends HookConsumerWidget {
           return ContentContainer(
             maxWidth: 1200,
             child: ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              // En-tête
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(AppTheme.space20),
+              children: [
+                // ─── Inline header ───
+                SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: AppTheme.space24),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Administration',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              SizedBox(height: AppTheme.space4),
+                              Text(
+                                'Statistiques et gestion',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: AppTheme.textTertiary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _HeaderActionButton(
+                          icon: Icons.refresh_rounded,
+                          tooltip: 'Actualiser',
+                          onPressed: handleRefresh,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ─── Stat cards ───
+                Row(
+                  children: [
+                    Expanded(
+                      child: _StatCard(
+                        icon: Icons.description_outlined,
+                        label: 'CRI',
+                        value: totalCri.toString(),
+                        color: AppTheme.primary,
+                        bgColor: AppTheme.infoLight,
+                      ),
+                    ),
+                    const SizedBox(width: AppTheme.space12),
+                    Expanded(
+                      child: _StatCard(
+                        icon: Icons.people_outline_rounded,
+                        label: 'Clients',
+                        value: totalClients.toString(),
+                        color: AppTheme.success,
+                        bgColor: AppTheme.successLight,
+                      ),
+                    ),
+                    const SizedBox(width: AppTheme.space12),
+                    Expanded(
+                      child: _StatCard(
+                        icon: Icons.location_on_outlined,
+                        label: 'Sites',
+                        value: totalSites.toString(),
+                        color: AppTheme.warning,
+                        bgColor: AppTheme.warningLight,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppTheme.space24),
+
+                // ─── Type distribution card ───
+                if (typeCount.isNotEmpty) ...[
+                  Text(
+                    'Répartition par type',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.space12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                      border: Border.all(
+                        color: AppTheme.border.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        for (int i = 0; i < typeCount.entries.length; i++) ...[
+                          if (i > 0)
+                            Divider(
+                              height: 1,
+                              indent: AppTheme.space16,
+                              endIndent: AppTheme.space16,
+                              color: AppTheme.border.withValues(alpha: 0.5),
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppTheme.space16,
+                              vertical: AppTheme.space12,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: _getTypeColor(i),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: AppTheme.space12),
+                                Expanded(
+                                  child: Text(
+                                    typeCount.entries.elementAt(i).key,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppTheme.space12,
+                                    vertical: AppTheme.space4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.surfaceVariant,
+                                    borderRadius: BorderRadius.circular(
+                                      AppTheme.radiusFull,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    typeCount.entries
+                                        .elementAt(i)
+                                        .value
+                                        .toString(),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.space24),
+                ],
+
+                // ─── Actions section ───
+                Text(
+                  'Actions',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.space12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                    border: Border.all(
+                      color: AppTheme.border.withValues(alpha: 0.5),
+                    ),
+                  ),
                   child: Column(
                     children: [
-                      Icon(
-                        Icons.admin_panel_settings,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Panneau d\'administration',
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
+                      _ActionListTile(
+                        icon: Icons.info_outline_rounded,
+                        iconColor: AppTheme.primary,
+                        title: 'À propos',
+                        subtitle: 'Informations sur l\'application',
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('À propos'),
+                              content: const Text(
+                                'Novadis CRI v1.0.0\n\n'
+                                'Application de gestion des comptes rendus d\'intervention.\n\n'
+                                'Architecture: Clean Architecture\n'
+                                'Navigation: GoRouter\n'
+                                'State Management: Flutter Hooks\n\n'
+                                'Mode démonstration - Données locales uniquement.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Fermer'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.space24),
 
-              // Statistiques générales
-              Text(
-                'Statistiques',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatCard(
-                      icon: Icons.description,
-                      label: 'CRI',
-                      value: totalCri.toString(),
-                      color: Colors.blue,
+                // ─── Logout button ───
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: handleLogout,
+                    icon: const Icon(
+                      Icons.logout_rounded,
+                      size: 18,
+                      color: AppTheme.error,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      icon: Icons.people,
-                      label: 'Clients',
-                      value: totalClients.toString(),
-                      color: Colors.green,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      icon: Icons.location_on,
-                      label: 'Sites',
-                      value: totalSites.toString(),
-                      color: Colors.orange,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Répartition par type
-              if (typeCount.isNotEmpty) ...[
-                Text(
-                  'Répartition par type',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: typeCount.entries.map((entry) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  entry.key,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  entry.value.toString(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
-
-              // Actions administratives
-              Text(
-                'Actions',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-
-              Card(
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(
-                        Icons.info_outline,
-                        color: Colors.blue,
+                    label: const Text('Se déconnecter'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.error,
+                      side: const BorderSide(color: AppTheme.error),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppTheme.space16,
                       ),
-                      title: const Text('À propos'),
-                      subtitle: const Text('Informations sur l\'application'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('À propos'),
-                            content: const Text(
-                              'Novadis CRI v1.0.0\n\n'
-                              'Application de gestion des comptes rendus d\'intervention.\n\n'
-                              'Architecture: Clean Architecture\n'
-                              'Navigation: GoRouter\n'
-                              'State Management: Flutter Hooks\n\n'
-                              'Mode démonstration - Données locales uniquement.',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Fermer'),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusLg,
+                        ),
+                      ),
                     ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.logout, color: Colors.red),
-                      title: const Text('Se déconnecter'),
-                      subtitle: const Text('Fermer la session'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: handleLogout,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: AppTheme.space32),
+              ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  static Color _getTypeColor(int index) {
+    final colors = [
+      AppTheme.primary,
+      AppTheme.success,
+      AppTheme.warning,
+      AppTheme.accent,
+      AppTheme.error,
+      AppTheme.primaryLight,
+    ];
+    return colors[index % colors.length];
+  }
+}
+
+// ─── Header action button ───
+class _HeaderActionButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  const _HeaderActionButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: 20),
+      color: AppTheme.textSecondary,
+      tooltip: tooltip,
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          side: BorderSide(color: AppTheme.border.withValues(alpha: 0.5)),
+        ),
       ),
     );
   }
@@ -311,37 +441,126 @@ class _StatCard extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
+  final Color bgColor;
 
   const _StatCard({
     required this.icon,
     required this.label,
     required this.value,
     required this.color,
+    required this.bgColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.space16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppTheme.space8),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
+          const SizedBox(height: AppTheme.space12),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: AppTheme.space4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.textTertiary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Action list tile ───
+class _ActionListTile extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _ActionListTile({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.space16,
+          vertical: AppTheme.space12,
+        ),
+        child: Row(
           children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
+            Container(
+              padding: const EdgeInsets.all(AppTheme.space8),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              ),
+              child: Icon(icon, size: 20, color: iconColor),
+            ),
+            const SizedBox(width: AppTheme.space12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppTheme.textTertiary,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-              textAlign: TextAlign.center,
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: AppTheme.textTertiary,
             ),
           ],
         ),

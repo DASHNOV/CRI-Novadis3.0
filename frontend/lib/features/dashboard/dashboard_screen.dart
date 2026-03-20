@@ -1,20 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Écran principal du dashboard
 /// Affiche les actions principales de l'application
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeAnimationProvider);
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        backgroundColor: AppTheme.surface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Text('Dashboard', style: TextStyle(color: AppTheme.textPrimary)),
+        iconTheme: IconThemeData(color: AppTheme.textPrimary),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: AppTheme.textPrimary),
             onPressed: () {
               // Retour à l'écran de connexion
               context.go(AppRouter.login);
@@ -30,28 +39,34 @@ class DashboardScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // En-tête
-              Card(
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.surface,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                  border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+                  boxShadow: AppTheme.shadowSm,
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.dashboard,
                         size: 48,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: AppTheme.primary,
                       ),
                       const SizedBox(height: 12),
                       Text(
                         'Bienvenue sur Novadis CRI',
                         style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                            ?.copyWith(fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Gérez vos comptes rendus d\'intervention',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
+                          color: AppTheme.textSecondary,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -71,25 +86,25 @@ class DashboardScreen extends StatelessWidget {
                     _DashboardCard(
                       icon: Icons.add_circle_outline,
                       title: 'Créer un CRI',
-                      color: Colors.green,
+                      color: AppTheme.success,
                       onTap: () => context.push(AppRouter.criForm),
                     ),
                     _DashboardCard(
                       icon: Icons.history,
                       title: 'Historique',
-                      color: Colors.blue,
+                      color: AppTheme.primary,
                       onTap: () => context.push(AppRouter.history),
                     ),
                     _DashboardCard(
                       icon: Icons.admin_panel_settings,
                       title: 'Admin',
-                      color: Colors.orange,
+                      color: AppTheme.warning,
                       onTap: () => context.push(AppRouter.admin),
                     ),
                     _DashboardCard(
                       icon: Icons.info_outline,
                       title: 'À propos',
-                      color: Colors.purple,
+                      color: AppTheme.accent,
                       onTap: () {
                         showDialog(
                           context: context,
@@ -137,11 +152,16 @@ class _DashboardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -153,7 +173,7 @@ class _DashboardCard extends StatelessWidget {
                 title,
                 style: Theme.of(
                   context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                 textAlign: TextAlign.center,
               ),
             ],

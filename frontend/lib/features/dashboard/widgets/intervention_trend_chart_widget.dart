@@ -57,25 +57,32 @@ class _InterventionTrendChartWidgetState
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.title, style: ChartConfig.chartTitleStyle),
+          Text(
+            widget.title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
           if (widget.subtitle != null) ...[
             const SizedBox(height: 4),
-            Text(widget.subtitle!, style: ChartConfig.chartSubtitleStyle),
+            Text(
+              widget.subtitle!,
+              style: TextStyle(
+                fontSize: 13,
+                color: AppTheme.textTertiary,
+              ),
+            ),
           ],
           const SizedBox(height: 24),
           SizedBox(
@@ -99,11 +106,11 @@ class _InterventionTrendChartWidgetState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.timeline, size: 48, color: Colors.grey[400]),
+          Icon(Icons.timeline, size: 48, color: AppTheme.textTertiary),
           const SizedBox(height: 8),
           Text(
             'Aucune donnée disponible',
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -117,13 +124,9 @@ class _InterventionTrendChartWidgetState
               .map((e) => e.interventionCount.toDouble())
               .reduce((a, b) => a > b ? a : b);
 
-    // Enforce a minimum ceiling to avoid flat lines at the top
     if (maxY < 4) maxY = 4;
-
-    // Add some headroom
     maxY = maxY * 1.2;
 
-    // Calculate interval for X axis to show roughly 5 labels max
     final double xInterval = widget.data.length > 5
         ? (widget.data.length / 5).ceilToDouble()
         : 1;
@@ -138,7 +141,10 @@ class _InterventionTrendChartWidgetState
         drawVerticalLine: false,
         horizontalInterval: yInterval,
         getDrawingHorizontalLine: (value) {
-          return FlLine(color: ChartConfig.gridLineColor, strokeWidth: 1);
+          return FlLine(
+            color: AppTheme.border.withValues(alpha: 0.5),
+            strokeWidth: 1,
+          );
         },
       ),
       titlesData: FlTitlesData(
@@ -154,7 +160,10 @@ class _InterventionTrendChartWidgetState
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     widget.data[index].weekLabel,
-                    style: ChartConfig.axisLabelStyle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textTertiary,
+                    ),
                   ),
                 );
               }
@@ -171,7 +180,10 @@ class _InterventionTrendChartWidgetState
               if (value % 1 == 0) {
                 return Text(
                   value.toInt().toString(),
-                  style: ChartConfig.axisLabelStyle,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textTertiary,
+                  ),
                 );
               }
               return const SizedBox.shrink();
@@ -190,14 +202,18 @@ class _InterventionTrendChartWidgetState
       maxY: maxY,
       lineTouchData: LineTouchData(
         touchTooltipData: LineTouchTooltipData(
-          getTooltipColor: (touchedSpot) => Colors.grey[800]!,
+          getTooltipColor: (touchedSpot) => AppTheme.textPrimary,
           tooltipRoundedRadius: 8,
           getTooltipItems: (touchedSpots) {
             return touchedSpots.map((spot) {
               final data = widget.data[spot.x.toInt()];
               return LineTooltipItem(
                 '${data.weekLabel}\n${data.interventionCount} interventions',
-                ChartConfig.tooltipTextStyle,
+                const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               );
             }).toList();
           },
@@ -223,7 +239,7 @@ class _InterventionTrendChartWidgetState
           }),
           isCurved: true,
           curveSmoothness: 0.3,
-          color: AppTheme.primaryBlue,
+          color: AppTheme.primary,
           barWidth: ChartConfig.lineWidth,
           isStrokeCapRound: true,
           dotData: FlDotData(
@@ -232,7 +248,7 @@ class _InterventionTrendChartWidgetState
               final isSelected = index == _touchedIndex;
               return FlDotCirclePainter(
                 radius: isSelected ? 6 : ChartConfig.dotRadius,
-                color: AppTheme.primaryBlue,
+                color: AppTheme.primary,
                 strokeWidth: 2,
                 strokeColor: Colors.white,
               );
@@ -244,8 +260,8 @@ class _InterventionTrendChartWidgetState
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                AppTheme.primaryBlue.withOpacity(0.3),
-                AppTheme.primaryBlue.withOpacity(0.0),
+                AppTheme.primary.withValues(alpha: 0.2),
+                AppTheme.primary.withValues(alpha: 0.0),
               ],
             ),
           ),
@@ -254,4 +270,3 @@ class _InterventionTrendChartWidgetState
     );
   }
 }
-

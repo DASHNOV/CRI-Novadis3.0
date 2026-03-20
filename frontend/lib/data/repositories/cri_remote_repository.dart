@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novadis_cri/core/network/dio_provider.dart';
 import 'package:novadis_cri/data/models/cri_projet_model.dart';
@@ -177,9 +178,8 @@ class CriRemoteRepository {
           })
           .where((name) => name.isNotEmpty)
           .toList();
-    } on DioException catch (_) {
-      // En cas d'erreur (ex: hors ligne), on retourne une liste vide
-      // Idéalement, on devrait cacher cette liste localement
+    } on DioException catch (e) {
+      debugPrint('Erreur récupération techniciens: ${e.message}');
       return [];
     }
   }
@@ -203,7 +203,8 @@ class CriRemoteRepository {
       );
       final List<dynamic> data = response.data['data'] ?? [];
       return data.cast<String>();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Erreur recherche clients: $e');
       return [];
     }
   }
@@ -217,7 +218,8 @@ class CriRemoteRepository {
       );
       final List<dynamic> data = response.data['data'] ?? [];
       return data.cast<String>();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Erreur recherche sites: $e');
       return [];
     }
   }
@@ -234,7 +236,8 @@ class CriRemoteRepository {
       return data
           .map<SiteModel>((e) => SiteModel.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Erreur recherche sites DB: $e');
       return [];
     }
   }

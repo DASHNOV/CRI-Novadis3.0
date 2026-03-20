@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/features/auth/login_screen.dart';
 import 'package:novadis_cri/features/auth/otp_verification_screen.dart';
@@ -32,7 +33,11 @@ class AppRouter {
   static const String admin = '/admin';
   static const String verifyOtp = '/verify-otp';
 
+  /// Global navigator key — used by Dio interceptor to redirect on auth failure
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   static final GoRouter router = GoRouter(
+    navigatorKey: navigatorKey,
     initialLocation: login,
     routes: [
       GoRoute(

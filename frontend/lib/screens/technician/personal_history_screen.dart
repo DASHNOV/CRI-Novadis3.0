@@ -6,8 +6,15 @@ import 'package:novadis_cri/features/documents/pages/documents_page.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/data/models/cri_model.dart';
 import 'package:novadis_cri/features/history/widgets/cri_details_dialog.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
+import 'package:novadis_cri/core/theme/responsive.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:gap/gap.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
-/// Historique personnel - uniquement les CRI du technicien connecté
+/// Historique personnel - uniquement les CRI du technicien connecte
 class PersonalHistoryScreen extends ConsumerStatefulWidget {
   const PersonalHistoryScreen({super.key});
 
@@ -21,18 +28,31 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
   List<Map<String, dynamic>> _cris = [];
   bool _isLoading = true;
   int _pendingCount = 0;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   final List<_FilterOption> _filters = [
-    _FilterOption(label: 'Tous', value: 'all'),
-    _FilterOption(label: 'En attente', value: 'pending'),
-    _FilterOption(label: 'Signés', value: 'signed'),
-    _FilterOption(label: 'En cours', value: 'in_progress'),
+    _FilterOption(label: 'Tous', value: 'all', icon: Icons.list_rounded),
+    _FilterOption(
+        label: 'En attente', value: 'pending', icon: Icons.schedule_rounded),
+    _FilterOption(
+        label: 'Signes', value: 'signed', icon: Icons.check_circle_rounded),
+    _FilterOption(
+        label: 'En cours',
+        value: 'in_progress',
+        icon: Icons.play_circle_rounded),
   ];
 
   @override
   void initState() {
     super.initState();
     _loadCRIs();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadCRIs() async {
@@ -56,7 +76,7 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: AppTheme.error),
         );
       }
     }
@@ -67,123 +87,334 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
     _loadCRIs();
   }
 
+  List<Map<String, dynamic>> get _filteredCris {
+    if (_searchQuery.isEmpty) return _cris;
+    final query = _searchQuery.toLowerCase();
+    return _cris.where((cri) {
+      final clientName = (cri['clientName'] ?? '').toString().toLowerCase();
+      final category = (cri['category'] ?? '').toString().toLowerCase();
+      final type = (cri['interventionType'] ?? '').toString().toLowerCase();
+      return clientName.contains(query) ||
+          category.contains(query) ||
+          type.contains(query);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes CRI'),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.folder_outlined),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const DocumentsPage()),
-              );
-            },
-            tooltip: 'Mes Documents & Exports',
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadCRIs,
-            tooltip: 'Actualiser',
-          ),
-        ],
-      ),
-      body: ContentContainer(
-        maxWidth: 1400,
-        child: Column(
-        children: [
-          // Filter chips
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _filters.map((filter) {
-                  final isSelected = _selectedFilter == filter.value;
-                  final showBadge =
-                      filter.value == 'pending' && _pendingCount > 0;
+    ref.watch(themeAnimationProvider);
+    final isDesktop = Responsive.isDesktopOrLarger(context);
+    final filtered = _filteredCris;
 
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      label: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(filter.label),
-                          if (showBadge) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                '$_pendingCount',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      selected: isSelected,
-                      onSelected: (_) => _onFilterChanged(filter.value),
-                      selectedColor: Theme.of(
-                        context,
-                      ).colorScheme.primary.withOpacity(0.2),
-                      checkmarkColor: Theme.of(context).colorScheme.primary,
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      body: ContentContainer(
+        maxWidth: 1200,
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- Custom header ---
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                isDesktop ? AppTheme.space32 : AppTheme.space16,
+                AppTheme.space24,
+                isDesktop ? AppTheme.space32 : AppTheme.space16,
+                AppTheme.space4,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Mes CRI',
+                          style: GoogleFonts.inter(
+                            fontSize: isDesktop ? 26 : 22,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const Gap(4),
+                        Text(
+                          '${filtered.length} compte${filtered.length > 1 ? 's' : ''} rendu${filtered.length > 1 ? 's' : ''}',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: AppTheme.textTertiary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                }).toList(),
+                  ),
+                  _buildHeaderAction(
+                    icon: Icons.folder_outlined,
+                    tooltip: 'Mes Documents & Exports',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const DocumentsPage()),
+                      );
+                    },
+                  ),
+                  const Gap(8),
+                  _buildHeaderAction(
+                    icon: Icons.refresh_rounded,
+                    tooltip: 'Actualiser',
+                    onTap: _loadCRIs,
+                  ),
+                ],
               ),
             ),
-          ),
 
-          // Liste des CRI
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _cris.isEmpty
-                ? _buildEmptyState()
-                : RefreshIndicator(
-                    onRefresh: _loadCRIs,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        if (constraints.maxWidth >= 1000) {
-                          return GridView.builder(
-                            padding: const EdgeInsets.all(16),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 2.5,
-                            ),
-                            itemCount: _cris.length,
-                            itemBuilder: (context, index) =>
-                                _buildCriCard(_cris[index]),
-                          );
-                        }
-                        return ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _cris.length,
-                          itemBuilder: (context, index) =>
-                              _buildCriCard(_cris[index]),
-                        );
+            // --- Search bar + filter pills ---
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isDesktop ? AppTheme.space32 : AppTheme.space16,
+                vertical: AppTheme.space12,
+              ),
+              child: Column(
+                children: [
+                  // Search bar
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: AppTheme.textPrimary,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Rechercher par client, type, categorie...',
+                        hintStyle: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: AppTheme.textTertiary,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          color: AppTheme.textTertiary,
+                          size: 20,
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(Icons.close_rounded,
+                                    size: 18, color: AppTheme.textTertiary),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Gap(12),
+
+                  // Filter pills
+                  SizedBox(
+                    height: 38,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _filters.length,
+                      separatorBuilder: (_, __) => const Gap(8),
+                      itemBuilder: (context, index) {
+                        final filter = _filters[index];
+                        return _buildFilterPill(filter);
                       },
                     ),
                   ),
+                ],
+              ),
+            ),
+
+            const Gap(4),
+
+            // --- List ---
+            Expanded(
+              child: _isLoading
+                  ? _buildShimmerLoading()
+                  : filtered.isEmpty
+                      ? _buildEmptyState()
+                      : RefreshIndicator(
+                          onRefresh: _loadCRIs,
+                          color: AppTheme.primary,
+                          child: ListView.builder(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isDesktop
+                                  ? AppTheme.space32
+                                  : AppTheme.space16,
+                              vertical: AppTheme.space8,
+                            ),
+                            itemCount: filtered.length,
+                            itemBuilder: (context, index) => _buildCriCard(
+                              filtered[index],
+                            )
+                                .animate()
+                                .fadeIn(
+                                  duration: AppTheme.animNormal,
+                                  delay: Duration(
+                                      milliseconds: (index * 40).clamp(0, 400)),
+                                )
+                                .slideY(
+                                  begin: 0.03,
+                                  end: 0,
+                                  duration: AppTheme.animNormal,
+                                  delay: Duration(
+                                      milliseconds: (index * 40).clamp(0, 400)),
+                                ),
+                          ),
+                        ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderAction({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          child: Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(color: AppTheme.border),
+            ),
+            child: Icon(icon, size: 18, color: AppTheme.textSecondary),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterPill(_FilterOption filter) {
+    final isSelected = _selectedFilter == filter.value;
+    final showBadge = filter.value == 'pending' && _pendingCount > 0;
+
+    Color pillColor;
+    Color pillTextColor;
+    Color pillBorderColor;
+
+    if (isSelected) {
+      switch (filter.value) {
+        case 'pending':
+          pillColor = AppTheme.warningLight;
+          pillTextColor = const Color(0xFFB45309);
+          pillBorderColor = AppTheme.warning.withValues(alpha: 0.3);
+          break;
+        case 'signed':
+          pillColor = AppTheme.successLight;
+          pillTextColor = const Color(0xFF065F46);
+          pillBorderColor = AppTheme.success.withValues(alpha: 0.3);
+          break;
+        case 'in_progress':
+          pillColor = AppTheme.infoLight;
+          pillTextColor = const Color(0xFF1E40AF);
+          pillBorderColor = AppTheme.info.withValues(alpha: 0.3);
+          break;
+        default:
+          pillColor = AppTheme.primary.withValues(alpha: 0.08);
+          pillTextColor = AppTheme.primary;
+          pillBorderColor = AppTheme.primary.withValues(alpha: 0.2);
+      }
+    } else {
+      pillColor = AppTheme.surface;
+      pillTextColor = AppTheme.textSecondary;
+      pillBorderColor = AppTheme.border;
+    }
+
+    return GestureDetector(
+      onTap: () => _onFilterChanged(filter.value),
+      child: AnimatedContainer(
+        duration: AppTheme.animFast,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+        decoration: BoxDecoration(
+          color: pillColor,
+          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+          border: Border.all(color: pillBorderColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(filter.icon, size: 15, color: pillTextColor),
+            const Gap(6),
+            Text(
+              filter.label,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: pillTextColor,
+              ),
+            ),
+            if (showBadge) ...[
+              const Gap(6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  color: AppTheme.error,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                ),
+                child: Text(
+                  '$_pendingCount',
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerLoading() {
+    final isDesktop = Responsive.isDesktopOrLarger(context);
+    return Shimmer.fromColors(
+      baseColor: AppTheme.surfaceVariant,
+      highlightColor: AppTheme.surface,
+      child: ListView.builder(
+        padding: EdgeInsets.symmetric(
+          horizontal: isDesktop ? AppTheme.space32 : AppTheme.space16,
+          vertical: AppTheme.space8,
+        ),
+        itemCount: 6,
+        itemBuilder: (context, index) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Container(
+            height: 82,
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            ),
+          ),
         ),
       ),
     );
@@ -194,24 +425,45 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            'Aucun CRI trouvé',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(color: Colors.grey[600]),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            ),
+            child: Icon(
+              Icons.inbox_rounded,
+              size: 36,
+              color: AppTheme.textTertiary,
+            ),
           ),
-          const SizedBox(height: 8),
+          const Gap(20),
+          Text(
+            'Aucun CRI trouve',
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const Gap(6),
           Text(
             _selectedFilter == 'all'
-                ? 'Créez votre premier CRI'
+                ? 'Creez votre premier CRI'
                 : 'Aucun CRI avec ce filtre',
-            style: TextStyle(color: Colors.grey[500]),
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: AppTheme.textTertiary,
+            ),
           ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: AppTheme.animNormal).scale(
+          begin: const Offset(0.95, 0.95),
+          end: const Offset(1, 1),
+          duration: AppTheme.animNormal,
+        );
   }
 
   Widget _buildCriCard(Map<String, dynamic> cri) {
@@ -226,105 +478,145 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
         : '';
     final hasSigned = cri['clientSignature'] != null;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          final criModel = CriModel(
-            id: cri['id'],
-            client: clientName,
-            site: cri['clientSite'] ?? clientName,
-            typeIntervention: interventionType,
-            description: cri['workDescription'] ?? '',
-            date: cri['interventionDate'] != null 
-                ? DateTime.tryParse(cri['interventionDate']) ?? DateTime.now()
-                : DateTime.now(),
-            createdAt: cri['createdAt'] != null 
-                ? DateTime.tryParse(cri['createdAt']) ?? DateTime.now()
-                : DateTime.now(),
-          );
-          
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.white,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    // Status badge config
+    final statusLabel = hasSigned ? 'Signe' : 'En attente';
+    final statusColor = hasSigned ? AppTheme.success : AppTheme.warning;
+    final statusBg =
+        hasSigned ? AppTheme.successLight : AppTheme.warningLight;
+    final statusIcon =
+        hasSigned ? Icons.check_circle_rounded : Icons.schedule_rounded;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          hoverColor: AppTheme.surfaceVariant.withValues(alpha: 0.5),
+          onTap: () {
+            final criModel = CriModel(
+              id: cri['id'],
+              client: clientName,
+              site: cri['clientSite'] ?? clientName,
+              typeIntervention: interventionType,
+              description: cri['workDescription'] ?? '',
+              date: cri['interventionDate'] != null
+                  ? DateTime.tryParse(cri['interventionDate']) ?? DateTime.now()
+                  : DateTime.now(),
+              createdAt: cri['createdAt'] != null
+                  ? DateTime.tryParse(cri['createdAt']) ?? DateTime.now()
+                  : DateTime.now(),
+            );
+
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.white,
+              shape: const RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              builder: (context) => CriDetailsDialog(cri: criModel),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+              border: Border.all(color: AppTheme.border.withValues(alpha: 0.6)),
             ),
-            builder: (context) => CriDetailsDialog(cri: criModel),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      clientName,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: hasSigned
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          hasSigned ? Icons.check_circle : Icons.pending,
-                          size: 14,
-                          color: hasSigned ? Colors.green : Colors.orange,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          hasSigned ? 'Signé' : 'En attente',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: hasSigned ? Colors.green : Colors.orange,
+            child: Row(
+              children: [
+                // Left content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              clientName,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                          // Status pill
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: statusBg,
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusFull),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(statusIcon,
+                                    size: 13, color: statusColor),
+                                const Gap(4),
+                                Text(
+                                  statusLabel,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: statusColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Gap(8),
+                      Row(
+                        children: [
+                          Icon(Icons.build_outlined,
+                              size: 13, color: AppTheme.textTertiary),
+                          const Gap(4),
+                          Expanded(
+                            child: Text(
+                              '$interventionType  $category',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const Gap(12),
+                          Icon(Icons.calendar_today_rounded,
+                              size: 13, color: AppTheme.textTertiary),
+                          const Gap(4),
+                          Text(
+                            createdAt,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.textTertiary,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.build_outlined, size: 14, color: Colors.grey[500]),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      '$interventionType • $category',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Icon(Icons.calendar_today, size: 14, color: Colors.grey[500]),
-                  const SizedBox(width: 4),
-                  Text(
-                    createdAt,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ],
+                ),
+                const Gap(12),
+                // View icon (hover-visible via InkWell)
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: AppTheme.textTertiary,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -335,6 +627,8 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
 class _FilterOption {
   final String label;
   final String value;
+  final IconData icon;
 
-  const _FilterOption({required this.label, required this.value});
+  const _FilterOption(
+      {required this.label, required this.value, required this.icon});
 }

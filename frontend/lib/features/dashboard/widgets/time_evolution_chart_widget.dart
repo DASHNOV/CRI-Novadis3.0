@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 import 'package:novadis_cri/features/dashboard/config/chart_config.dart';
 
@@ -56,18 +57,34 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.title, style: ChartConfig.chartTitleStyle),
+            Text(
+              widget.title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary,
+              ),
+            ),
             if (widget.subtitle != null) ...[
               const SizedBox(height: 4),
-              Text(widget.subtitle!, style: ChartConfig.chartSubtitleStyle),
+              Text(
+                widget.subtitle!,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppTheme.textTertiary,
+                ),
+              ),
             ],
             const SizedBox(height: 24),
             SizedBox(
@@ -92,11 +109,11 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.show_chart, size: 48, color: Colors.grey[400]),
+          Icon(Icons.show_chart, size: 48, color: AppTheme.textTertiary),
           const SizedBox(height: 8),
           Text(
             'Aucune donnée disponible',
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -118,7 +135,10 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
         drawVerticalLine: false,
         horizontalInterval: maxY / 5,
         getDrawingHorizontalLine: (value) {
-          return FlLine(color: ChartConfig.gridLineColor, strokeWidth: 1);
+          return FlLine(
+            color: AppTheme.border.withValues(alpha: 0.5),
+            strokeWidth: 1,
+          );
         },
       ),
       titlesData: FlTitlesData(
@@ -133,7 +153,10 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     widget.data[index].label,
-                    style: ChartConfig.axisLabelStyle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textTertiary,
+                    ),
                   ),
                 );
               }
@@ -148,7 +171,10 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
             getTitlesWidget: (value, meta) {
               return Text(
                 ChartConfig.formatAxisValue(value),
-                style: ChartConfig.axisLabelStyle,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppTheme.textTertiary,
+                ),
               );
             },
           ),
@@ -165,14 +191,18 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
       maxY: maxY,
       lineTouchData: LineTouchData(
         touchTooltipData: LineTouchTooltipData(
-          getTooltipColor: (touchedSpot) => Colors.grey[800]!,
+          getTooltipColor: (touchedSpot) => AppTheme.textPrimary,
           tooltipRoundedRadius: 8,
           getTooltipItems: (touchedSpots) {
             return touchedSpots.map((spot) {
               final data = widget.data[spot.x.toInt()];
               return LineTooltipItem(
                 '${data.label}\n${data.count} interventions',
-                ChartConfig.tooltipTextStyle,
+                const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               );
             }).toList();
           },
@@ -196,7 +226,7 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
           }),
           isCurved: true,
           curveSmoothness: 0.3,
-          color: ChartConfig.primaryLineColor,
+          color: AppTheme.primary,
           barWidth: ChartConfig.lineWidth,
           isStrokeCapRound: true,
           dotData: FlDotData(
@@ -205,7 +235,7 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
               final isSelected = index == _touchedIndex;
               return FlDotCirclePainter(
                 radius: isSelected ? 6 : ChartConfig.dotRadius,
-                color: ChartConfig.primaryLineColor,
+                color: AppTheme.primary,
                 strokeWidth: 2,
                 strokeColor: Colors.white,
               );
@@ -216,7 +246,10 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: ChartConfig.areaGradient,
+              colors: [
+                AppTheme.primary.withValues(alpha: 0.2),
+                AppTheme.primary.withValues(alpha: 0.0),
+              ],
             ),
           ),
         ),

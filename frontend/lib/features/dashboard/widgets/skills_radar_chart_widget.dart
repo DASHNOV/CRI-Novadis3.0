@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 import 'package:novadis_cri/features/dashboard/config/chart_config.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 
 /// Widget pour le radar de compétences du technicien
 class SkillsRadarChartWidget extends StatefulWidget {
@@ -54,11 +55,15 @@ class _SkillsRadarChartWidgetState extends State<SkillsRadarChartWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -94,11 +99,11 @@ class _SkillsRadarChartWidgetState extends State<SkillsRadarChartWidget>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.radar, size: 48, color: Colors.grey[400]),
+          Icon(Icons.radar, size: 48, color: AppTheme.textTertiary),
           const SizedBox(height: 8),
           Text(
             'Aucune donnée disponible',
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -114,10 +119,10 @@ class _SkillsRadarChartWidgetState extends State<SkillsRadarChartWidget>
         radarBorderData: BorderSide(color: ChartConfig.gridLineColor, width: 1),
         tickBorderData: BorderSide(color: ChartConfig.gridLineColor, width: 1),
         gridBorderData: BorderSide(color: ChartConfig.gridLineColor, width: 1),
-        ticksTextStyle: TextStyle(color: Colors.grey[400], fontSize: 10),
+        ticksTextStyle: TextStyle(color: AppTheme.textTertiary, fontSize: 10),
         tickCount: 4,
         titleTextStyle: TextStyle(
-          color: Colors.grey[700],
+          color: AppTheme.textSecondary,
           fontSize: 11,
           fontWeight: FontWeight.w500,
         ),
@@ -149,10 +154,10 @@ class _SkillsRadarChartWidgetState extends State<SkillsRadarChartWidget>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: ChartConfig.primaryLineColor.withOpacity(0.1),
+        color: ChartConfig.primaryLineColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: ChartConfig.primaryLineColor.withOpacity(0.3),
+          color: ChartConfig.primaryLineColor.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -164,7 +169,7 @@ class _SkillsRadarChartWidgetState extends State<SkillsRadarChartWidget>
               widget.topCategoryInsight!,
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.grey[800],
+                color: AppTheme.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),

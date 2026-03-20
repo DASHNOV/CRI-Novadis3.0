@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 
 /// Widget pour afficher la liste des top sites
@@ -20,11 +21,14 @@ class TopSitesListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -36,17 +40,20 @@ class TopSitesListWidget extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 4),
                       Text(
                         subtitle!,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textTertiary,
+                        ),
                       ),
                     ],
                   ],
@@ -54,12 +61,12 @@ class TopSitesListWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppTheme.success.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   ),
                   child: const Icon(
                     Icons.location_on,
-                    color: Colors.green,
+                    color: AppTheme.success,
                     size: 20,
                   ),
                 ),
@@ -89,8 +96,8 @@ class TopSitesListWidget extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppTheme.surfaceVariant,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
               ),
               const SizedBox(width: 12),
@@ -102,7 +109,7 @@ class TopSitesListWidget extends StatelessWidget {
                       width: double.infinity,
                       height: 16,
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: AppTheme.surfaceVariant,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -111,7 +118,7 @@ class TopSitesListWidget extends StatelessWidget {
                       width: 120,
                       height: 12,
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: AppTheme.surfaceVariant,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -131,11 +138,11 @@ class TopSitesListWidget extends StatelessWidget {
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.location_off, size: 48, color: Colors.grey[400]),
+            Icon(Icons.location_off, size: 48, color: AppTheme.textTertiary),
             const SizedBox(height: 8),
             Text(
               'Aucun site visité',
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: AppTheme.textSecondary),
             ),
           ],
         ),
@@ -178,7 +185,7 @@ class _SiteListItem extends StatelessWidget {
       children: [
         InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
             child: Row(
@@ -191,17 +198,20 @@ class _SiteListItem extends StatelessWidget {
                     children: [
                       Text(
                         site.siteName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color: Colors.black87,
+                          color: AppTheme.textPrimary,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Text(
                         site.clientName,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textTertiary,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -211,13 +221,17 @@ class _SiteListItem extends StatelessWidget {
                 _buildVisitBadge(),
                 if (onTap != null) ...[
                   const SizedBox(width: 8),
-                  Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
+                  Icon(
+                    Icons.chevron_right,
+                    color: AppTheme.textTertiary,
+                    size: 20,
+                  ),
                 ],
               ],
             ),
           ),
         ),
-        if (!isLast) Divider(height: 1, color: Colors.grey[200]),
+        if (!isLast) Divider(height: 1, color: AppTheme.border.withValues(alpha: 0.5)),
       ],
     );
   }
@@ -226,25 +240,25 @@ class _SiteListItem extends StatelessWidget {
     Color badgeColor;
     switch (rank) {
       case 1:
-        badgeColor = const Color(0xFFFFD700); // Or
+        badgeColor = const Color(0xFFFFD700);
         break;
       case 2:
-        badgeColor = const Color(0xFFC0C0C0); // Argent
+        badgeColor = const Color(0xFFC0C0C0);
         break;
       case 3:
-        badgeColor = const Color(0xFFCD7F32); // Bronze
+        badgeColor = const Color(0xFFCD7F32);
         break;
       default:
-        badgeColor = Colors.grey;
+        badgeColor = AppTheme.textTertiary;
     }
 
     return Container(
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: badgeColor.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: badgeColor.withOpacity(0.5), width: 1),
+        color: badgeColor.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.3), width: 1),
       ),
       child: Center(
         child: Text(
@@ -252,7 +266,7 @@ class _SiteListItem extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 14,
-            color: rank <= 3 ? badgeColor : Colors.grey[700],
+            color: rank <= 3 ? badgeColor : AppTheme.textSecondary,
           ),
         ),
       ),
@@ -263,20 +277,20 @@ class _SiteListItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
+        color: AppTheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.visibility, size: 14, color: Colors.blue),
+          Icon(Icons.visibility, size: 14, color: AppTheme.primary),
           const SizedBox(width: 4),
           Text(
             '${site.visitCount}',
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 13,
-              color: Colors.blue,
+              color: AppTheme.primary,
             ),
           ),
         ],
@@ -284,4 +298,3 @@ class _SiteListItem extends StatelessWidget {
     );
   }
 }
-

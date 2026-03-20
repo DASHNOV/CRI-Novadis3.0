@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:novadis_cri/features/dashboard/config/chart_config.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 
 /// Widget pour afficher les KPIs du technicien
 class TechnicianKpiCardsWidget extends StatelessWidget {
@@ -38,10 +39,10 @@ class TechnicianKpiCardsWidget extends StatelessWidget {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w600,
-        color: Colors.black87,
+        color: AppTheme.textPrimary,
       ),
     );
   }
@@ -74,7 +75,7 @@ class TechnicianKpiCardsWidget extends StatelessWidget {
             title: 'vs Équipe',
             value: '${kpis.teamComparison.toStringAsFixed(0)}%',
             icon: Icons.people,
-            color: Colors.purple,
+            color: AppTheme.accent,
             trend: kpis.teamComparison > 100
                 ? 'up'
                 : (kpis.teamComparison < 100 ? 'down' : null),
@@ -91,7 +92,7 @@ class TechnicianKpiCardsWidget extends StatelessWidget {
         ? ChartConfig.trendUpColor
         : (kpis.standardDeviation > 0
               ? ChartConfig.trendDownColor
-              : Colors.grey);
+              : AppTheme.textTertiary);
 
     return Row(
       children: [
@@ -139,7 +140,7 @@ class TechnicianKpiCardsWidget extends StatelessWidget {
             title: 'Interventions',
             value: '${kpis.assignedInterventions}',
             icon: Icons.analytics_outlined,
-            color: Colors.indigo,
+            color: AppTheme.accent,
             isLoading: isLoading,
           ),
         ),
@@ -195,16 +196,10 @@ class _TechnicianKpiCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border),
+        boxShadow: AppTheme.shadowSm,
       ),
       child: isLoading ? _buildSkeleton() : _buildContent(),
     );
@@ -220,7 +215,7 @@ class _TechnicianKpiCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: color, size: 16),
@@ -241,10 +236,10 @@ class _TechnicianKpiCard extends StatelessWidget {
         Flexible(
           child: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: AppTheme.textPrimary,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -256,7 +251,7 @@ class _TechnicianKpiCard extends StatelessWidget {
             title,
             style: TextStyle(
               fontSize: 10,
-              color: Colors.grey[600],
+              color: AppTheme.textSecondary,
               fontWeight: FontWeight.w500,
             ),
             maxLines: 1,
@@ -268,7 +263,7 @@ class _TechnicianKpiCard extends StatelessWidget {
           Flexible(
             child: Text(
               subtitle!,
-              style: TextStyle(fontSize: 9, color: Colors.grey[500]),
+              style: TextStyle(fontSize: 9, color: AppTheme.textTertiary),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -287,7 +282,7 @@ class _TechnicianKpiCard extends StatelessWidget {
           width: 30,
           height: 30,
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: AppTheme.surfaceVariant,
             borderRadius: BorderRadius.circular(8),
           ),
         ),
@@ -296,7 +291,7 @@ class _TechnicianKpiCard extends StatelessWidget {
           width: 50,
           height: 20,
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: AppTheme.surfaceVariant,
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -305,7 +300,7 @@ class _TechnicianKpiCard extends StatelessWidget {
           width: 60,
           height: 12,
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: AppTheme.surfaceVariant,
             borderRadius: BorderRadius.circular(4),
           ),
         ),

@@ -46,6 +46,12 @@ dependencies:
   permission_handler: ^11.3.1
   flutter_dotenv: ^5.2.1
 
+  # UI Redesign packages
+  google_fonts: ^6.2.1
+  shimmer: ^3.0.0
+  flutter_animate: ^4.5.0
+  gap: ^3.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

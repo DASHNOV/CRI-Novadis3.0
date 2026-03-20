@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 
 class SparePartsWidget extends StatefulWidget {
   final List<Map<String, dynamic>> initialParts;
@@ -56,7 +57,7 @@ class _SparePartsWidgetState extends State<SparePartsWidget> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Pièces Détachées', style: theme.textTheme.titleSmall),
+            Text('Pièces Détachées', style: theme.textTheme.titleSmall?.copyWith(color: AppTheme.textPrimary)),
             TextButton.icon(
               onPressed: _addPart,
               icon: const Icon(Icons.add),
@@ -71,6 +72,7 @@ class _SparePartsWidgetState extends State<SparePartsWidget> {
               'Aucune pièce ajoutée',
               style: theme.textTheme.bodySmall?.copyWith(
                 fontStyle: FontStyle.italic,
+                color: AppTheme.textTertiary,
               ),
             ),
           )
@@ -82,10 +84,11 @@ class _SparePartsWidgetState extends State<SparePartsWidget> {
             separatorBuilder: (context, index) => const Divider(),
             itemBuilder: (context, index) {
               final part = _parts[index];
-              return Card(
-                elevation: 0,
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(
-                  0.3,
+              return Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceVariant.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                  border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -114,9 +117,9 @@ class _SparePartsWidgetState extends State<SparePartsWidget> {
                           ),
                           const SizedBox(width: 8),
                           IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.delete_outline,
-                              color: Colors.red,
+                              color: AppTheme.error,
                             ),
                             onPressed: () => _removePart(index),
                           ),

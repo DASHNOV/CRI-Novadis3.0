@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 
 import '../../export/models/exported_document_model.dart';
 
@@ -25,13 +26,13 @@ class EmptyDocumentsState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
+                color: AppTheme.primaryLight,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 _getIcon(),
                 size: 64,
-                color: Theme.of(context).colorScheme.primary,
+                color: AppTheme.primary,
               ),
             ),
             const SizedBox(height: 24),
@@ -39,9 +40,11 @@ class EmptyDocumentsState extends StatelessWidget {
             // Titre
             Text(
               'Aucun document ${_getTypeLabel()}',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -49,10 +52,9 @@ class EmptyDocumentsState extends StatelessWidget {
             // Sous-titre
             Text(
               _getSubtitle(),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 14,
               ),
               textAlign: TextAlign.center,
             ),
@@ -64,6 +66,8 @@ class EmptyDocumentsState extends StatelessWidget {
               icon: const Icon(Icons.add),
               label: const Text('Créer un export'),
               style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: AppTheme.textOnPrimary,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 12,
@@ -116,27 +120,33 @@ class EmptySearchState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search_off,
-              size: 64,
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withOpacity(0.5),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryLight.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.search_off,
+                size: 64,
+                color: AppTheme.primary,
+              ),
             ),
             const SizedBox(height: 24),
             Text(
               'Aucun résultat',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
             Text(
               'Essayez avec d\'autres mots-clés',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 14,
               ),
             ),
           ],
@@ -145,4 +155,3 @@ class EmptySearchState extends StatelessWidget {
     );
   }
 }
-

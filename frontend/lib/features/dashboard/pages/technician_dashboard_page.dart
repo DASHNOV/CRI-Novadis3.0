@@ -8,6 +8,7 @@ import 'package:novadis_cri/features/dashboard/widgets/dashboard_common_widgets.
 
 import 'package:novadis_cri/features/dashboard/widgets/intervention_trend_chart_widget.dart';
 import 'package:novadis_cri/features/dashboard/config/chart_config.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Dashboard spécifique à un Technicien
 class TechnicianDashboardPage extends ConsumerStatefulWidget {
@@ -45,18 +46,20 @@ class _TechnicianDashboardPageState
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeAnimationProvider);
     final techStatsAsync = ref.watch(technicianStatsProvider);
     final selectedTech = ref.watch(selectedTechnicianProvider);
     final selectedPeriod = ref.watch(selectedPeriodProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.lightGray,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Dashboard Technicien'),
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.surface,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.darkBlue),
+          icon: Icon(Icons.arrow_back, color: AppTheme.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
@@ -65,11 +68,11 @@ class _TechnicianDashboardPageState
           : CustomScrollView(
               slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(AppTheme.space16),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       _TechnicianHeader(technician: selectedTech),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppTheme.space16),
 
                       // Filtre de période
                       PeriodFilterWidget(
@@ -80,7 +83,7 @@ class _TechnicianDashboardPageState
                               .setPeriod(period);
                         },
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppTheme.space24),
 
                       techStatsAsync.when(
                         data: (stats) {
@@ -102,7 +105,7 @@ class _TechnicianDashboardPageState
                                           .kpiColors['interventions']!,
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  const SizedBox(width: AppTheme.space16),
                                   Expanded(
                                     child: _SimpleKpiCard(
                                       title: 'Réalisées',
@@ -114,7 +117,7 @@ class _TechnicianDashboardPageState
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: AppTheme.space24),
 
                               // 2. Graphique avec le nombre d'intervention en fonction temps
                               InterventionTrendChartWidget(
@@ -122,29 +125,24 @@ class _TechnicianDashboardPageState
                                 title: 'Interventions',
                                 subtitle: 'Nombre d\'interventions par semaine',
                               ),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: AppTheme.space24),
 
-                              const SizedBox(height: 24),
+                              const SizedBox(height: AppTheme.space24),
 
                               // 3. (Deleted)
 
                               // 4. Site fréquenté
-                              const SizedBox(height: 24),
+                              const SizedBox(height: AppTheme.space24),
 
                               // 4. Site fréquenté
                               if (stats.topSites.isNotEmpty) ...[
                                 Container(
-                                  padding: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.all(AppTheme.space16),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.03),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
+                                    color: AppTheme.surface,
+                                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                                    border: Border.all(color: AppTheme.border),
+                                    boxShadow: AppTheme.shadowSm,
                                   ),
                                   child: Column(
                                     crossAxisAlignment:
@@ -157,11 +155,11 @@ class _TechnicianDashboardPageState
                                             .textTheme
                                             .titleMedium
                                             ?.copyWith(
-                                              color: AppTheme.darkBlue,
+                                              color: AppTheme.textPrimary,
                                               fontWeight: FontWeight.bold,
                                             ),
                                       ),
-                                      const SizedBox(height: 12),
+                                      const SizedBox(height: AppTheme.space12),
                                       Column(
                                         children: stats.topSites
                                             .map(
@@ -172,6 +170,7 @@ class _TechnicianDashboardPageState
                                                     'siteId': site.siteId,
                                                   },
                                                 ),
+                                                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                                                 child: Padding(
                                                   padding:
                                                       const EdgeInsets.symmetric(
@@ -182,24 +181,24 @@ class _TechnicianDashboardPageState
                                                       Container(
                                                         padding:
                                                             const EdgeInsets.all(
-                                                              8,
+                                                              AppTheme.space8,
                                                             ),
                                                         decoration: BoxDecoration(
                                                           color: AppTheme
-                                                              .lightGray,
+                                                              .surfaceVariant,
                                                           borderRadius:
                                                               BorderRadius.circular(
-                                                                8,
+                                                                AppTheme.radiusMd,
                                                               ),
                                                         ),
                                                         child: const Icon(
                                                           Icons.business,
                                                           size: 20,
                                                           color: AppTheme
-                                                              .primaryBlue,
+                                                              .primary,
                                                         ),
                                                       ),
-                                                      const SizedBox(width: 12),
+                                                      const SizedBox(width: AppTheme.space12),
                                                       Expanded(
                                                         child: Column(
                                                           crossAxisAlignment:
@@ -208,26 +207,26 @@ class _TechnicianDashboardPageState
                                                           children: [
                                                             Text(
                                                               site.siteName,
-                                                              style: const TextStyle(
+                                                              style: TextStyle(
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w600,
+                                                                color: AppTheme.textPrimary,
                                                               ),
                                                             ),
                                                             Text(
                                                               '${site.visitCount} visites',
                                                               style: TextStyle(
-                                                                color: Colors
-                                                                    .grey[500],
+                                                                color: AppTheme.textSecondary,
                                                                 fontSize: 13,
                                                               ),
                                                             ),
                                                           ],
                                                         ),
                                                       ),
-                                                      const Icon(
+                                                      Icon(
                                                         Icons.chevron_right,
-                                                        color: Colors.grey,
+                                                        color: AppTheme.textTertiary,
                                                         size: 20,
                                                       ),
                                                     ],
@@ -240,7 +239,7 @@ class _TechnicianDashboardPageState
                                     ],
                                   ),
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: AppTheme.space24),
                               ],
                             ],
                           );
@@ -252,7 +251,7 @@ class _TechnicianDashboardPageState
                     ]),
                   ),
                 ),
-                const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+                const SliverPadding(padding: EdgeInsets.only(bottom: AppTheme.space24)),
               ],
             ),
     );
@@ -275,44 +274,39 @@ class _SimpleKpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppTheme.space16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        border: Border.all(color: AppTheme.border),
+        boxShadow: AppTheme.shadowSm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(AppTheme.space8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
             ),
             child: Icon(icon, color: color, size: 24),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppTheme.space12),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: AppTheme.darkBlue,
+              color: AppTheme.textPrimary,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppTheme.space4),
           Text(
             title,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[600],
+              color: AppTheme.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -330,22 +324,26 @@ class _TechnicianHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        border: Border.all(color: AppTheme.border),
+        boxShadow: AppTheme.shadowSm,
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppTheme.space20),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 36,
-            backgroundColor: AppTheme.primaryBlue,
+          Container(
+            width: 72,
+            height: 72,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [AppTheme.primary, AppTheme.accent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            alignment: Alignment.center,
             child: Text(
               technician.name.isNotEmpty
                   ? technician.name.substring(0, 2).toUpperCase()
@@ -357,39 +355,39 @@ class _TechnicianHeader extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: AppTheme.space20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   technician.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.darkBlue,
+                    color: AppTheme.textPrimary,
                   ),
                 ),
                 Text(
                   technician.role ?? 'Technicien',
                   style: const TextStyle(
                     fontSize: 16,
-                    color: AppTheme.lightBlue,
+                    color: AppTheme.primary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppTheme.space4),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.email_outlined,
                       size: 16,
-                      color: Color(0xFF64748B),
+                      color: AppTheme.textSecondary,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppTheme.space8),
                     Text(
                       technician.email,
-                      style: const TextStyle(color: Color(0xFF64748B)),
+                      style: TextStyle(color: AppTheme.textSecondary),
                     ),
                   ],
                 ),
@@ -401,5 +399,3 @@ class _TechnicianHeader extends StatelessWidget {
     );
   }
 }
-
-

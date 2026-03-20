@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 import 'package:novadis_cri/features/dashboard/providers/dashboard_providers.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Page de détails d'un site avec historique des interventions
 class SiteDetailsPage extends ConsumerWidget {
@@ -12,10 +14,20 @@ class SiteDetailsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeAnimationProvider);
     final siteDetailsAsync = ref.watch(siteDetailsProvider(siteId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Détails du Site')),
+      appBar: AppBar(
+        backgroundColor: AppTheme.surface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Text(
+          'Détails du Site',
+          style: TextStyle(color: AppTheme.textPrimary),
+        ),
+        iconTheme: IconThemeData(color: AppTheme.textPrimary),
+      ),
       body: siteDetailsAsync.when(
         data: (siteDetails) => _buildContent(context, siteDetails),
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -50,7 +62,7 @@ class SiteDetailsPage extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             '${details.interventionHistory.length} interventions enregistrées',
-            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
           ),
 
           const SizedBox(height: 16),
@@ -66,28 +78,32 @@ class SiteDetailsPage extends ConsumerWidget {
   }
 
   Widget _buildEmptyHistory() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(40),
         child: Center(
           child: Column(
             children: [
-              Icon(Icons.history_outlined, size: 48, color: Colors.grey[400]),
+              Icon(Icons.history_outlined, size: 48, color: AppTheme.textTertiary),
               const SizedBox(height: 12),
               Text(
                 'Aucune intervention',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey[700],
+                  color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 'Pas encore d\'intervention enregistrée pour ce site',
-                style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -102,7 +118,7 @@ class SiteDetailsPage extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+          Icon(Icons.error_outline, size: 64, color: AppTheme.error),
           const SizedBox(height: 16),
           Text(
             'Erreur de chargement',
@@ -111,7 +127,7 @@ class SiteDetailsPage extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             error.toString(),
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(color: AppTheme.textSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -133,89 +149,83 @@ class _SiteHeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withOpacity(0.8),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        gradient: const LinearGradient(
+          colors: [AppTheme.primary, AppTheme.accent],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        boxShadow: AppTheme.shadowMd,
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                ),
+                child: const Icon(
+                  Icons.location_on,
+                  color: AppTheme.textOnPrimary,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      details.siteName,
+                      style: const TextStyle(
+                        color: AppTheme.textOnPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      details.clientName,
+                      style: TextStyle(
+                        color: AppTheme.textOnPrimary.withValues(alpha: 0.9),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (details.address != null) ...[
+            const SizedBox(height: 16),
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.location_on,
-                    color: Colors.white,
-                    size: 28,
-                  ),
+                Icon(
+                  Icons.place_outlined,
+                  color: AppTheme.textOnPrimary.withValues(alpha: 0.8),
+                  size: 18,
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        details.siteName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        details.clientName,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    details.address!,
+                    style: TextStyle(
+                      color: AppTheme.textOnPrimary.withValues(alpha: 0.9),
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],
             ),
-            if (details.address != null) ...[
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Icon(
-                    Icons.place_outlined,
-                    color: Colors.white.withOpacity(0.8),
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      details.address!,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
           ],
-        ),
+        ],
       ),
     );
   }
@@ -236,7 +246,7 @@ class _SiteStatsRow extends StatelessWidget {
             icon: Icons.engineering,
             value: '${details.totalInterventions}',
             label: 'Interventions',
-            color: Colors.blue,
+            color: AppTheme.primary,
           ),
         ),
         const SizedBox(width: 12),
@@ -247,7 +257,7 @@ class _SiteStatsRow extends StatelessWidget {
                 ? '${details.averageResolutionTime!.toInt()}min'
                 : 'N/A',
             label: 'Durée moy.',
-            color: Colors.orange,
+            color: AppTheme.warning,
           ),
         ),
         const SizedBox(width: 12),
@@ -256,7 +266,7 @@ class _SiteStatsRow extends StatelessWidget {
             icon: Icons.history,
             value: '${details.interventionHistory.length}',
             label: 'Total visites',
-            color: Colors.purple,
+            color: AppTheme.accent,
           ),
         ),
       ],
@@ -279,9 +289,13 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -289,8 +303,8 @@ class _StatCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               ),
               child: Icon(icon, color: color, size: 20),
             ),
@@ -302,7 +316,7 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               label,
-              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
             ),
           ],
         ),
@@ -360,10 +374,10 @@ class _TimelineItem extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: statusColor,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: AppTheme.surface, width: 2),
                     boxShadow: [
                       BoxShadow(
-                        color: statusColor.withOpacity(0.3),
+                        color: statusColor.withValues(alpha: 0.3),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -371,17 +385,19 @@ class _TimelineItem extends StatelessWidget {
                   ),
                 ),
                 if (!isLast)
-                  Expanded(child: Container(width: 2, color: Colors.grey[300])),
+                  Expanded(child: Container(width: 2, color: AppTheme.border)),
               ],
             ),
           ),
           const SizedBox(width: 12),
           // Content
           Expanded(
-            child: Card(
-              elevation: 1,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+                boxShadow: AppTheme.shadowSm,
               ),
               margin: const EdgeInsets.only(bottom: 16),
               child: Padding(
@@ -396,7 +412,7 @@ class _TimelineItem extends StatelessWidget {
                           _dateFormat.format(intervention.date),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: AppTheme.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -420,28 +436,28 @@ class _TimelineItem extends StatelessWidget {
                         Icon(
                           Icons.person_outline,
                           size: 14,
-                          color: Colors.grey[600],
+                          color: AppTheme.textSecondary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           intervention.technicianName,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                         const Spacer(),
                         Icon(
                           Icons.timer_outlined,
                           size: 14,
-                          color: Colors.grey[600],
+                          color: AppTheme.textSecondary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           _formatDuration(intervention.durationMinutes),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                       ],
@@ -460,17 +476,17 @@ class _TimelineItem extends StatelessWidget {
     switch (status.toLowerCase()) {
       case 'résolu':
       case 'terminé':
-        return Colors.green;
+        return AppTheme.success;
       case 'partiellement résolu':
-        return Colors.orange;
+        return AppTheme.warning;
       case 'non résolu':
-        return Colors.red;
+        return AppTheme.error;
       case 'en cours':
-        return Colors.blue;
+        return AppTheme.primary;
       case 'escaladé niveau 2':
-        return Colors.purple;
+        return AppTheme.accent;
       default:
-        return Colors.grey;
+        return AppTheme.textTertiary;
     }
   }
 
@@ -495,9 +511,9 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         status,
@@ -510,4 +526,3 @@ class _StatusBadge extends StatelessWidget {
     );
   }
 }
-

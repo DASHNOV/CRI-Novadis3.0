@@ -181,13 +181,13 @@ class _SignaturePadWidgetState extends State<SignaturePadWidget> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _hasSignature
-                    ? theme.colorScheme.primary.withOpacity(0.5)
-                    : theme.colorScheme.outline.withOpacity(0.3),
+                    ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                    : theme.colorScheme.outline.withValues(alpha: 0.3),
                 width: _hasSignature ? 2 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -290,7 +290,7 @@ class _SignatureDialog extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.3),
+                  color: theme.colorScheme.outline.withValues(alpha: 0.3),
                 ),
               ),
               child: ClipRRect(
@@ -371,7 +371,7 @@ class SignaturePreview extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: theme.colorScheme.outline.withOpacity(0.2),
+              color: theme.colorScheme.outline.withValues(alpha: 0.2),
             ),
           ),
           child: hasSignature

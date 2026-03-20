@@ -12,6 +12,7 @@ class StorageService {
   static const _refreshTokenKey = 'refresh_token';
   static const _userRoleKey = 'user_role';
   static const _userNameKey = 'user_name';
+  static const _themeModeKey = 'theme_mode';
 
   Future<void> saveTokens({
     required String accessToken,
@@ -43,6 +44,14 @@ class StorageService {
 
   Future<String?> getUserName() async {
     return await _storage.read(key: _userNameKey);
+  }
+
+  Future<void> saveThemeMode(String mode) async {
+    await _storage.write(key: _themeModeKey, value: mode);
+  }
+
+  Future<String?> getThemeMode() async {
+    return await _storage.read(key: _themeModeKey);
   }
 
   Future<void> clearTokens() async {

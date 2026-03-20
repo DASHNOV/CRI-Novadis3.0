@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:novadis_cri/data/models/cri_model.dart';
@@ -8,6 +8,7 @@ import 'package:novadis_cri/data/models/cri_projet_model.dart';
 import 'package:novadis_cri/data/local/app_database.dart';
 import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 import 'package:novadis_cri/features/history/widgets/cri_details_dialog.dart';
+import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Écran d'historique des CRI
 /// Affiche la liste de tous les comptes rendus d'intervention
@@ -66,6 +67,7 @@ class HistoryScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeAnimationProvider);
     final db = ref.watch(appDatabaseProvider);
     final criList = ref.watch(historyListProvider);
     final remoteRepo = ref.watch(criRemoteRepositoryProvider);
@@ -91,7 +93,7 @@ class HistoryScreen extends HookConsumerWidget {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur de synchronisation : $e'), backgroundColor: Colors.red),
+            SnackBar(content: Text('Erreur de synchronisation : $e'), backgroundColor: AppTheme.error),
           );
         }
       }
@@ -110,7 +112,7 @@ class HistoryScreen extends HookConsumerWidget {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              style: TextButton.styleFrom(foregroundColor: AppTheme.error),
               child: const Text('Supprimer'),
             ),
           ],
@@ -127,18 +129,18 @@ class HistoryScreen extends HookConsumerWidget {
         if (context.mounted) {
           if (deleted > 0) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('CRI supprimé'),
-                backgroundColor: Colors.green,
+              SnackBar(
+                content: const Text('CRI supprimé'),
+                backgroundColor: AppTheme.success,
               ),
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
+              SnackBar(
+                content: const Text(
                   'Erreur lors de la suppression ou CRI introuvable',
                 ),
-                backgroundColor: Colors.red,
+                backgroundColor: AppTheme.error,
               ),
             );
           }
@@ -154,7 +156,7 @@ class HistoryScreen extends HookConsumerWidget {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.surface,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
@@ -163,8 +165,13 @@ class HistoryScreen extends HookConsumerWidget {
     }
 
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Historique'),
+        backgroundColor: AppTheme.surface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Text('Historique', style: TextStyle(color: AppTheme.textPrimary)),
+        iconTheme: IconThemeData(color: AppTheme.textPrimary),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -184,20 +191,20 @@ class HistoryScreen extends HookConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[400]),
+                  Icon(Icons.inbox_outlined, size: 64, color: AppTheme.textTertiary),
                   const SizedBox(height: 16),
                   Text(
                     'Aucun CRI enregistré',
                     style: Theme.of(
                       context,
-                    ).textTheme.titleLarge?.copyWith(color: Colors.grey[600]),
+                    ).textTheme.titleLarge?.copyWith(color: AppTheme.textSecondary),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Créez votre premier compte rendu d\'intervention',
                     style: Theme.of(
                       context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+                    ).textTheme.bodyMedium?.copyWith(color: AppTheme.textTertiary),
                   ),
                 ],
               ),
@@ -239,11 +246,17 @@ class _CriCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -264,13 +277,13 @@ class _CriCard extends StatelessWidget {
                         Text(
                           cri.site,
                           style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: Colors.grey[600]),
+                              ?.copyWith(color: AppTheme.textSecondary),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    icon: const Icon(Icons.delete_outline, color: AppTheme.error),
                     onPressed: onDelete,
                     tooltip: 'Supprimer',
                   ),
@@ -279,7 +292,7 @@ class _CriCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(Icons.build_outlined, size: 16, color: Colors.grey[600]),
+                  Icon(Icons.build_outlined, size: 16, color: AppTheme.textSecondary),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -290,7 +303,7 @@ class _CriCard extends StatelessWidget {
                   Icon(
                     Icons.calendar_today_outlined,
                     size: 16,
-                    color: Colors.grey[600],
+                    color: AppTheme.textSecondary,
                   ),
                   const SizedBox(width: 8),
                   Text(

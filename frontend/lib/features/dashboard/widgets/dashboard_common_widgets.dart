@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 
-/// Widget de filtre de période (Style Pills)
-/// Widget de filtre de période (Style Pills)
+/// Widget de filtre de période (Style Pills modernes)
 class PeriodFilterWidget extends StatelessWidget {
   final DashboardPeriod selectedPeriod;
   final Function(DashboardPeriod) onPeriodChanged;
@@ -18,14 +18,12 @@ class PeriodFilterWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: Colors.grey.shade200),
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+        border: Border.all(color: AppTheme.border),
       ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 300,
-        ), // Max width to avoid overflow
+        constraints: const BoxConstraints(maxWidth: 320),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -35,7 +33,7 @@ class PeriodFilterWidget extends StatelessWidget {
               return GestureDetector(
                 onTap: () => onPeriodChanged(period),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: AppTheme.animFast,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
@@ -43,17 +41,17 @@ class PeriodFilterWidget extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFF1C84C6) // Light Blue
+                        ? AppTheme.primary
                         : Colors.transparent,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   ),
                   child: Text(
                     period.label,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: isSelected
-                          ? Colors.white
-                          : const Color(0xFF64748B),
+                          ? AppTheme.textOnPrimary
+                          : AppTheme.textSecondary,
                       fontWeight: isSelected
                           ? FontWeight.w600
                           : FontWeight.w500,
@@ -90,33 +88,33 @@ class TechnicianSelectorWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border),
       ),
       child: isLoading
           ? _buildLoadingState()
           : DropdownButtonHideUnderline(
               child: DropdownButton<TechnicianModel?>(
                 value: selectedTechnician,
-                hint: const Row(
+                hint: Row(
                   children: [
-                    Icon(Icons.person_search, size: 20, color: Colors.grey),
-                    SizedBox(width: 8),
+                    Icon(Icons.person_search, size: 20, color: AppTheme.textTertiary),
+                    const SizedBox(width: 8),
                     Text(
                       'Sélectionner un technicien',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: AppTheme.textTertiary),
                     ),
                   ],
                 ),
-                icon: const Icon(Icons.keyboard_arrow_down),
+                icon: Icon(Icons.keyboard_arrow_down, color: AppTheme.textTertiary),
                 isExpanded: true,
                 items: [
-                  const DropdownMenuItem<TechnicianModel?>(
+                  DropdownMenuItem<TechnicianModel?>(
                     value: null,
                     child: Text(
                       'Sélectionner un technicien',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: AppTheme.textTertiary),
                     ),
                   ),
                   ...technicians.map((tech) {
@@ -126,15 +124,13 @@ class TechnicianSelectorWidget extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             radius: 14,
-                            backgroundColor: Theme.of(
-                              context,
-                            ).primaryColor.withOpacity(0.1),
+                            backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
                             child: Text(
                               tech.name.isNotEmpty
                                   ? tech.name[0].toUpperCase()
                                   : '?',
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColor,
+                              style: const TextStyle(
+                                color: AppTheme.primary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                               ),
@@ -148,16 +144,17 @@ class TechnicianSelectorWidget extends StatelessWidget {
                               children: [
                                 Text(
                                   tech.name,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w500,
                                     fontSize: 14,
+                                    color: AppTheme.textPrimary,
                                   ),
                                 ),
                                 Text(
                                   tech.email,
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Colors.grey[600],
+                                    color: AppTheme.textTertiary,
                                   ),
                                 ),
                               ],
@@ -175,17 +172,23 @@ class TechnicianSelectorWidget extends StatelessWidget {
   }
 
   Widget _buildLoadingState() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 12),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
           SizedBox(
             width: 20,
             height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppTheme.primary,
+            ),
           ),
-          SizedBox(width: 12),
-          Text('Chargement des techniciens...'),
+          const SizedBox(width: 12),
+          Text(
+            'Chargement des techniciens...',
+            style: TextStyle(color: AppTheme.textSecondary),
+          ),
         ],
       ),
     );
@@ -217,27 +220,34 @@ class DashboardHeaderWidget extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                  letterSpacing: -0.3,
                 ),
               ),
               if (subtitle != null) ...[
                 const SizedBox(height: 4),
                 Text(
                   subtitle!,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               ],
               if (lastUpdated != null) ...[
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.update, size: 14, color: Colors.grey[500]),
+                    Icon(Icons.update, size: 14, color: AppTheme.textTertiary),
                     const SizedBox(width: 4),
                     Text(
                       'Mis à jour: ${_formatDateTime(lastUpdated!)}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textTertiary,
+                      ),
                     ),
                   ],
                 ),
@@ -250,6 +260,9 @@ class DashboardHeaderWidget extends StatelessWidget {
             onPressed: onRefresh,
             icon: const Icon(Icons.refresh),
             tooltip: 'Rafraîchir',
+            style: IconButton.styleFrom(
+              foregroundColor: AppTheme.textSecondary,
+            ),
           ),
       ],
     );
@@ -279,18 +292,14 @@ class ConnectionStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = isOnline ? AppTheme.success : AppTheme.warning;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: isOnline
-            ? Colors.green.withOpacity(0.1)
-            : Colors.orange.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isOnline
-              ? Colors.green.withOpacity(0.3)
-              : Colors.orange.withOpacity(0.3),
-        ),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -299,7 +308,7 @@ class ConnectionStatusBadge extends StatelessWidget {
             width: 8,
             height: 8,
             decoration: BoxDecoration(
-              color: isOnline ? Colors.green : Colors.orange,
+              color: color,
               shape: BoxShape.circle,
             ),
           ),
@@ -309,7 +318,7 @@ class ConnectionStatusBadge extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: isOnline ? Colors.green.shade700 : Colors.orange.shade700,
+              color: color,
             ),
           ),
         ],
@@ -317,4 +326,3 @@ class ConnectionStatusBadge extends StatelessWidget {
     );
   }
 }
-
