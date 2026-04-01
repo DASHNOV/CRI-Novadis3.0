@@ -34,4 +34,4 @@ dart compile js -O2 -o web/drift_worker.js web/drift_worker.dart
 
 # 7. Build de l'application Web
 echo "Lancement du build Flutter Web..."
-flutter build web --release --dart-define=API_URL=https://armando-coenobitic-ebony.ngrok-free.dev/api
+flutter build web --release --dart-define=API_URL=https://api.cri-novadis.tech/api

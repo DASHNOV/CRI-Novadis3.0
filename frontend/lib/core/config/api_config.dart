@@ -14,7 +14,7 @@ class ApiConfig {
     // 2. Si on est en mode Release (Vercel), on ne VEUT PAS du fallback IP locale
     if (kReleaseMode) {
       // Si on arrive ici sur Vercel, c'est que --dart-define a échoué
-      return '/api'; // Tentative d'URL relative (si le backend était sur le même domaine)
+      return 'https://api.cri-novadis.tech/api';
     }
 
     // 3. Ensuite au fichier .env (Développement local uniquement)
