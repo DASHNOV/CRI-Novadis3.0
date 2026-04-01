@@ -60,3 +60,6 @@ StyleCop.Cache
 
 # Dotnet
 .net/
+
+# Environment variables (secrets)
+.env

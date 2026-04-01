@@ -12,6 +12,24 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Charger les variables d'environnement depuis le fichier .env (secrets)
+var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (File.Exists(envPath))
+{
+    foreach (var line in File.ReadAllLines(envPath))
+    {
+        if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#')) continue;
+        var separatorIndex = line.IndexOf('=');
+        if (separatorIndex <= 0) continue;
+        var key = line[..separatorIndex].Trim();
+        var value = line[(separatorIndex + 1)..].Trim();
+        Environment.SetEnvironmentVariable(key, value);
+    }
+}
+
+// Recharger la configuration pour inclure les variables d'environnement
+builder.Configuration.AddEnvironmentVariables();
+
 // ========================================
 // 1️⃣ CONFIGURATION DE LA BASE DE DONNÉES
 // ========================================
