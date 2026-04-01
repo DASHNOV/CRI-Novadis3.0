@@ -15,6 +15,13 @@ import 'package:novadis_cri/core/theme/theme_provider.dart';
 class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
 
+  // Couleurs Novadis extraites du logo
+  static const Color novadisBlack = Color(0xFF0A0A0A);
+  static const Color novadisDeepBlack = Color(0xFF050505);
+  static const Color novadisAccentBlue = Color(0xFF8BB8E8); // point bleu du 'i'
+  static const Color novadisWhite = Color(0xFFF5F5F5);
+  static const Color novadisGray = Color(0xFF6B7280);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(themeAnimationProvider);
@@ -94,51 +101,51 @@ class _BrandingPanel extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppTheme.primary,
-            AppTheme.accent,
+            LoginScreen.novadisBlack,
+            Color(0xFF111111),
+            LoginScreen.novadisDeepBlack,
           ],
         ),
       ),
       child: Stack(
         children: [
-          // Decorative circles
+          // Subtle accent glow top-right
           Positioned(
-            top: -80,
-            left: -80,
+            top: -120,
+            right: -80,
+            child: Container(
+              width: 350,
+              height: 350,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    LoginScreen.novadisAccentBlue.withValues(alpha: 0.08),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Subtle accent glow bottom-left
+          Positioned(
+            bottom: -100,
+            left: -60,
             child: Container(
               width: 300,
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.06),
+                gradient: RadialGradient(
+                  colors: [
+                    LoginScreen.novadisAccentBlue.withValues(alpha: 0.05),
+                    Colors.transparent,
+                  ],
+                ),
               ),
             ),
           ),
-          Positioned(
-            bottom: -60,
-            right: -60,
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.06),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 120,
-            right: 60,
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.04),
-              ),
-            ),
-          ),
-          // Decorative grid dots
+          // Fine grid lines
           Positioned(
             bottom: 80,
             left: 60,
@@ -152,26 +159,14 @@ class _BrandingPanel extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'N',
-                        style: GoogleFonts.inter(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
+                  // Logo Novadis
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                    child: Image.asset(
+                      'assets/logos/novadis_logo_black.png',
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
                     ),
                   )
                       .animate()
@@ -183,7 +178,7 @@ class _BrandingPanel extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 44,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: LoginScreen.novadisWhite,
                       letterSpacing: -1,
                       height: 1.1,
                     ),
@@ -197,7 +192,7 @@ class _BrandingPanel extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w400,
-                      color: Colors.white.withValues(alpha: 0.8),
+                      color: LoginScreen.novadisWhite.withValues(alpha: 0.7),
                       height: 1.5,
                     ),
                   )
@@ -205,11 +200,12 @@ class _BrandingPanel extends StatelessWidget {
                       .fadeIn(duration: 600.ms, delay: 500.ms)
                       .slideX(begin: -0.2, end: 0),
                   const Gap(32),
+                  // Accent line
                   Container(
                     width: 48,
                     height: 3,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.3),
+                      color: LoginScreen.novadisAccentBlue,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ).animate().fadeIn(duration: 600.ms, delay: 650.ms),
@@ -219,7 +215,7 @@ class _BrandingPanel extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
-                      color: Colors.white.withValues(alpha: 0.6),
+                      color: LoginScreen.novadisGray,
                       height: 1.7,
                     ),
                   ).animate().fadeIn(duration: 600.ms, delay: 700.ms),
@@ -248,7 +244,7 @@ class _GridDots extends StatelessWidget {
             width: 4,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: LoginScreen.novadisAccentBlue.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
           ),
@@ -290,34 +286,14 @@ class _FormPanel extends StatelessWidget {
                   if (showLogo) ...[
                     // Mobile logo
                     Center(
-                      child: Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [AppTheme.primary, AppTheme.accent],
-                          ),
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusLg),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.primary.withValues(alpha: 0.3),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            'N',
-                            style: GoogleFonts.inter(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
+                      child: ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusLg),
+                        child: Image.asset(
+                          'assets/logos/novadis_logo_black.png',
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.cover,
                         ),
                       ),
                     )
@@ -407,7 +383,7 @@ class _FormPanel extends StatelessWidget {
                           borderRadius:
                               BorderRadius.circular(AppTheme.radiusMd),
                           borderSide: const BorderSide(
-                              color: AppTheme.primary, width: 2),
+                              color: LoginScreen.novadisAccentBlue, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -433,16 +409,19 @@ class _FormPanel extends StatelessWidget {
                           gradient: loading
                               ? null
                               : const LinearGradient(
-                                  colors: [AppTheme.primary, AppTheme.accent],
+                                  colors: [
+                                    Color(0xFF111111),
+                                    Color(0xFF1A1A1A),
+                                  ],
                                 ),
                           color: loading
-                              ? AppTheme.primary.withValues(alpha: 0.6)
+                              ? LoginScreen.novadisBlack.withValues(alpha: 0.6)
                               : null,
                           boxShadow: loading
                               ? []
                               : [
                                   BoxShadow(
-                                    color: AppTheme.primary.withValues(alpha: 0.25),
+                                    color: Colors.black.withValues(alpha: 0.2),
                                     blurRadius: 12,
                                     offset: const Offset(0, 4),
                                   ),
