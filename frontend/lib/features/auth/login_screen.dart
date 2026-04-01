@@ -15,13 +15,6 @@ import 'package:novadis_cri/core/theme/theme_provider.dart';
 class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
 
-  // Couleurs Novadis extraites du logo
-  static const Color novadisBlack = Color(0xFF0A0A0A);
-  static const Color novadisDeepBlack = Color(0xFF050505);
-  static const Color novadisAccentBlue = Color(0xFF8BB8E8); // point bleu du 'i'
-  static const Color novadisWhite = Color(0xFFF5F5F5);
-  static const Color novadisGray = Color(0xFF6B7280);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(themeAnimationProvider);
@@ -84,7 +77,7 @@ class LoginScreen extends HookConsumerWidget {
               emailController: emailController,
               isLoading: isLoading,
               onLogin: handleLogin,
-              showLogo: true,
+              showBranding: true,
             ),
     );
   }
@@ -101,9 +94,9 @@ class _BrandingPanel extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            LoginScreen.novadisBlack,
+            Color(0xFF0A0A0A),
             Color(0xFF111111),
-            LoginScreen.novadisDeepBlack,
+            Color(0xFF050505),
           ],
         ),
       ),
@@ -120,7 +113,7 @@ class _BrandingPanel extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    LoginScreen.novadisAccentBlue.withValues(alpha: 0.08),
+                    AppTheme.accent.withValues(alpha: 0.08),
                     Colors.transparent,
                   ],
                 ),
@@ -138,14 +131,14 @@ class _BrandingPanel extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    LoginScreen.novadisAccentBlue.withValues(alpha: 0.05),
+                    AppTheme.accent.withValues(alpha: 0.05),
                     Colors.transparent,
                   ],
                 ),
               ),
             ),
           ),
-          // Fine grid lines
+          // Fine grid dots
           Positioned(
             bottom: 80,
             left: 60,
@@ -159,32 +152,18 @@ class _BrandingPanel extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo Novadis
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                    child: Image.asset(
-                      'assets/logos/novadis_logo_black.png',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                      .animate()
-                      .fadeIn(duration: 600.ms, delay: 200.ms)
-                      .slideX(begin: -0.2, end: 0),
-                  const Gap(32),
                   Text(
                     'Novadis CRI',
                     style: GoogleFonts.inter(
                       fontSize: 44,
                       fontWeight: FontWeight.w700,
-                      color: LoginScreen.novadisWhite,
+                      color: const Color(0xFFF5F5F5),
                       letterSpacing: -1,
                       height: 1.1,
                     ),
                   )
                       .animate()
-                      .fadeIn(duration: 600.ms, delay: 350.ms)
+                      .fadeIn(duration: 600.ms, delay: 200.ms)
                       .slideX(begin: -0.2, end: 0),
                   const Gap(12),
                   Text(
@@ -192,12 +171,12 @@ class _BrandingPanel extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w400,
-                      color: LoginScreen.novadisWhite.withValues(alpha: 0.7),
+                      color: const Color(0xFFF5F5F5).withValues(alpha: 0.7),
                       height: 1.5,
                     ),
                   )
                       .animate()
-                      .fadeIn(duration: 600.ms, delay: 500.ms)
+                      .fadeIn(duration: 600.ms, delay: 350.ms)
                       .slideX(begin: -0.2, end: 0),
                   const Gap(32),
                   // Accent line
@@ -205,20 +184,20 @@ class _BrandingPanel extends StatelessWidget {
                     width: 48,
                     height: 3,
                     decoration: BoxDecoration(
-                      color: LoginScreen.novadisAccentBlue,
+                      color: AppTheme.accent,
                       borderRadius: BorderRadius.circular(2),
                     ),
-                  ).animate().fadeIn(duration: 600.ms, delay: 650.ms),
+                  ).animate().fadeIn(duration: 600.ms, delay: 500.ms),
                   const Gap(24),
                   Text(
                     'Gerez vos interventions, suivez vos comptes\nrendus et collaborez avec votre equipe.',
                     style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
-                      color: LoginScreen.novadisGray,
+                      color: const Color(0xFF6B7280),
                       height: 1.7,
                     ),
-                  ).animate().fadeIn(duration: 600.ms, delay: 700.ms),
+                  ).animate().fadeIn(duration: 600.ms, delay: 600.ms),
                 ],
               ),
             ),
@@ -244,7 +223,7 @@ class _GridDots extends StatelessWidget {
             width: 4,
             height: 4,
             decoration: BoxDecoration(
-              color: LoginScreen.novadisAccentBlue.withValues(alpha: 0.15),
+              color: AppTheme.accent.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
           ),
@@ -260,13 +239,13 @@ class _FormPanel extends StatelessWidget {
   final TextEditingController emailController;
   final ValueNotifier<bool> isLoading;
   final VoidCallback onLogin;
-  final bool showLogo;
+  final bool showBranding;
 
   const _FormPanel({
     required this.emailController,
     required this.isLoading,
     required this.onLogin,
-    this.showLogo = false,
+    this.showBranding = false,
   });
 
   @override
@@ -283,24 +262,7 @@ class _FormPanel extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (showLogo) ...[
-                    // Mobile logo
-                    Center(
-                      child: ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusLg),
-                        child: Image.asset(
-                          'assets/logos/novadis_logo_black.png',
-                          width: 56,
-                          height: 56,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    )
-                        .animate()
-                        .fadeIn(duration: 500.ms)
-                        .scale(begin: const Offset(0.8, 0.8)),
-                    const Gap(24),
+                  if (showBranding) ...[
                     Text(
                       'Novadis CRI',
                       style: GoogleFonts.inter(
@@ -310,7 +272,7 @@ class _FormPanel extends StatelessWidget {
                         letterSpacing: -0.5,
                       ),
                       textAlign: TextAlign.center,
-                    ).animate().fadeIn(duration: 500.ms, delay: 100.ms),
+                    ).animate().fadeIn(duration: 500.ms),
                     const Gap(4),
                     Text(
                       'Compte Rendu d\'Intervention',
@@ -319,7 +281,7 @@ class _FormPanel extends StatelessWidget {
                         color: AppTheme.textTertiary,
                       ),
                       textAlign: TextAlign.center,
-                    ).animate().fadeIn(duration: 500.ms, delay: 150.ms),
+                    ).animate().fadeIn(duration: 500.ms, delay: 100.ms),
                     const Gap(48),
                   ],
                   // Title
@@ -382,8 +344,8 @@ class _FormPanel extends StatelessWidget {
                         focusedBorder: OutlineInputBorder(
                           borderRadius:
                               BorderRadius.circular(AppTheme.radiusMd),
-                          borderSide: const BorderSide(
-                              color: LoginScreen.novadisAccentBlue, width: 2),
+                          borderSide: BorderSide(
+                              color: AppTheme.accent, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -406,22 +368,14 @@ class _FormPanel extends StatelessWidget {
                         decoration: BoxDecoration(
                           borderRadius:
                               BorderRadius.circular(AppTheme.radiusMd),
-                          gradient: loading
-                              ? null
-                              : const LinearGradient(
-                                  colors: [
-                                    Color(0xFF111111),
-                                    Color(0xFF1A1A1A),
-                                  ],
-                                ),
                           color: loading
-                              ? LoginScreen.novadisBlack.withValues(alpha: 0.6)
-                              : null,
+                              ? AppTheme.primary.withValues(alpha: 0.6)
+                              : AppTheme.primary,
                           boxShadow: loading
                               ? []
                               : [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
+                                    color: Colors.black.withValues(alpha: 0.15),
                                     blurRadius: 12,
                                     offset: const Offset(0, 4),
                                   ),

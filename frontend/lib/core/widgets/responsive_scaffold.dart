@@ -234,26 +234,13 @@ class _SidebarHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppTheme.primary, AppTheme.accent],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Center(
-              child: Text(
-                'N',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.asset(
+              'assets/logos/novadis_logo_black.png',
+              width: 36,
+              height: 36,
+              fit: BoxFit.cover,
             ),
           ),
           if (!isCollapsed) ...[
@@ -313,7 +300,7 @@ class _SidebarItemState extends State<_SidebarItem> {
   @override
   Widget build(BuildContext context) {
     final iconColor = widget.isActive
-        ? AppTheme.primary
+        ? AppTheme.accent
         : _isHovered
             ? AppTheme.textPrimary
             : AppTheme.textSecondary;
@@ -339,7 +326,7 @@ class _SidebarItemState extends State<_SidebarItem> {
                 ),
                 decoration: BoxDecoration(
                   color: widget.isActive
-                      ? AppTheme.primary.withValues(alpha: 0.08)
+                      ? AppTheme.accent.withValues(alpha: 0.08)
                       : _isHovered
                           ? AppTheme.surfaceVariant.withValues(alpha: 0.7)
                           : Colors.transparent,
@@ -357,7 +344,7 @@ class _SidebarItemState extends State<_SidebarItem> {
                         height: 20,
                         margin: const EdgeInsets.only(right: 8),
                         decoration: BoxDecoration(
-                          color: AppTheme.primary,
+                          color: AppTheme.accent,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -381,7 +368,7 @@ class _SidebarItemState extends State<_SidebarItem> {
                           widget.destination.label,
                           style: TextStyle(
                             color: widget.isActive
-                                ? AppTheme.primary
+                                ? AppTheme.accent
                                 : _isHovered
                                     ? AppTheme.textPrimary
                                     : AppTheme.textSecondary,
@@ -404,7 +391,7 @@ class _SidebarItemState extends State<_SidebarItem> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.primary,
+                          color: AppTheme.accent,
                           borderRadius: BorderRadius.circular(
                             AppTheme.radiusFull,
                           ),
@@ -514,7 +501,7 @@ class _ThemeToggleButton extends ConsumerWidget {
             ),
             decoration: BoxDecoration(
               color: isDark
-                  ? AppTheme.primary.withValues(alpha: 0.08)
+                  ? AppTheme.accent.withValues(alpha: 0.08)
                   : AppTheme.surfaceVariant.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
             ),
@@ -535,7 +522,7 @@ class _ThemeToggleButton extends ConsumerWidget {
                         : Icons.light_mode_rounded,
                     key: ValueKey(isDark),
                     size: 20,
-                    color: isDark ? AppTheme.primary : AppTheme.warning,
+                    color: isDark ? AppTheme.accent : AppTheme.warning,
                   ),
                 ),
                 if (!isCollapsed) ...[
@@ -594,14 +581,14 @@ class _BottomNavItem extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isActive
-                        ? AppTheme.primary.withValues(alpha: 0.1)
+                        ? AppTheme.accent.withValues(alpha: 0.1)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   ),
                   child: IconTheme(
                     data: IconThemeData(
                       color: isActive
-                          ? AppTheme.primary
+                          ? AppTheme.accent
                           : AppTheme.textTertiary,
                       size: 22,
                     ),
@@ -615,7 +602,7 @@ class _BottomNavItem extends StatelessWidget {
                   destination.label,
                   style: TextStyle(
                     color: isActive
-                        ? AppTheme.primary
+                        ? AppTheme.accent
                         : AppTheme.textTertiary,
                     fontSize: 11,
                     fontWeight: isActive
@@ -668,7 +655,7 @@ class _MobileThemeToggle extends ConsumerWidget {
                     ),
                     decoration: BoxDecoration(
                       color: isDark
-                          ? AppTheme.primary.withValues(alpha: 0.1)
+                          ? AppTheme.accent.withValues(alpha: 0.1)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     ),
@@ -677,7 +664,7 @@ class _MobileThemeToggle extends ConsumerWidget {
                           ? Icons.dark_mode_rounded
                           : Icons.light_mode_rounded,
                       size: 22,
-                      color: isDark ? AppTheme.primary : AppTheme.warning,
+                      color: isDark ? AppTheme.accent : AppTheme.warning,
                     ),
                   ),
                 ),

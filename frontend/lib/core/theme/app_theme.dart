@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Design System Novadis CRI 2.0
-/// Inspiré de Linear, Notion, Vercel, Stripe Dashboard
+/// Palette inspirée du logo Novadis (noir, blanc, bleu clair)
 /// Supporte le mode clair et sombre avec transition animée.
 ///
 /// Les couleurs dynamiques interpolent entre light/dark via [themeT]
@@ -19,40 +19,41 @@ class AppTheme {
       Color.lerp(light, dark, themeT)!;
 
   // ─── Light palette constants ───
-  static const Color _lightBackground = Color(0xFFF8F9FB);
+  static const Color _lightBackground = Color(0xFFF5F6F8);
   static const Color _lightSurface = Color(0xFFFFFFFF);
-  static const Color _lightSurfaceVariant = Color(0xFFF1F5F9);
-  static const Color _lightBorder = Color(0xFFE2E8F0);
-  static const Color _lightBorderLight = Color(0xFFF1F5F9);
-  static const Color _lightTextPrimary = Color(0xFF0F172A);
-  static const Color _lightTextSecondary = Color(0xFF475569);
-  static const Color _lightTextTertiary = Color(0xFF94A3B8);
-  static const Color _lightPrimaryLight = Color(0xFF3B82F6);
+  static const Color _lightSurfaceVariant = Color(0xFFEEF1F5);
+  static const Color _lightBorder = Color(0xFFDDE1E8);
+  static const Color _lightBorderLight = Color(0xFFEEF1F5);
+  static const Color _lightTextPrimary = Color(0xFF0A0A0A);
+  static const Color _lightTextSecondary = Color(0xFF4A5568);
+  static const Color _lightTextTertiary = Color(0xFF8E99A8);
+  static const Color _lightPrimaryLight = Color(0xFF6BA3D6);
   static const Color _lightSuccessLight = Color(0xFFD1FAE5);
   static const Color _lightWarningLight = Color(0xFFFEF3C7);
   static const Color _lightErrorLight = Color(0xFFFEE2E2);
-  static const Color _lightInfoLight = Color(0xFFDBEAFE);
+  static const Color _lightInfoLight = Color(0xFFD6E8F8);
 
   // ─── Dark palette constants ───
-  static const Color _darkBackground = Color(0xFF0B0D14);
-  static const Color _darkSurface = Color(0xFF12141D);
-  static const Color _darkSurfaceVariant = Color(0xFF1A1D28);
-  static const Color _darkBorder = Color(0xFF252939);
-  static const Color _darkBorderLight = Color(0xFF1E2130);
+  static const Color _darkBackground = Color(0xFF0A0A0A);
+  static const Color _darkSurface = Color(0xFF111111);
+  static const Color _darkSurfaceVariant = Color(0xFF1A1A1A);
+  static const Color _darkBorder = Color(0xFF2A2A2A);
+  static const Color _darkBorderLight = Color(0xFF1E1E1E);
   static const Color _darkTextPrimary = Color(0xFFE8EAED);
   static const Color _darkTextSecondary = Color(0xFF9AA0B4);
   static const Color _darkTextTertiary = Color(0xFF5F6578);
-  static const Color _darkPrimaryLight = Color(0xFF60A5FA);
+  static const Color _darkPrimaryLight = Color(0xFFA3CBE8);
   static const Color _darkSuccessLight = Color(0xFF064E3B);
   static const Color _darkWarningLight = Color(0xFF78350F);
   static const Color _darkErrorLight = Color(0xFF7F1D1D);
-  static const Color _darkInfoLight = Color(0xFF1E3A5F);
+  static const Color _darkInfoLight = Color(0xFF1A3550);
 
-  // ─── Couleurs principales ───
-  static const Color primary = Color(0xFF2563EB);
+  // ─── Couleurs principales Novadis ───
+  static const Color primary = Color(0xFF1A1A1A);         // Noir Novadis
+  static const Color primaryBlue = Color(0xFF8BB8E8);     // Bleu clair du logo (point du 'i')
   static Color get primaryLight => _lerp(_lightPrimaryLight, _darkPrimaryLight);
-  static const Color primaryDark = Color(0xFF1D4ED8);
-  static const Color accent = Color(0xFF6366F1);
+  static const Color primaryDark = Color(0xFF050505);
+  static const Color accent = Color(0xFF8BB8E8);          // Bleu accent Novadis
 
   // ─── Surfaces & Backgrounds ───
   static Color get background => _lerp(_lightBackground, _darkBackground);
@@ -76,12 +77,11 @@ class AppTheme {
   static Color get warningLight => _lerp(_lightWarningLight, _darkWarningLight);
   static const Color error = Color(0xFFEF4444);
   static Color get errorLight => _lerp(_lightErrorLight, _darkErrorLight);
-  static const Color info = Color(0xFF3B82F6);
+  static const Color info = Color(0xFF8BB8E8);
   static Color get infoLight => _lerp(_lightInfoLight, _darkInfoLight);
 
   // ─── Anciennes couleurs (backward compat) ───
-  static const Color primaryBlue = primary;
-  static const Color darkBlue = Color(0xFF1E3A5F);
+  static const Color darkBlue = Color(0xFF1A3550);
   static Color get lightBlue => primaryLight;
   static Color get lightGray => surfaceVariant;
   static const Color alertRed = error;
@@ -193,8 +193,11 @@ class AppTheme {
     required Color txtS,
     required Color txtT,
   }) {
+    final isDark = themeBrightness == Brightness.dark;
+    final accentColor = accent;
+
     final textTheme = GoogleFonts.interTextTheme(
-      themeBrightness == Brightness.dark
+      isDark
           ? ThemeData.dark().textTheme
           : ThemeData.light().textTheme,
     );
@@ -203,9 +206,9 @@ class AppTheme {
       useMaterial3: true,
       brightness: themeBrightness,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: primary,
-        primary: primary,
-        secondary: accent,
+        seedColor: accentColor,
+        primary: isDark ? accentColor : primary,
+        secondary: accentColor,
         tertiary: primaryDark,
         error: error,
         surface: surf,
@@ -280,8 +283,8 @@ class AppTheme {
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primary,
-          foregroundColor: textOnPrimary,
+          backgroundColor: isDark ? accentColor : primary,
+          foregroundColor: isDark ? const Color(0xFF0A0A0A) : textOnPrimary,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
@@ -306,7 +309,7 @@ class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: primary,
+          foregroundColor: accentColor,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusMd),
@@ -316,8 +319,8 @@ class AppTheme {
       ),
 
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: primary,
-        foregroundColor: textOnPrimary,
+        backgroundColor: isDark ? accentColor : primary,
+        foregroundColor: isDark ? const Color(0xFF0A0A0A) : textOnPrimary,
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusLg),
@@ -339,7 +342,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
-          borderSide: const BorderSide(color: primary, width: 2),
+          borderSide: BorderSide(color: accentColor, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
@@ -356,7 +359,7 @@ class AppTheme {
 
       chipTheme: ChipThemeData(
         backgroundColor: surfVar,
-        selectedColor: primary.withValues(alpha: 0.1),
+        selectedColor: accentColor.withValues(alpha: 0.15),
         labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusSm),
@@ -387,26 +390,26 @@ class AppTheme {
       ),
 
       tabBarTheme: TabBarThemeData(
-        labelColor: primary,
+        labelColor: isDark ? accentColor : primary,
         unselectedLabelColor: txtT,
         indicator: UnderlineTabIndicator(
-          borderSide: BorderSide(color: primary, width: 2),
+          borderSide: BorderSide(color: isDark ? accentColor : primary, width: 2),
         ),
         labelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
         unselectedLabelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500),
       ),
 
       navigationRailTheme: NavigationRailThemeData(
-        selectedIconTheme: const IconThemeData(color: primary),
+        selectedIconTheme: IconThemeData(color: isDark ? accentColor : primary),
         unselectedIconTheme: IconThemeData(color: txtT),
-        indicatorColor: primary.withValues(alpha: 0.1),
+        indicatorColor: accentColor.withValues(alpha: 0.1),
         backgroundColor: surf,
       ),
 
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: themeBrightness == Brightness.dark
-            ? const Color(0xFF252939)
-            : const Color(0xFF0F172A),
+        backgroundColor: isDark
+            ? const Color(0xFF2A2A2A)
+            : const Color(0xFF0A0A0A),
         contentTextStyle: GoogleFonts.inter(
           color: const Color(0xFFE8EAED), fontSize: 14,
         ),
@@ -418,9 +421,9 @@ class AppTheme {
 
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
-          color: themeBrightness == Brightness.dark
-              ? const Color(0xFF252939)
-              : const Color(0xFF0F172A),
+          color: isDark
+              ? const Color(0xFF2A2A2A)
+              : const Color(0xFF0A0A0A),
           borderRadius: BorderRadius.circular(radiusSm),
         ),
         textStyle: GoogleFonts.inter(
