@@ -85,15 +85,15 @@ class _FilterChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.primaryLight.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+        border: Border.all(color: AppTheme.primaryContent.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: AppTheme.primary,
+            style: TextStyle(
+              color: AppTheme.primaryContent,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -104,7 +104,7 @@ class _FilterChip extends StatelessWidget {
             child: Icon(
               Icons.close,
               size: 16,
-              color: AppTheme.primary.withValues(alpha: 0.7),
+              color: AppTheme.primaryContent.withValues(alpha: 0.7),
             ),
           ),
         ],

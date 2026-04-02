@@ -165,7 +165,7 @@ class _OtpBrandingPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -343,7 +343,7 @@ class _OtpFormPanel extends StatelessWidget {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
+                          gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [AppTheme.primary, AppTheme.accent],
@@ -352,7 +352,7 @@ class _OtpFormPanel extends StatelessWidget {
                               BorderRadius.circular(AppTheme.radiusLg),
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.primary.withValues(alpha: 0.3),
+                              color: AppTheme.primaryContent.withValues(alpha: 0.3),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
@@ -516,7 +516,7 @@ class _OtpFormPanel extends StatelessWidget {
                               BorderRadius.circular(AppTheme.radiusMd),
                           gradient: loading
                               ? null
-                              : const LinearGradient(
+                              : LinearGradient(
                                   colors: [
                                     AppTheme.primary,
                                     AppTheme.accent
@@ -582,7 +582,7 @@ class _OtpFormPanel extends StatelessWidget {
                               style: GoogleFonts.inter(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: AppTheme.primary,
+                                color: AppTheme.primaryContent,
                               ),
                             ),
                           );
@@ -686,7 +686,7 @@ class _OtpDigitBox extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               borderSide: BorderSide(
-                color: hasError ? AppTheme.error : AppTheme.primary,
+                color: hasError ? AppTheme.error : AppTheme.primaryContent,
                 width: 2,
               ),
             ),

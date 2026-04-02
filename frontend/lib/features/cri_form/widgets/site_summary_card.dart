@@ -267,7 +267,7 @@ class SiteSummaryCard extends StatelessWidget {
       title,
       style: theme.textTheme.labelMedium?.copyWith(
         fontWeight: FontWeight.bold,
-        color: AppTheme.primary,
+        color: AppTheme.primaryContent,
         letterSpacing: 1.2,
       ),
     );

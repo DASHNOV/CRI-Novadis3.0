@@ -239,7 +239,7 @@ class _InterventionTrendChartWidgetState
           }),
           isCurved: true,
           curveSmoothness: 0.3,
-          color: AppTheme.primary,
+          color: AppTheme.primaryContent,
           barWidth: ChartConfig.lineWidth,
           isStrokeCapRound: true,
           dotData: FlDotData(
@@ -248,7 +248,7 @@ class _InterventionTrendChartWidgetState
               final isSelected = index == _touchedIndex;
               return FlDotCirclePainter(
                 radius: isSelected ? 6 : ChartConfig.dotRadius,
-                color: AppTheme.primary,
+                color: AppTheme.primaryContent,
                 strokeWidth: 2,
                 strokeColor: Colors.white,
               );

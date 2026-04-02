@@ -57,13 +57,13 @@ class _MobileInterventionListItemState
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.08),
+                      color: AppTheme.primaryContent.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                     ),
                     child: Center(
                       child: Icon(
                         _getIconForType(widget.type),
-                        color: AppTheme.primary,
+                        color: AppTheme.primaryContent,
                         size: 22,
                       ),
                     ),

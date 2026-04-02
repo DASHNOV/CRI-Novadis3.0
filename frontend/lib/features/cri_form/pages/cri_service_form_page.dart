@@ -478,8 +478,8 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 'Durée calculée: ${state.currentCri!.formattedDuration}',
-                style: const TextStyle(
-                  color: AppTheme.primary,
+                style: TextStyle(
+                  color: AppTheme.primaryContent,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),

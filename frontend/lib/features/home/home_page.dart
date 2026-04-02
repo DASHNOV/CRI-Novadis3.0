@@ -68,10 +68,10 @@ class HomePage extends HookConsumerWidget {
   Widget _buildWelcomeHeader(BuildContext context, String userName) {
     return Column(
       children: [
-        const Icon(
+        Icon(
           Icons.engineering,
           size: 64,
-          color: AppTheme.primary,
+          color: AppTheme.primaryContent,
         ),
         const SizedBox(height: 16),
         Text(
@@ -105,7 +105,7 @@ class HomePage extends HookConsumerWidget {
         child: Container(
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               colors: [
                 AppTheme.primary,
                 AppTheme.accent,
@@ -169,7 +169,7 @@ class HomePage extends HookConsumerWidget {
               child: _ActionCard(
                 icon: Icons.dashboard_outlined,
                 label: 'Tableau de Bord',
-                color: AppTheme.primary,
+                color: AppTheme.primaryContent,
                 onTap: () => context.push(AppRouter.dashboard),
               ),
             ),
@@ -226,10 +226,10 @@ class HomePage extends HookConsumerWidget {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.info_outline,
                   size: 20,
-                  color: AppTheme.primary,
+                  color: AppTheme.primaryContent,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -336,7 +336,7 @@ class _QuickStatRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
-            Icon(icon, size: 24, color: AppTheme.primary),
+            Icon(icon, size: 24, color: AppTheme.primaryContent),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

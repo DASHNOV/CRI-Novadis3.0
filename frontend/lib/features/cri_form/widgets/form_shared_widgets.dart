@@ -140,8 +140,8 @@ class CriFormLoadingScaffold extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      body: const Center(
-        child: CircularProgressIndicator(color: AppTheme.primary),
+      body: Center(
+        child: CircularProgressIndicator(color: AppTheme.primaryContent),
       ),
     );
   }

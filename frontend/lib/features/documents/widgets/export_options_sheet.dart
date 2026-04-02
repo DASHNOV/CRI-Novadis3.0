@@ -32,9 +32,9 @@ class ExportOptionsSheet extends ConsumerWidget {
                   color: AppTheme.primaryLight.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add_circle_outline,
-                  color: AppTheme.primary,
+                  color: AppTheme.primaryContent,
                 ),
               ),
               const SizedBox(width: 12),
@@ -80,7 +80,7 @@ class ExportOptionsSheet extends ConsumerWidget {
 
             _ExportOption(
               icon: Icons.dashboard,
-              iconColor: AppTheme.primary,
+              iconColor: AppTheme.primaryContent,
               title: 'Exporter Dashboard (CSV)',
               subtitle: 'Exporter les statistiques du dashboard',
               onTap: () {
@@ -129,7 +129,7 @@ class ExportOptionsSheet extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 ListTile(
-                  leading: const Icon(Icons.list, color: AppTheme.primary),
+                  leading: Icon(Icons.list, color: AppTheme.primaryContent),
                   title: const Text('Interventions globales'),
                   onTap: () {
                     _pickDateAndExport(
@@ -145,7 +145,7 @@ class ExportOptionsSheet extends ConsumerWidget {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.analytics, color: AppTheme.primary),
+                  leading: Icon(Icons.analytics, color: AppTheme.primaryContent),
                   title: const Text('Synthèse KPI'),
                   onTap: () {
                     _pickDateAndExport(
@@ -161,7 +161,7 @@ class ExportOptionsSheet extends ConsumerWidget {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.leaderboard, color: AppTheme.primary),
+                  leading: Icon(Icons.leaderboard, color: AppTheme.primaryContent),
                   title: const Text('Top Sites'),
                   onTap: () {
                     _pickDateAndExport(
@@ -177,7 +177,7 @@ class ExportOptionsSheet extends ConsumerWidget {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.all_inclusive, color: AppTheme.primary),
+                  leading: Icon(Icons.all_inclusive, color: AppTheme.primaryContent),
                   title: const Text('Tout exporter'),
                   onTap: () {
                     _pickDateAndExport(

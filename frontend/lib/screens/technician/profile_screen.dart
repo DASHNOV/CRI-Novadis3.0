@@ -53,7 +53,7 @@ class ProfileScreen extends ConsumerWidget {
                   width: 96,
                   height: 96,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       colors: [AppTheme.primary, AppTheme.accent],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -61,7 +61,7 @@ class ProfileScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.primary.withValues(alpha: 0.25),
+                        color: AppTheme.primaryContent.withValues(alpha: 0.25),
                         blurRadius: 24,
                         offset: const Offset(0, 8),
                       ),
@@ -123,7 +123,7 @@ class ProfileScreen extends ConsumerWidget {
                     _buildMenuTile(
                       context: context,
                       icon: Icons.info_outline_rounded,
-                      iconColor: AppTheme.primary,
+                      iconColor: AppTheme.primaryContent,
                       iconBg: AppTheme.primary.withValues(alpha: 0.08),
                       title: 'A propos',
                       subtitle: 'Informations sur l\'application',

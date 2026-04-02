@@ -175,7 +175,7 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: AppTheme.primary),
+              CircularProgressIndicator(color: AppTheme.primaryContent),
               SizedBox(height: AppTheme.space16),
               Text(
                 'Chargement des rapports...',
@@ -241,7 +241,7 @@ class _CriReportCard extends ConsumerWidget {
 
     final bool isProjet = report.isProjet;
     final Color typeBadgeColor =
-        isProjet ? AppTheme.accent : AppTheme.primary;
+        isProjet ? AppTheme.accent : AppTheme.primaryContent;
     final Color typeBadgeBg =
         isProjet ? AppTheme.accent.withValues(alpha: 0.08) : AppTheme.infoLight;
 
@@ -290,10 +290,10 @@ class _CriReportCard extends ConsumerWidget {
                     ),
                     Text(
                       report.nIntervention,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.primary,
+                        color: AppTheme.primaryContent,
                       ),
                     ),
                   ],
@@ -428,6 +428,8 @@ class _ExportProgressDialogState extends ConsumerState<_ExportProgressDialog> {
 
   Future<void> _startExport() async {
     try {
+      // Invalider le cache pour forcer une nouvelle génération à chaque fois
+      ref.invalidate(generateCriPdfProvider(widget.report.id));
       await ref.read(generateCriPdfProvider(widget.report.id).future);
 
       if (mounted) {
@@ -484,12 +486,12 @@ class _ExportProgressDialogState extends ConsumerState<_ExportProgressDialog> {
               color: AppTheme.infoLight,
               shape: BoxShape.circle,
             ),
-            child: const SizedBox(
+            child: SizedBox(
               width: 28,
               height: 28,
               child: CircularProgressIndicator(
                 strokeWidth: 3,
-                color: AppTheme.primary,
+                color: AppTheme.primaryContent,
               ),
             ),
           ),

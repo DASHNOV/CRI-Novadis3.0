@@ -50,10 +50,10 @@ class DashboardScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.dashboard,
                         size: 48,
-                        color: AppTheme.primary,
+                        color: AppTheme.primaryContent,
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -92,7 +92,7 @@ class DashboardScreen extends ConsumerWidget {
                     _DashboardCard(
                       icon: Icons.history,
                       title: 'Historique',
-                      color: AppTheme.primary,
+                      color: AppTheme.primaryContent,
                       onTap: () => context.push(AppRouter.history),
                     ),
                     _DashboardCard(

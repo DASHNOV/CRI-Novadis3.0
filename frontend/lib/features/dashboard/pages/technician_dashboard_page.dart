@@ -191,7 +191,7 @@ class _TechnicianDashboardPageState
                                                                 AppTheme.radiusMd,
                                                               ),
                                                         ),
-                                                        child: const Icon(
+                                                        child: Icon(
                                                           Icons.business,
                                                           size: 20,
                                                           color: AppTheme
@@ -335,7 +335,7 @@ class _TechnicianHeader extends StatelessWidget {
           Container(
             width: 72,
             height: 72,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 colors: [AppTheme.primary, AppTheme.accent],
@@ -370,9 +370,9 @@ class _TechnicianHeader extends StatelessWidget {
                 ),
                 Text(
                   technician.role ?? 'Technicien',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    color: AppTheme.primary,
+                    color: AppTheme.primaryContent,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

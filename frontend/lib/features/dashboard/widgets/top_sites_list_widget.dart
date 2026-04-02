@@ -277,20 +277,20 @@ class _SiteListItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppTheme.primary.withValues(alpha: 0.08),
+        color: AppTheme.primaryContent.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.visibility, size: 14, color: AppTheme.primary),
+          Icon(Icons.visibility, size: 14, color: AppTheme.primaryContent),
           const SizedBox(width: 4),
           Text(
             '${site.visitCount}',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 13,
-              color: AppTheme.primary,
+              color: AppTheme.primaryContent,
             ),
           ),
         ],

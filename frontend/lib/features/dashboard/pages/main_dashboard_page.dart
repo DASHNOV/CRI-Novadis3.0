@@ -283,7 +283,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           padding: EdgeInsets.all(AppTheme.space16),
           child: LinearProgressIndicator(
             backgroundColor: AppTheme.surfaceVariant,
-            valueColor: AlwaysStoppedAnimation(AppTheme.primary),
+            valueColor: AlwaysStoppedAnimation(AppTheme.primaryContent),
           ),
         ),
         error: (e, s) => const SizedBox.shrink(),
@@ -316,7 +316,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           padding: EdgeInsets.all(AppTheme.space16),
           child: LinearProgressIndicator(
             backgroundColor: AppTheme.surfaceVariant,
-            valueColor: AlwaysStoppedAnimation(AppTheme.primary),
+            valueColor: AlwaysStoppedAnimation(AppTheme.primaryContent),
           ),
         ),
         error: (e, s) => const SizedBox.shrink(),
@@ -435,7 +435,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                 TextButton(
                   onPressed: onAction,
                   style: TextButton.styleFrom(
-                    foregroundColor: AppTheme.primary,
+                    foregroundColor: AppTheme.primaryContent,
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppTheme.space12,
                       vertical: AppTheme.space4,
@@ -483,11 +483,11 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
               Container(
                 padding: const EdgeInsets.all(AppTheme.space8),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.08),
+                  color: AppTheme.primaryContent.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
-                child: const Icon(Icons.location_on_rounded,
-                    color: AppTheme.primary, size: 18),
+                child: Icon(Icons.location_on_rounded,
+                    color: AppTheme.primaryContent, size: 18),
               ),
               const SizedBox(width: AppTheme.space12),
               Expanded(
@@ -517,13 +517,13 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: AppTheme.space8, vertical: AppTheme.space4),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.08),
+                  color: AppTheme.primaryContent.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 ),
                 child: Text(
                   '${site.visitCount} CRI',
-                  style: const TextStyle(
-                    color: AppTheme.primary,
+                  style: TextStyle(
+                    color: AppTheme.primaryContent,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
                   ),
@@ -653,9 +653,9 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                             borderRadius:
                                 BorderRadius.circular(AppTheme.radiusMd),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.business_rounded,
-                            color: AppTheme.primary,
+                            color: AppTheme.primaryContent,
                             size: 20,
                           ),
                         ),
@@ -763,8 +763,8 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                             tech.technicianName.isNotEmpty
                                 ? tech.technicianName[0].toUpperCase()
                                 : '?',
-                            style: const TextStyle(
-                              color: AppTheme.primary,
+                            style: TextStyle(
+                              color: AppTheme.primaryContent,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -895,7 +895,7 @@ class _ViewModeSelector extends StatelessWidget {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: AppTheme.primary.withValues(alpha: 0.2),
+                      color: AppTheme.primaryContent.withValues(alpha: 0.2),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
                     ),

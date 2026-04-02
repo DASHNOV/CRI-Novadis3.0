@@ -85,8 +85,8 @@ class AdminScreen extends HookConsumerWidget {
         future: statsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppTheme.primary),
+            return Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryContent),
             );
           }
 
@@ -189,7 +189,7 @@ class AdminScreen extends HookConsumerWidget {
                         icon: Icons.description_outlined,
                         label: 'CRI',
                         value: totalCri.toString(),
-                        color: AppTheme.primary,
+                        color: AppTheme.primaryContent,
                         bgColor: AppTheme.infoLight,
                       ),
                     ),
@@ -327,7 +327,7 @@ class AdminScreen extends HookConsumerWidget {
                     children: [
                       _ActionListTile(
                         icon: Icons.info_outline_rounded,
-                        iconColor: AppTheme.primary,
+                        iconColor: AppTheme.primaryContent,
                         title: 'À propos',
                         subtitle: 'Informations sur l\'application',
                         onTap: () {
@@ -394,7 +394,7 @@ class AdminScreen extends HookConsumerWidget {
 
   static Color _getTypeColor(int index) {
     final colors = [
-      AppTheme.primary,
+      AppTheme.primaryContent,
       AppTheme.success,
       AppTheme.warning,
       AppTheme.accent,

@@ -315,7 +315,7 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
         alerts.add(
           _buildAlertBadge(
             'ℹ️ Charge faible ${data.weekLabel}: ${ChartConfig.formatHours(data.totalHours)}',
-            AppTheme.primary,
+            AppTheme.primaryContent,
           ),
         );
       }
@@ -358,7 +358,7 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
   Color _getStatusColor(double hours) {
     if (hours > 48) return AppTheme.error;
     if (hours > widget.thresholdHours) return AppTheme.warning;
-    if (hours < 30) return AppTheme.primary;
+    if (hours < 30) return AppTheme.primaryContent;
     return const Color(0xFF8B5CF6);
   }
 }

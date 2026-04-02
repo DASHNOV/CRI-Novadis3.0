@@ -50,7 +50,7 @@ class _DocumentListItemState extends State<DocumentListItem> {
             borderRadius: BorderRadius.circular(AppTheme.radiusLg),
             border: Border.all(
               color: widget.isSelected
-                  ? AppTheme.primary.withValues(alpha: 0.5)
+                  ? AppTheme.primaryContent.withValues(alpha: 0.5)
                   : AppTheme.border.withValues(alpha: 0.5),
             ),
             boxShadow: _isHovered ? AppTheme.shadowSm : null,
@@ -106,13 +106,16 @@ class _DocumentListItemState extends State<DocumentListItem> {
                               color: AppTheme.textTertiary,
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              DateFormat(
-                                'dd/MM/yyyy HH:mm',
-                              ).format(widget.document.createdAt),
-                              style: TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 13,
+                            Flexible(
+                              child: Text(
+                                DateFormat(
+                                  'dd/MM/yyyy HH:mm',
+                                ).format(widget.document.createdAt),
+                                style: TextStyle(
+                                  color: AppTheme.textSecondary,
+                                  fontSize: 13,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -257,7 +260,7 @@ class _DocumentListItemState extends State<DocumentListItem> {
   Color _getExportTypeColor() {
     switch (widget.document.exportType) {
       case ExportType.cri:
-        return AppTheme.primary;
+        return AppTheme.primaryContent;
       case ExportType.dashboard:
         return AppTheme.warning;
       case ExportType.technician:

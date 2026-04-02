@@ -101,7 +101,7 @@ class _SiteSelectorState extends State<SiteSelector> {
                                   leading: Icon(
                                     Icons.location_on,
                                     size: 20,
-                                    color: AppTheme.primary,
+                                    color: AppTheme.primaryContent,
                                   ),
                                   title: Text(
                                     site.nomDuSite,

@@ -148,7 +148,7 @@ class CriFormScreen extends ConsumerWidget {
         'Numero de projet (PRJ-YYYY-NNN)',
         'Gestion du statut projet',
       ],
-      color: AppTheme.primary,
+      color: AppTheme.primaryContent,
       colorLight: AppTheme.infoLight,
       onTap: () => context.push('/cri/new/projet'),
     );

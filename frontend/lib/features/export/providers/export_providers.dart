@@ -1,5 +1,6 @@
+import 'dart:io' show File, Platform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 
 import '../../../data/local/app_database.dart';
 import '../models/exported_document_model.dart';
@@ -46,12 +47,27 @@ final fileManagementServiceProvider = Provider<BaseFileManagementService>((ref) 
 // ============================================================
 
 /// Provider pour tous les documents exportés
+/// Filtre automatiquement les enregistrements dont le fichier n'existe plus sur le disque
 final exportedDocumentsProvider = FutureProvider<List<ExportedDocument>>((
   ref,
 ) async {
-  if (kIsWeb) return []; // Pas de documents locaux sur le web
+  if (kIsWeb) return [];
   final database = ref.watch(databaseProvider);
-  return await database.getAllExportedDocuments();
+  final allDocs = await database.getAllExportedDocuments();
+
+  // Vérifier que chaque fichier existe encore sur le disque
+  final validDocs = <ExportedDocument>[];
+  for (final doc in allDocs) {
+    if (await File(doc.filePath).exists()) {
+      validDocs.add(doc);
+    } else {
+      // Supprimer les enregistrements orphelins de la DB
+      debugPrint('[Documents] Fichier manquant, suppression DB: ${doc.filePath}');
+      await database.deleteExportedDocument(doc.id);
+    }
+  }
+
+  return validDocs;
 });
 
 /// Provider pour les documents filtrés

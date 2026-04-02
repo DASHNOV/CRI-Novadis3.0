@@ -345,8 +345,8 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 'Durée: ${state.currentCri!.formattedDuration}',
-                style: const TextStyle(
-                  color: AppTheme.primary,
+                style: TextStyle(
+                  color: AppTheme.primaryContent,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),

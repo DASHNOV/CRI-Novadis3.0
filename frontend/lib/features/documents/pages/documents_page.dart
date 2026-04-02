@@ -147,15 +147,15 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage>
                               vertical: AppTheme.space4,
                             ),
                             decoration: BoxDecoration(
-                              color: AppTheme.primary.withValues(alpha: 0.08),
+                              color: AppTheme.primaryContent.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(
                                 AppTheme.radiusFull,
                               ),
                             ),
                             child: Text(
                               '${selectedDocs.length}',
-                              style: const TextStyle(
-                                color: AppTheme.primary,
+                              style: TextStyle(
+                                color: AppTheme.primaryContent,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
                               ),
@@ -192,9 +192,9 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage>
                     margin: const EdgeInsets.only(top: AppTheme.space8),
                     child: TabBar(
                       controller: _tabController,
-                      labelColor: AppTheme.primary,
+                      labelColor: AppTheme.primaryContent,
                       unselectedLabelColor: AppTheme.textTertiary,
-                      indicatorColor: AppTheme.primary,
+                      indicatorColor: AppTheme.primaryContent,
                       indicatorWeight: 2.5,
                       indicatorSize: TabBarIndicatorSize.label,
                       labelStyle: const TextStyle(

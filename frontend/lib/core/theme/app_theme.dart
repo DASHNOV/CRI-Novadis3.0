@@ -34,22 +34,26 @@ class AppTheme {
   static const Color _lightInfoLight = Color(0xFFD6E8F8);
 
   // ─── Dark palette constants ───
-  static const Color _darkBackground = Color(0xFF0A0A0A);
-  static const Color _darkSurface = Color(0xFF111111);
-  static const Color _darkSurfaceVariant = Color(0xFF1A1A1A);
-  static const Color _darkBorder = Color(0xFF2A2A2A);
-  static const Color _darkBorderLight = Color(0xFF1E1E1E);
-  static const Color _darkTextPrimary = Color(0xFFE8EAED);
-  static const Color _darkTextSecondary = Color(0xFF9AA0B4);
-  static const Color _darkTextTertiary = Color(0xFF5F6578);
-  static const Color _darkPrimaryLight = Color(0xFFA3CBE8);
-  static const Color _darkSuccessLight = Color(0xFF064E3B);
-  static const Color _darkWarningLight = Color(0xFF78350F);
-  static const Color _darkErrorLight = Color(0xFF7F1D1D);
-  static const Color _darkInfoLight = Color(0xFF1A3550);
+  static const Color _darkBackground = Color(0xFF1A1D23);
+  static const Color _darkSurface = Color(0xFF22262E);
+  static const Color _darkSurfaceVariant = Color(0xFF2A2F38);
+  static const Color _darkBorder = Color(0xFF3D4350);
+  static const Color _darkBorderLight = Color(0xFF333842);
+  static const Color _darkTextPrimary = Color(0xFFF0F1F4);
+  static const Color _darkTextSecondary = Color(0xFFB0B7C8);
+  static const Color _darkTextTertiary = Color(0xFF828AA0);
+  static const Color _darkPrimaryLight = Color(0xFFB0D4F1);
+  static const Color _darkSuccessLight = Color(0xFF0D3B2E);
+  static const Color _darkWarningLight = Color(0xFF5C3A10);
+  static const Color _darkErrorLight = Color(0xFF5C1A1A);
+  static const Color _darkInfoLight = Color(0xFF1E3D5C);
 
   // ─── Couleurs principales Novadis ───
-  static const Color primary = Color(0xFF1A1A1A);         // Noir Novadis
+  static const Color primary = Color(0xFF1A1A1A);         // Noir Novadis (fonds de boutons)
+  /// Couleur adaptative pour textes/icones sur fond coloré.
+  /// Noir en light, blanc cassé en dark – à utiliser au lieu de `primary`
+  /// quand le but est d'être *lisible*, pas de servir de fond de bouton.
+  static Color get primaryContent => _lerp(const Color(0xFF1A1A1A), const Color(0xFFF0F1F4));
   static const Color primaryBlue = Color(0xFF8BB8E8);     // Bleu clair du logo (point du 'i')
   static Color get primaryLight => _lerp(_lightPrimaryLight, _darkPrimaryLight);
   static const Color primaryDark = Color(0xFF050505);
@@ -408,7 +412,7 @@ class AppTheme {
 
       snackBarTheme: SnackBarThemeData(
         backgroundColor: isDark
-            ? const Color(0xFF2A2A2A)
+            ? const Color(0xFF333842)
             : const Color(0xFF0A0A0A),
         contentTextStyle: GoogleFonts.inter(
           color: const Color(0xFFE8EAED), fontSize: 14,
@@ -422,7 +426,7 @@ class AppTheme {
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
           color: isDark
-              ? const Color(0xFF2A2A2A)
+              ? const Color(0xFF333842)
               : const Color(0xFF0A0A0A),
           borderRadius: BorderRadius.circular(radiusSm),
         ),

@@ -129,8 +129,8 @@ class TechnicianSelectorWidget extends StatelessWidget {
                               tech.name.isNotEmpty
                                   ? tech.name[0].toUpperCase()
                                   : '?',
-                              style: const TextStyle(
-                                color: AppTheme.primary,
+                              style: TextStyle(
+                                color: AppTheme.primaryContent,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                               ),
@@ -181,7 +181,7 @@ class TechnicianSelectorWidget extends StatelessWidget {
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: AppTheme.primary,
+              color: AppTheme.primaryContent,
             ),
           ),
           const SizedBox(width: 12),

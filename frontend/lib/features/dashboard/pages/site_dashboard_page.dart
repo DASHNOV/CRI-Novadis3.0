@@ -214,14 +214,14 @@ class _SiteHeaderCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: [AppTheme.primary, AppTheme.accent],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withValues(alpha: 0.25),
+            color: AppTheme.primaryContent.withValues(alpha: 0.25),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -313,7 +313,7 @@ class _SiteStatsRow extends StatelessWidget {
             label: 'Total Interv.',
             value: details.totalInterventions.toString(),
             icon: Icons.assignment,
-            color: AppTheme.primary,
+            color: AppTheme.primaryContent,
           ),
         ),
 
@@ -446,7 +446,7 @@ class _TechniciansList extends StatelessWidget {
                         height: 40,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: const LinearGradient(
+                          gradient: LinearGradient(
                             colors: [AppTheme.primary, AppTheme.accent],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,

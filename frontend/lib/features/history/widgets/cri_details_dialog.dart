@@ -73,7 +73,7 @@ class CriDetailsDialog extends ConsumerWidget {
                     Text(
                       'DÉTAILS DE L\'INTERVENTION',
                       style: theme.textTheme.labelMedium?.copyWith(
-                        color: AppTheme.primary,
+                        color: AppTheme.primaryContent,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.1,
                       ),

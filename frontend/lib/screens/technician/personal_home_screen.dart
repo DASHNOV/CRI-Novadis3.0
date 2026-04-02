@@ -72,7 +72,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
       backgroundColor: AppTheme.background,
       body: RefreshIndicator(
         onRefresh: _loadData,
-        color: AppTheme.primary,
+        color: AppTheme.primaryContent,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: ContentContainer(
@@ -133,7 +133,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               colors: [AppTheme.primary, AppTheme.accent],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -575,7 +575,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
       case 'submitted':
         return AppTheme.success;
       case 'validated':
-        return AppTheme.primary;
+        return AppTheme.primaryContent;
       case 'draft':
       default:
         return AppTheme.warning;

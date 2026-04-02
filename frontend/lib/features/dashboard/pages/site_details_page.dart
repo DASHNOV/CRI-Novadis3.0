@@ -152,7 +152,7 @@ class _SiteHeaderCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: [AppTheme.primary, AppTheme.accent],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -246,7 +246,7 @@ class _SiteStatsRow extends StatelessWidget {
             icon: Icons.engineering,
             value: '${details.totalInterventions}',
             label: 'Interventions',
-            color: AppTheme.primary,
+            color: AppTheme.primaryContent,
           ),
         ),
         const SizedBox(width: 12),
@@ -482,7 +482,7 @@ class _TimelineItem extends StatelessWidget {
       case 'non résolu':
         return AppTheme.error;
       case 'en cours':
-        return AppTheme.primary;
+        return AppTheme.primaryContent;
       case 'escaladé niveau 2':
         return AppTheme.accent;
       default:

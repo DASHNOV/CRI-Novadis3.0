@@ -32,7 +32,7 @@ class EmptyDocumentsState extends StatelessWidget {
               child: Icon(
                 _getIcon(),
                 size: 64,
-                color: AppTheme.primary,
+                color: AppTheme.primaryContent,
               ),
             ),
             const SizedBox(height: 24),
@@ -126,10 +126,10 @@ class EmptySearchState extends StatelessWidget {
                 color: AppTheme.primaryLight.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.search_off,
                 size: 64,
-                color: AppTheme.primary,
+                color: AppTheme.primaryContent,
               ),
             ),
             const SizedBox(height: 24),

@@ -251,7 +251,7 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
                       ? _buildEmptyState()
                       : RefreshIndicator(
                           onRefresh: _loadCRIs,
-                          color: AppTheme.primary,
+                          color: AppTheme.primaryContent,
                           child: ListView.builder(
                             padding: EdgeInsets.symmetric(
                               horizontal: isDesktop
@@ -338,9 +338,9 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
           pillBorderColor = AppTheme.info.withValues(alpha: 0.3);
           break;
         default:
-          pillColor = AppTheme.primary.withValues(alpha: 0.08);
-          pillTextColor = AppTheme.primary;
-          pillBorderColor = AppTheme.primary.withValues(alpha: 0.2);
+          pillColor = AppTheme.primaryContent.withValues(alpha: 0.08);
+          pillTextColor = AppTheme.primaryContent;
+          pillBorderColor = AppTheme.primaryContent.withValues(alpha: 0.2);
       }
     } else {
       pillColor = AppTheme.surface;

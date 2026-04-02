@@ -171,7 +171,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                           'Total',
                           total.toString(),
                           Icons.analytics_rounded,
-                          AppTheme.primary,
+                          AppTheme.primaryContent,
                         ),
                       ),
                       const SizedBox(width: AppTheme.space8),
@@ -239,7 +239,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                         ? _buildEmptyState()
                         : RefreshIndicator(
                             onRefresh: _loadData,
-                            color: AppTheme.primary,
+                            color: AppTheme.primaryContent,
                             child: LayoutBuilder(
                               builder: (context, constraints) {
                                 if (constraints.maxWidth >= 1000) {
@@ -378,7 +378,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
       child: IconButton(
         icon: Icon(
           icon,
-          color: isActive ? AppTheme.primary : AppTheme.textSecondary,
+          color: isActive ? AppTheme.primaryContent : AppTheme.textSecondary,
           size: 20,
         ),
         onPressed: onPressed,
@@ -491,7 +491,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   borderSide:
-                      const BorderSide(color: AppTheme.primary, width: 1.5),
+                      BorderSide(color: AppTheme.primaryContent, width: 1.5),
                 ),
                 filled: true,
                 fillColor: AppTheme.surfaceVariant.withValues(alpha: 0.5),
@@ -556,7 +556,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   borderSide:
-                      const BorderSide(color: AppTheme.primary, width: 1.5),
+                      BorderSide(color: AppTheme.primaryContent, width: 1.5),
                 ),
                 filled: true,
                 fillColor: AppTheme.surfaceVariant.withValues(alpha: 0.5),
@@ -597,7 +597,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   borderSide:
-                      const BorderSide(color: AppTheme.primary, width: 1.5),
+                      BorderSide(color: AppTheme.primaryContent, width: 1.5),
                 ),
                 filled: true,
                 fillColor: AppTheme.surfaceVariant.withValues(alpha: 0.5),
@@ -654,7 +654,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           border: Border.all(
             color: isSelected
-                ? AppTheme.primary
+                ? AppTheme.primaryContent
                 : AppTheme.border.withValues(alpha: 0.5),
           ),
           boxShadow: isSelected ? AppTheme.shadowSm : null,
@@ -763,14 +763,14 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
             icon: const Icon(Icons.refresh_rounded, size: 18),
             label: const Text('Réinitialiser les filtres'),
             style: TextButton.styleFrom(
-              foregroundColor: AppTheme.primary,
+              foregroundColor: AppTheme.primaryContent,
               padding: const EdgeInsets.symmetric(
                 horizontal: AppTheme.space16,
                 vertical: AppTheme.space8,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                side: BorderSide(color: AppTheme.primary.withValues(alpha: 0.3)),
+                side: BorderSide(color: AppTheme.primaryContent.withValues(alpha: 0.3)),
               ),
             ),
           ),
@@ -845,7 +845,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     style: TextButton.styleFrom(
-                      foregroundColor: AppTheme.primary,
+                      foregroundColor: AppTheme.primaryContent,
                       shape: RoundedRectangleBorder(
                         borderRadius:
                             BorderRadius.circular(AppTheme.radiusMd),
@@ -920,19 +920,19 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                         techFullName.isNotEmpty
                             ? techFullName[0].toUpperCase()
                             : '?',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 8,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.primary,
+                          color: AppTheme.primaryContent,
                         ),
                       ),
                     ),
                     const SizedBox(width: AppTheme.space4),
                     Text(
                       techFullName.isNotEmpty ? techFullName : 'Non assigné',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppTheme.primary,
+                        color: AppTheme.primaryContent,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

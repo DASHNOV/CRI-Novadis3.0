@@ -287,7 +287,7 @@ class TechnicianStatisticsPage extends ConsumerWidget {
       scoreLabel = 'Excellent';
       scoreIcon = Icons.emoji_events;
     } else if (finalScore >= 60) {
-      scoreColor = AppTheme.primary;
+      scoreColor = AppTheme.primaryContent;
       scoreLabel = 'Bon';
       scoreIcon = Icons.thumb_up;
     } else if (finalScore >= 40) {
@@ -432,14 +432,14 @@ class _TechnicianProfileCard extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withValues(alpha: 0.1),
+                        color: AppTheme.primaryContent.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                       ),
                       child: Text(
                         technician.role!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppTheme.primary,
+                          color: AppTheme.primaryContent,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
