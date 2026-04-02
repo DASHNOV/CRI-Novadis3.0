@@ -14,6 +14,8 @@ import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/core/theme/responsive.dart';
 import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
 import 'package:novadis_cri/core/theme/theme_provider.dart';
+import 'package:novadis_cri/features/auth/presentation/providers/permissions_provider.dart';
+import 'package:novadis_cri/core/constants/permissions.dart';
 
 /// Page principale du Dashboard avec design modernisé
 class MainDashboardPage extends ConsumerStatefulWidget {
@@ -31,6 +33,8 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
     final viewMode = ref.watch(dashboardViewModeProvider);
     final dashboardDataAsync = ref.watch(dashboardDataProvider);
     final userName = ref.watch(userNameProvider);
+    final userRole = ref.watch(userRoleProvider);
+    final isAdmin = userRole == UserRole.admin;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -127,19 +131,33 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
 
                     const SizedBox(height: AppTheme.space24),
 
-                    // KPI Grid (Common to all views possibly, or adapted)
-                    _buildKpiSection(dashboardDataAsync),
-
                     const SizedBox(height: AppTheme.space24),
 
-                    // Content based on View Mode
-                    if (viewMode == DashboardViewMode.general) ...[
-                      _buildGeneralView(dashboardDataAsync),
-                    ] else if (viewMode == DashboardViewMode.parSite) ...[
-                      _buildSitesView(ref),
-                    ] else if (viewMode == DashboardViewMode.parTechnicien) ...[
-                      _buildTechniciansView(ref),
-                    ],
+                    // Layout based on specific user and view mode
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isDesktop = constraints.maxWidth >= 1000;
+                        if (isAdmin && isDesktop && viewMode == DashboardViewMode.general) {
+                          return _buildAdminDesktopView(dashboardDataAsync);
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // KPI Grid
+                            _buildKpiSection(dashboardDataAsync),
+                            const SizedBox(height: AppTheme.space24),
+                            // Content based on View Mode
+                            if (viewMode == DashboardViewMode.general)
+                              _buildGeneralView(dashboardDataAsync)
+                            else if (viewMode == DashboardViewMode.parSite)
+                              _buildSitesView(ref)
+                            else if (viewMode == DashboardViewMode.parTechnicien)
+                              _buildTechniciansView(ref),
+                          ],
+                        );
+                      },
+                    ),
 
                     const SizedBox(height: AppTheme.space24),
                   ]),
@@ -221,9 +239,8 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
     );
   }
 
-  Widget _buildGeneralView(AsyncValue<DashboardData> dataAsync) {
-    // Chart Section
-    final widget1 = Container(
+  Widget _buildEvolutionChart(AsyncValue<DashboardData> dataAsync) {
+    return Container(
       padding: const EdgeInsets.all(AppTheme.space16),
       decoration: BoxDecoration(
         color: AppTheme.surface,
@@ -257,9 +274,10 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
         error: (err, stack) => Center(child: Text('Erreur: $err')),
       ),
     );
+  }
 
-    // TOP SITES SUMMARY
-    final widget2 = _buildSectionCard(
+  Widget _buildTopSitesSummary(AsyncValue<DashboardData> dataAsync) {
+    return _buildSectionCard(
       title: 'Sites les plus actifs',
       actionLabel: 'Voir tous',
       onAction: () => ref.read(dashboardViewModeProvider.notifier).state =
@@ -289,9 +307,10 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
         error: (e, s) => const SizedBox.shrink(),
       ),
     );
+  }
 
-    // TECHNICIAN WORKLOAD SUMMARY
-    final widget3 = _buildSectionCard(
+  Widget _buildTechWorkloadSummary(AsyncValue<DashboardData> dataAsync) {
+    return _buildSectionCard(
       title: 'Répartition de la charge',
       actionLabel: 'Détails',
       onAction: () => ref.read(dashboardViewModeProvider.notifier).state =
@@ -322,9 +341,10 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
         error: (e, s) => const SizedBox.shrink(),
       ),
     );
+  }
 
-    // RECENT INTERVENTIONS
-    final widget4 = _buildSectionCard(
+  Widget _buildRecentInterventionsSummary(AsyncValue<DashboardData> dataAsync) {
+    return _buildSectionCard(
       title: 'Interventions Récentes',
       actionLabel: 'Historique',
       onAction: () => context.push(AppRouter.history),
@@ -353,6 +373,13 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
         error: (e, s) => Text('Erreur: $e'),
       ),
     );
+  }
+
+  Widget _buildGeneralView(AsyncValue<DashboardData> dataAsync) {
+    final widget1 = _buildEvolutionChart(dataAsync);
+    final widget2 = _buildTopSitesSummary(dataAsync);
+    final widget3 = _buildTechWorkloadSummary(dataAsync);
+    final widget4 = _buildRecentInterventionsSummary(dataAsync);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -393,6 +420,104 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildAdminDesktopView(AsyncValue<DashboardData> dataAsync) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildEvolutionChart(dataAsync)),
+            const SizedBox(width: AppTheme.space24),
+            Expanded(child: _buildAdminDesktopKpiSection(dataAsync)),
+          ],
+        ),
+        const SizedBox(height: AppTheme.space24),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildTopSitesSummary(dataAsync)),
+            const SizedBox(width: AppTheme.space24),
+            Expanded(child: _buildTechWorkloadSummary(dataAsync)),
+          ],
+        ),
+        const SizedBox(height: AppTheme.space24),
+        _buildRecentInterventionsSummary(dataAsync),
+      ],
+    );
+  }
+
+  Widget _buildAdminDesktopKpiSection(AsyncValue<DashboardData> dataAsync) {
+    final aspectRatio = 1.3; // Desktop 2x2 ratio
+
+    return dataAsync.when(
+      data: (data) {
+        final cards = [
+          KpiCard(
+            title: 'En cours',
+            value: data.kpis.pendingInterventions.toString(),
+            icon: Icons.pending_actions,
+            iconColor: AppTheme.error,
+            subtitle: 'Action requise',
+          ),
+          KpiCard(
+            title: 'Prévues',
+            value: data.kpis.plannedInterventions.toString(),
+            icon: Icons.calendar_today,
+            iconColor: AppTheme.primaryLight,
+            subtitle: 'Futures',
+          ),
+          KpiCard(
+            title: 'Interventions',
+            value: data.kpis.totalInterventions.toString(),
+            icon: Icons.assignment,
+            iconColor: ChartConfig.kpiColors['interventions']!,
+            subtitle: 'Total sur la période',
+          ),
+          KpiCard(
+            title: 'Réalisées',
+            value: data.kpis.realizedInterventions.toString(),
+            icon: Icons.check_circle,
+            iconColor: const Color(0xFF10B981),
+            subtitle: '${data.kpis.completionRate.toStringAsFixed(0)}% Taux',
+          ),
+        ];
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: AppTheme.space16,
+            mainAxisSpacing: AppTheme.space16,
+            childAspectRatio: aspectRatio,
+          ),
+          itemCount: 4,
+          itemBuilder: (context, index) => cards[index],
+        );
+      },
+      loading: () => GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: AppTheme.space16,
+          mainAxisSpacing: AppTheme.space16,
+          childAspectRatio: aspectRatio,
+        ),
+        itemCount: 4,
+        itemBuilder: (context, index) => KpiCard(
+          title: '',
+          value: '',
+          icon: Icons.help,
+          iconColor: AppTheme.textTertiary,
+          isLoading: true,
+        ),
+      ),
+      error: (e, s) => Text('Erreur: $e'),
     );
   }
 
