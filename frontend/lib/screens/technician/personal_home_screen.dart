@@ -70,30 +70,32 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: RefreshIndicator(
-        onRefresh: _loadData,
-        color: AppTheme.primaryContent,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: ContentContainer(
-            maxWidth: 1200,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Gap(AppTheme.space16),
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _loadData,
+          color: AppTheme.primaryContent,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ContentContainer(
+              maxWidth: 1200,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Gap(AppTheme.space4),
 
-                // Welcome header
-                _buildWelcomeHeader(dateStr, userName),
-                const Gap(AppTheme.space24),
+                  // Welcome header
+                  _buildWelcomeHeader(dateStr, userName),
+                  const Gap(AppTheme.space24),
 
-                // KPI stat cards
-                _isLoading ? _buildStatsShimmer() : _buildStatsRow(),
-                const Gap(AppTheme.space32),
+                  // KPI stat cards
+                  _isLoading ? _buildStatsShimmer() : _buildStatsRow(),
+                  const Gap(AppTheme.space32),
 
-                // Recent CRI section
-                _isLoading ? _buildCriListShimmer() : _buildRecentCRIsSection(),
-                const Gap(AppTheme.space40),
-              ],
+                  // Recent CRI section
+                  _isLoading ? _buildCriListShimmer() : _buildRecentCRIsSection(),
+                  const Gap(AppTheme.space40),
+                ],
+              ),
             ),
           ),
         ),

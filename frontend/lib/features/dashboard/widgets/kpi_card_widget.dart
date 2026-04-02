@@ -71,6 +71,74 @@ class _KpiCardState extends State<KpiCard> {
   }
 
   Widget _buildContent(BuildContext context) {
+    final columns = Responsive.kpiColumns(context);
+    final isMobile = columns == 1;
+
+    if (isMobile) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppTheme.space12),
+            decoration: BoxDecoration(
+              color: widget.iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+            ),
+            child: Icon(widget.icon, color: widget.iconColor, size: 24),
+          ),
+          const SizedBox(width: AppTheme.space16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      widget.value,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                        fontSize: 26,
+                        height: 1.1,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    if (widget.trendValue != null) _buildTrendIndicator(),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.title,
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (widget.subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    widget.subtitle!,
+                    style: TextStyle(
+                      color: AppTheme.textTertiary,
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Original vertical layout for multi-column grids (Tablet/Desktop)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -160,6 +228,42 @@ class _KpiCardState extends State<KpiCard> {
   }
 
   Widget _buildShimmerSkeleton() {
+    final columns = Responsive.kpiColumns(context);
+    final isMobile = columns == 1;
+
+    if (isMobile) {
+      return Shimmer.fromColors(
+        baseColor: AppTheme.surfaceVariant,
+        highlightColor: AppTheme.surface,
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceVariant,
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              ),
+            ),
+            const SizedBox(width: AppTheme.space16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(width: 60, height: 26, color: AppTheme.surfaceVariant),
+                  const SizedBox(height: AppTheme.space8),
+                  Container(width: 100, height: 12, color: AppTheme.surfaceVariant),
+                  const SizedBox(height: AppTheme.space4),
+                  Container(width: 80, height: 10, color: AppTheme.surfaceVariant),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Shimmer.fromColors(
       baseColor: AppTheme.surfaceVariant,
       highlightColor: AppTheme.surface,
@@ -208,6 +312,19 @@ class KpiGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final columns = Responsive.kpiColumns(context);
+
+    if (columns == 1) {
+      return Column(
+        children: cards.asMap().entries.map((entry) {
+          final isLast = entry.key == cards.length - 1;
+          return Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : AppTheme.space16),
+            child: entry.value,
+          );
+        }).toList(),
+      );
+    }
+
     final aspectRatio = columns >= 4 ? 1.5 : 1.3;
 
     return GridView.builder(
