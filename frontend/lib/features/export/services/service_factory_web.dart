@@ -1,17 +1,7 @@
 import '../../../data/local/app_database.dart';
 import '../models/exported_document_model.dart';
 import 'base_service_interfaces.dart';
-
-// Isolation totale : pas d'imports des fichiers _web.dart qui pourraient référencer indirectement du code natif
-// On définit des implémentations "no-op" directement ici pour le Web.
-
-class WebPdfGeneratorService implements BasePdfGeneratorService {
-  WebPdfGeneratorService(AppDatabase db);
-  @override
-  Future<dynamic> generateCriServicePDF(String criId) async => throw UnimplementedError();
-  @override
-  Future<dynamic> generateCriProjetPDF(String criId) async => throw UnimplementedError();
-}
+import 'pdf_generator_web.dart';
 
 class WebDashboardCsvService implements BaseDashboardCsvService {
   WebDashboardCsvService(AppDatabase db);
@@ -51,7 +41,7 @@ class WebFileManagementService implements BaseFileManagementService {
   Future<int> registerExportedDocument({required dynamic file, required DocumentFileType fileType, required ExportType exportType, String? criId, Map<String, dynamic>? metadata}) async => 0;
 }
 
-BasePdfGeneratorService createPdfService(AppDatabase db) => WebPdfGeneratorService(db);
+BasePdfGeneratorService createPdfService(AppDatabase db) => PdfGeneratorService(db);
 BaseDashboardCsvService createDashboardCsvService(AppDatabase db) => WebDashboardCsvService(db);
 BaseTechnicianStatsCsvService createTechnicianStatsCsvService(AppDatabase db) => WebTechnicianStatsCsvService(db);
 BaseFileManagementService createFileManagementService(AppDatabase db) => WebFileManagementService(db);

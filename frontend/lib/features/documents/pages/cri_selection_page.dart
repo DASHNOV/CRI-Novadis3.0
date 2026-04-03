@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -18,6 +19,15 @@ class CriSelectionPage extends ConsumerStatefulWidget {
 class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Rafraîchir la liste pour inclure les CRI récemment soumis
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(availableReportsProvider);
+    });
+  }
 
   @override
   void dispose() {
@@ -439,14 +449,18 @@ class _ExportProgressDialogState extends ConsumerState<_ExportProgressDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'PDF généré avec succès pour ${widget.report.clientName}',
+              kIsWeb
+                  ? 'PDF téléchargé pour ${widget.report.clientName}'
+                  : 'PDF généré avec succès pour ${widget.report.clientName}',
             ),
             backgroundColor: Colors.green,
           ),
         );
 
-        // Rafraîchir la liste des documents
-        ref.invalidate(exportedDocumentsProvider);
+        // Rafraîchir la liste des documents (natif uniquement)
+        if (!kIsWeb) {
+          ref.invalidate(exportedDocumentsProvider);
+        }
       }
     } catch (e) {
       if (mounted) {

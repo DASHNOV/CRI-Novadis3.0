@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'file_utils_stub.dart';
 
 class FileUtilsNative implements FileUtils {
@@ -18,11 +19,11 @@ class FileUtilsNative implements FileUtils {
   @override
   Future<String> saveSignature(Uint8List bytes, String fileName) async {
     final directory = await getApplicationDocumentsDirectory();
-    final signatureDir = Directory('${directory.path}/signatures');
+    final signatureDir = Directory(p.join(directory.path, 'signatures'));
     if (!await signatureDir.exists()) {
       await signatureDir.create(recursive: true);
     }
-    final filePath = '${signatureDir.path}/$fileName';
+    final filePath = p.join(signatureDir.path, fileName);
     await saveBytesToFile(bytes, filePath);
     return filePath;
   }

@@ -50,32 +50,21 @@ class ExportOptionsSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          if (kIsWeb)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Text(
-                  'L\'export de documents n\'est pas disponible sur le Web.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: AppTheme.textTertiary,
-                  ),
-                ),
-              ),
-            )
-          else ...[
-            // Options d'export
-            _ExportOption(
-              icon: Icons.picture_as_pdf,
-              iconColor: AppTheme.error,
-              title: 'Exporter CRI en PDF',
-              subtitle: 'Générer un rapport PDF pour un CRI',
-              onTap: () {
-                Navigator.pop(context);
-                context.push(AppRouter.criSelection);
-              },
-            ),
+          // Export PDF — disponible sur toutes les plateformes
+          _ExportOption(
+            icon: Icons.picture_as_pdf,
+            iconColor: AppTheme.error,
+            title: 'Exporter CRI en PDF',
+            subtitle: kIsWeb
+                ? 'Générer et télécharger un rapport PDF'
+                : 'Générer un rapport PDF pour un CRI',
+            onTap: () {
+              Navigator.pop(context);
+              context.push(AppRouter.criSelection);
+            },
+          ),
+
+          if (!kIsWeb) ...[
             const SizedBox(height: 12),
 
             _ExportOption(

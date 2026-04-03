@@ -1,4 +1,4 @@
-import 'dart:io' show File, Platform;
+import 'dart:io' show File;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 
@@ -184,10 +184,6 @@ final generateCriPdfProvider = FutureProvider.family<dynamic, String>((
   ref,
   criId,
 ) async {
-  if (kIsWeb) {
-    throw Exception('La génération PDF n\'est pas disponible sur le Web');
-  }
-  
   final service = ref.watch(pdfGeneratorServiceProvider);
   final database = ref.watch(databaseProvider);
 
@@ -235,14 +231,18 @@ final generateCriPdfProvider = FutureProvider.family<dynamic, String>((
       throw Exception('Rapport non trouvé (ID: $criId)');
     }
 
-    // Enregistrer dans la base de données
-    final fileService = ref.watch(fileManagementServiceProvider);
-    await fileService.registerExportedDocument(
-      file: file,
-      fileType: DocumentFileType.pdf,
-      exportType: ExportType.cri,
-      criId: criId,
-    );
+    // Enregistrer dans la base de données (natif uniquement)
+    // Sur le web, le PDF est téléchargé directement par le navigateur
+    if (!kIsWeb) {
+      final fileService = ref.watch(fileManagementServiceProvider);
+      await fileService.registerExportedDocument(
+        file: file,
+        fileType: DocumentFileType.pdf,
+        exportType: ExportType.cri,
+        criId: criId,
+      );
+      ref.invalidate(exportedDocumentsProvider);
+    }
 
     // Réinitialiser le progrès
     ref.read(exportProgressProvider.notifier).state = ExportProgress(
@@ -250,9 +250,6 @@ final generateCriPdfProvider = FutureProvider.family<dynamic, String>((
       status: 'Terminé',
       progress: 1.0,
     );
-
-    // Rafraîchir la liste des documents
-    ref.invalidate(exportedDocumentsProvider);
 
     return file;
   } catch (e) {

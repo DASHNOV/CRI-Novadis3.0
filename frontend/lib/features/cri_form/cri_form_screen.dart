@@ -169,25 +169,23 @@ class CriFormScreen extends ConsumerWidget {
     );
 
     if (isWide) {
-      return IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: projetCard
-                  .animate()
-                  .fadeIn(duration: AppTheme.animNormal, delay: 100.ms)
-                  .slideX(begin: -0.05, end: 0),
-            ),
-            const Gap(AppTheme.space24),
-            Expanded(
-              child: serviceCard
-                  .animate()
-                  .fadeIn(duration: AppTheme.animNormal, delay: 200.ms)
-                  .slideX(begin: 0.05, end: 0),
-            ),
-          ],
-        ),
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: projetCard
+                .animate()
+                .fadeIn(duration: AppTheme.animNormal, delay: 100.ms)
+                .slideX(begin: -0.05, end: 0),
+          ),
+          const Gap(AppTheme.space24),
+          Expanded(
+            child: serviceCard
+                .animate()
+                .fadeIn(duration: AppTheme.animNormal, delay: 200.ms)
+                .slideX(begin: 0.05, end: 0),
+          ),
+        ],
       );
     }
 
