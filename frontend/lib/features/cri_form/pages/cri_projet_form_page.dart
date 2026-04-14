@@ -134,11 +134,6 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
       return 'La signature du technicien est requise';
     }
 
-    // Vérifier la signature client
-    if (cri.clientSignature == null || cri.clientSignature!.isEmpty) {
-      return 'La signature du client est requise';
-    }
-
     return null; // Tout est OK
   }
 
@@ -514,7 +509,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             final codePostalField = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Code postal *', style: TextStyle(
+                Text('Code postal', style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -527,9 +522,6 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
                   decoration: const InputDecoration(
                     hintText: 'Code postal',
                     prefixIcon: Icon(Icons.markunread_mailbox),
-                  ),
-                  validator: FormBuilderValidators.required(
-                    errorText: 'Requis',
                   ),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
@@ -588,7 +580,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             ]);
           }),
           const SizedBox(height: 16),
-          Text('Contact client *', style: TextStyle(
+          Text('Contact client', style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -600,9 +592,6 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             decoration: const InputDecoration(
               hintText: 'Contact client',
               prefixIcon: Icon(Icons.person),
-            ),
-            validator: FormBuilderValidators.required(
-              errorText: 'Contact requis',
             ),
             textCapitalization: TextCapitalization.words,
             onChanged: (value) {
@@ -618,7 +607,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Téléphone *', style: TextStyle(
+                    Text('Téléphone', style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -632,12 +621,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
                         prefixIcon: Icon(Icons.phone),
                       ),
                       keyboardType: TextInputType.phone,
-                      validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(
-                          errorText: 'Téléphone requis',
-                        ),
-                        CriFormValidators.frenchPhone(),
-                      ]),
+                      validator: CriFormValidators.frenchPhone(),
                       onChanged: (value) {
                         ref
                             .read(criProjetFormProvider.notifier)
@@ -652,7 +636,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Email *', style: TextStyle(
+                    Text('Email', style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -666,7 +650,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
                         prefixIcon: Icon(Icons.email),
                       ),
                       keyboardType: TextInputType.emailAddress,
-                      validator: CriFormValidators.email(required: true),
+                      validator: CriFormValidators.email(required: false),
                       onChanged: (value) {
                         ref
                             .read(criProjetFormProvider.notifier)
@@ -1139,7 +1123,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
           ),
           const SizedBox(height: 24),
           SignaturePadWidget(
-            label: 'Signature client *',
+            label: 'Signature client',
             initialSignaturePath: state.currentCri?.clientSignature,
             onSignatureSaved: (path) {
               ref
