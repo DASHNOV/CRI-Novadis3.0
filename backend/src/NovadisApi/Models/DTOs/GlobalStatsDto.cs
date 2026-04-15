@@ -9,5 +9,15 @@ namespace NovadisApi.Models.DTOs
         public int TotalSignes { get; set; }
         public int TotalEnAttente { get; set; }
         public int TechniciensActifs { get; set; }
+
+        // Stats enrichies Phase 1
+        public double? DureeMoyenneMinutes { get; set; }
+        public int TotalProjets { get; set; }
+        public int TotalServices { get; set; }
+        public int TotalResolu { get; set; }
+        public int TotalNonResolu { get; set; }
+        public int TotalRecurrenceRequise { get; set; }
+        public Dictionary<string, int>? RepartitionParPriorite { get; set; }
+        public Dictionary<string, int>? RepartitionParVille { get; set; }
     }
 }

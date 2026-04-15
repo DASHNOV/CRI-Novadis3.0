@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NovadisApi.Data;
 
@@ -11,9 +12,11 @@ using NovadisApi.Data;
 namespace NovadisApi.Data.Migrations
 {
     [DbContext(typeof(NovadisDbContext))]
-    partial class NovadisDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260414085828_ExtractStatsColumnsFromJson")]
+    partial class ExtractStatsColumnsFromJson
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -136,9 +139,6 @@ namespace NovadisApi.Data.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<Guid?>("ClientID")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("ClientName")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -217,9 +217,6 @@ namespace NovadisApi.Data.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
-                    b.Property<int?>("SiteID")
-                        .HasColumnType("int");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -250,8 +247,6 @@ namespace NovadisApi.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClientID");
-
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("InterventionDate");
@@ -263,8 +258,6 @@ namespace NovadisApi.Data.Migrations
                     b.HasIndex("ProjectStatus");
 
                     b.HasIndex("ResolutionStatus");
-
-                    b.HasIndex("SiteID");
 
                     b.HasIndex("Status");
 
@@ -314,63 +307,6 @@ namespace NovadisApi.Data.Migrations
                     b.HasIndex("CRIFormId");
 
                     b.ToTable("CRIPhotos");
-                });
-
-            modelBuilder.Entity("NovadisApi.Models.Client", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("Actif")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Adresse")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("CodePostal")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("Contact")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("Pays")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("RaisonSociale")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("Telephone")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Ville")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RaisonSociale");
-
-                    b.HasIndex("Ville");
-
-                    b.ToTable("ClientsNormalises");
                 });
 
             modelBuilder.Entity("NovadisApi.Models.MagicLink", b =>
@@ -584,25 +520,11 @@ namespace NovadisApi.Data.Migrations
 
             modelBuilder.Entity("NovadisApi.Models.CRIForm", b =>
                 {
-                    b.HasOne("NovadisApi.Models.Client", "Client")
-                        .WithMany("CRIForms")
-                        .HasForeignKey("ClientID")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("NovadisApi.Models.Site", "Site")
-                        .WithMany()
-                        .HasForeignKey("SiteID")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("NovadisApi.Models.User", "Technician")
                         .WithMany("CRIForms")
                         .HasForeignKey("TechnicianId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Client");
-
-                    b.Navigation("Site");
 
                     b.Navigation("Technician");
                 });
@@ -632,11 +554,6 @@ namespace NovadisApi.Data.Migrations
             modelBuilder.Entity("NovadisApi.Models.CRIForm", b =>
                 {
                     b.Navigation("Photos");
-                });
-
-            modelBuilder.Entity("NovadisApi.Models.Client", b =>
-                {
-                    b.Navigation("CRIForms");
                 });
 
             modelBuilder.Entity("NovadisApi.Models.User", b =>

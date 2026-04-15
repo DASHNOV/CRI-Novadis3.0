@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NovadisApi.Data;
 
@@ -11,9 +12,11 @@ using NovadisApi.Data;
 namespace NovadisApi.Data.Migrations
 {
     [DbContext(typeof(NovadisDbContext))]
-    partial class NovadisDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260414120704_NormalizeClientAndSiteRelations")]
+    partial class NormalizeClientAndSiteRelations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

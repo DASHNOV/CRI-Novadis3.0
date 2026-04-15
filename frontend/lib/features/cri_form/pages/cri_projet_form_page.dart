@@ -129,6 +129,11 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
       return 'Erreur: formulaire non initialisé';
     }
 
+    // Vérifier qu'au moins un logiciel est sélectionné
+    if (cri.softwares.isEmpty) {
+      return 'Veuillez sélectionner au moins un logiciel utilisé';
+    }
+
     // Vérifier la signature technicien
     if (cri.technicianSignature == null || cri.technicianSignature!.isEmpty) {
       return 'La signature du technicien est requise';
@@ -774,8 +779,152 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
               }
             },
           ),
+          const SizedBox(height: 24),
+          _buildSoftwaresSection(state),
         ],
       ),
+    );
+  }
+
+  /// Section "Logiciels utilisés" — sélection multiple + version par logiciel.
+  /// Obligatoire : au moins un logiciel doit être sélectionné.
+  Widget _buildSoftwaresSection(CriProjetFormState state) {
+    final selected = state.currentCri?.softwares ?? const <SoftwareEntry>[];
+
+    return FormBuilderField<List<SoftwareEntry>>(
+      name: 'softwares',
+      initialValue: selected,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Sélectionnez au moins un logiciel';
+        }
+        return null;
+      },
+      builder: (field) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Logiciels utilisés *',
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '(sélection multiple)',
+                  style: TextStyle(
+                    color: AppTheme.textTertiary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Chips de sélection
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: ProjetSoftware.values.map((sw) {
+                final isSelected =
+                    selected.any((e) => e.software == sw);
+                return FilterChip(
+                  label: Text(sw.label),
+                  selected: isSelected,
+                  onSelected: (v) {
+                    final list =
+                        List<SoftwareEntry>.from(selected);
+                    if (v) {
+                      list.add(SoftwareEntry(software: sw));
+                    } else {
+                      list.removeWhere((e) => e.software == sw);
+                    }
+                    ref
+                        .read(criProjetFormProvider.notifier)
+                        .updateSoftwares(list);
+                    field.didChange(list);
+                  },
+                );
+              }).toList(),
+            ),
+            if (field.hasError) ...[
+              const SizedBox(height: 6),
+              Text(
+                field.errorText ?? '',
+                style: TextStyle(
+                  color: AppTheme.error,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+            // Pour chaque logiciel sélectionné : champ Version libre.
+            if (selected.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                'Version (facultatif)',
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...selected.map((entry) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 120,
+                        child: Text(
+                          entry.software.label,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextFormField(
+                          key: ValueKey(
+                              'version-${entry.software.name}'),
+                          initialValue: entry.version ?? '',
+                          decoration: const InputDecoration(
+                            hintText: 'Ex: 5.4.2',
+                            isDense: true,
+                            prefixIcon: Icon(Icons.label_outline),
+                          ),
+                          onChanged: (value) {
+                            final list = selected.map((e) {
+                              if (e.software == entry.software) {
+                                return e.copyWith(
+                                    version: value.isEmpty
+                                        ? null
+                                        : value);
+                              }
+                              return e;
+                            }).toList();
+                            ref
+                                .read(criProjetFormProvider.notifier)
+                                .updateSoftwares(list);
+                            field.didChange(list);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ],
+        );
+      },
     );
   }
 

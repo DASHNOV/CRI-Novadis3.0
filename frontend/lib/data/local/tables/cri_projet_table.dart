@@ -36,6 +36,10 @@ class CriProjetTable extends Table {
   TextColumn get problemsEncountered => text().nullable()();
   TextColumn get solutionsProvided => text().nullable()();
 
+  // Logiciels utilisés durant l'intervention (JSON array de SoftwareEntry)
+  // Obligatoire à la soumission (au moins 1 logiciel sélectionné)
+  TextColumn get softwares => text().nullable()();
+
   // Section 5: Suivi
   TextColumn get actionsToDo => text().nullable()();
   DateTimeColumn get nextInterventionDate => dateTime().nullable()();
@@ -99,6 +103,56 @@ enum ProjetInterventionType {
     return ProjetInterventionType.values.firstWhere(
       (e) => e.name == value || e.label == value,
       orElse: () => ProjetInterventionType.autre,
+    );
+  }
+}
+
+/// Logiciels disponibles pour un CRI Projet (liste fermée).
+enum ProjetSoftware {
+  amadeus5('Amadeus 5'),
+  amadeus8('Amadeus 8'),
+  milestone('Milestone'),
+  ocularis('Ocularis'),
+  qvms('QVMS'),
+  galaxy('Galaxy'),
+  appvision('AppVision');
+
+  final String label;
+  const ProjetSoftware(this.label);
+
+  static ProjetSoftware? fromString(String? value) {
+    if (value == null) return null;
+    for (final v in ProjetSoftware.values) {
+      if (v.name == value || v.label == value) return v;
+    }
+    return null;
+  }
+}
+
+/// Logiciel sélectionné + version éventuellement saisie.
+class SoftwareEntry {
+  final ProjetSoftware software;
+  final String? version;
+
+  const SoftwareEntry({required this.software, this.version});
+
+  SoftwareEntry copyWith({ProjetSoftware? software, String? version}) {
+    return SoftwareEntry(
+      software: software ?? this.software,
+      version: version ?? this.version,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'software': software.name,
+        'version': version,
+      };
+
+  factory SoftwareEntry.fromJson(Map<String, dynamic> json) {
+    return SoftwareEntry(
+      software: ProjetSoftware.fromString(json['software'] as String?) ??
+          ProjetSoftware.amadeus5,
+      version: json['version'] as String?,
     );
   }
 }

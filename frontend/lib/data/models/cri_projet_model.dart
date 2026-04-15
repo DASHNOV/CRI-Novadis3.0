@@ -35,6 +35,9 @@ class CriProjetModel {
   final String? problemsEncountered;
   final String? solutionsProvided;
 
+  /// Logiciels utilisés durant l'intervention (au moins 1 requis à la soumission).
+  final List<SoftwareEntry> softwares;
+
   // Section 5: Suivi
   final String? actionsToDo;
   final DateTime? nextInterventionDate;
@@ -75,6 +78,7 @@ class CriProjetModel {
     this.materialsUsed,
     this.problemsEncountered,
     this.solutionsProvided,
+    this.softwares = const [],
     this.actionsToDo,
     this.nextInterventionDate,
     required this.projectStatus,
@@ -133,6 +137,7 @@ class CriProjetModel {
     String? materialsUsed,
     String? problemsEncountered,
     String? solutionsProvided,
+    List<SoftwareEntry>? softwares,
     String? actionsToDo,
     DateTime? nextInterventionDate,
     ProjectStatus? projectStatus,
@@ -168,6 +173,7 @@ class CriProjetModel {
       materialsUsed: materialsUsed ?? this.materialsUsed,
       problemsEncountered: problemsEncountered ?? this.problemsEncountered,
       solutionsProvided: solutionsProvided ?? this.solutionsProvided,
+      softwares: softwares ?? this.softwares,
       actionsToDo: actionsToDo ?? this.actionsToDo,
       nextInterventionDate: nextInterventionDate ?? this.nextInterventionDate,
       projectStatus: projectStatus ?? this.projectStatus,
@@ -207,6 +213,7 @@ class CriProjetModel {
       'materialsUsed': materialsUsed,
       'problemsEncountered': problemsEncountered,
       'solutionsProvided': solutionsProvided,
+      'softwares': softwares.map((s) => s.toJson()).toList(),
       'actionsToDo': actionsToDo,
       'nextInterventionDate': nextInterventionDate?.toIso8601String(),
       'projectStatus': projectStatus.name,
@@ -246,6 +253,11 @@ class CriProjetModel {
       materialsUsed: Value(materialsUsed),
       problemsEncountered: Value(problemsEncountered),
       solutionsProvided: Value(solutionsProvided),
+      softwares: Value(
+        softwares.isEmpty
+            ? null
+            : jsonEncode(softwares.map((s) => s.toJson()).toList()),
+      ),
       actionsToDo: Value(actionsToDo),
       nextInterventionDate: Value(nextInterventionDate),
       projectStatus: Value(projectStatus.name),
@@ -284,6 +296,11 @@ class CriProjetModel {
       materialsUsed: db.materialsUsed,
       problemsEncountered: db.problemsEncountered,
       solutionsProvided: db.solutionsProvided,
+      softwares: db.softwares == null || db.softwares!.isEmpty
+          ? const []
+          : (jsonDecode(db.softwares!) as List)
+              .map((e) => SoftwareEntry.fromJson(e as Map<String, dynamic>))
+              .toList(),
       actionsToDo: db.actionsToDo,
       nextInterventionDate: db.nextInterventionDate,
       projectStatus: ProjectStatus.fromString(db.projectStatus),
@@ -327,6 +344,13 @@ class CriProjetModel {
       materialsUsed: json['materialsUsed'] as String?,
       problemsEncountered: json['problemsEncountered'] as String?,
       solutionsProvided: json['solutionsProvided'] as String?,
+      softwares: json['softwares'] == null
+          ? const []
+          : (json['softwares'] is String
+                  ? (jsonDecode(json['softwares'] as String) as List)
+                  : (json['softwares'] as List))
+              .map((e) => SoftwareEntry.fromJson(e as Map<String, dynamic>))
+              .toList(),
       actionsToDo: json['actionsToDo'] as String?,
       nextInterventionDate: json['nextInterventionDate'] != null
           ? DateTime.parse(json['nextInterventionDate'] as String)

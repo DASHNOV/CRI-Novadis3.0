@@ -4,6 +4,11 @@ import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 import 'package:novadis_cri/features/dashboard/repositories/dashboard_repository.dart';
 import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 import 'package:novadis_cri/data/local/app_database.dart';
+import 'package:novadis_cri/services/stats_api_service.dart';
+import 'package:novadis_cri/models/global_stats.dart';
+import 'package:novadis_cri/models/site_stats.dart';
+import 'package:novadis_cri/models/technician_detailed_stats.dart';
+import 'package:novadis_cri/models/distribution_stats.dart';
 
 /// Provider pour le repository dashboard
 final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
@@ -137,10 +142,55 @@ final dashboardViewModeProvider = StateProvider<DashboardViewMode>(
   (ref) => DashboardViewMode.general,
 );
 
+// ──────────────────────────────────────────────────
+// Providers API Admin (données serveur, pas calcul local)
+// ──────────────────────────────────────────────────
+
+/// Convertit une DashboardPeriod en nombre de jours pour l'API
+int? _periodToDays(DashboardPeriod period) {
+  return period.days;
+}
+
+/// Stats globales depuis l'API backend (avec filtre période)
+final adminGlobalStatsProvider =
+    FutureProvider.autoDispose<GlobalStats>((ref) async {
+  final api = ref.watch(statsApiServiceProvider);
+  final period = ref.watch(selectedPeriodProvider);
+  return api.getGlobalStats(periodDays: _periodToDays(period));
+});
+
+/// Stats par site depuis l'API backend
+final adminSiteStatsProvider =
+    FutureProvider.autoDispose<List<SiteStats>>((ref) async {
+  final api = ref.watch(statsApiServiceProvider);
+  final period = ref.watch(selectedPeriodProvider);
+  return api.getStatsBySite(periodDays: _periodToDays(period));
+});
+
+/// Stats par technicien depuis l'API backend
+final adminTechnicianStatsProvider =
+    FutureProvider.autoDispose<List<TechnicianDetailedStats>>((ref) async {
+  final api = ref.watch(statsApiServiceProvider);
+  final period = ref.watch(selectedPeriodProvider);
+  return api.getStatsByTechnician(periodDays: _periodToDays(period));
+});
+
+/// Stats de distribution depuis l'API backend
+final adminDistributionStatsProvider =
+    FutureProvider.autoDispose<DistributionStats>((ref) async {
+  final api = ref.watch(statsApiServiceProvider);
+  final period = ref.watch(selectedPeriodProvider);
+  return api.getDistributionStats(periodDays: _periodToDays(period));
+});
+
 /// Extension pour faciliter le rafraîchissement des données
 extension DashboardRefX on WidgetRef {
   void refreshDashboard() {
     read(dashboardRepositoryProvider).clearCache();
     invalidate(dashboardDataProvider);
+    invalidate(adminGlobalStatsProvider);
+    invalidate(adminSiteStatsProvider);
+    invalidate(adminTechnicianStatsProvider);
+    invalidate(adminDistributionStatsProvider);
   }
 }

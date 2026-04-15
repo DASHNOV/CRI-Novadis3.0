@@ -19,6 +19,9 @@ namespace NovadisApi.Data
         // Table des sites NovaDIS
         public DbSet<Site> Sites { get; set; }
 
+        // Table des clients normalisés (Phase 2)
+        public DbSet<Client> ClientsNormalises { get; set; }
+
         // Tables pour l'authentification
         public DbSet<AuthAttempt> AuthAttempts { get; set; }
         public DbSet<UserToken> UserTokens { get; set; }
@@ -88,13 +91,45 @@ namespace NovadisApi.Data
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.TechnicianId);
                 entity.HasIndex(e => e.CreatedAt);
-                
+
                 entity.HasOne(e => e.Technician)
                     .WithMany(u => u.CRIForms)
                     .HasForeignKey(e => e.TechnicianId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.Property(e => e.Duration).HasPrecision(18, 2);
+
+                // Index sur les colonnes statistiques (Phase 1)
+                entity.HasIndex(e => e.InterventionDate);
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.Priority);
+                entity.HasIndex(e => e.ResolutionStatus);
+                entity.HasIndex(e => e.Ville);
+                entity.HasIndex(e => e.ProjectStatus);
+                entity.HasIndex(e => e.TicketNumber);
+                entity.HasIndex(e => e.ProjectNumber);
+
+                // FK vers Site (Phase 2)
+                entity.HasIndex(e => e.SiteID);
+                entity.HasOne(e => e.Site)
+                    .WithMany()
+                    .HasForeignKey(e => e.SiteID)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                // FK vers Client (Phase 2)
+                entity.HasIndex(e => e.ClientID);
+                entity.HasOne(e => e.Client)
+                    .WithMany(c => c.CRIForms)
+                    .HasForeignKey(e => e.ClientID)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // Configuration Client (Phase 2)
+            modelBuilder.Entity<Client>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.RaisonSociale);
+                entity.HasIndex(e => e.Ville);
             });
 
             // Configuration CRIPhoto

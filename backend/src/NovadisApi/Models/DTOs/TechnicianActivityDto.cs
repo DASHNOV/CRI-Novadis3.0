@@ -49,6 +49,29 @@ namespace NovadisApi.Models.DTOs
         public DateTime? UpdatedAt { get; set; }
         public DateTime? SubmittedAt { get; set; }
 
+        // Colonnes extraites du JSON
+        public TimeSpan? HeureDebut { get; set; }
+        public TimeSpan? HeureFin { get; set; }
+        public int? DureeMinutes { get; set; }
+        public string? Ville { get; set; }
+        public string? CodePostal { get; set; }
+        public string? Pays { get; set; }
+        public string? ClientContact { get; set; }
+        public string? TicketNumber { get; set; }
+        public string? Priority { get; set; }
+        public string? ResolutionStatus { get; set; }
+        public bool? AdditionalInterventionRequired { get; set; }
+        public string? ProjectName { get; set; }
+        public string? ProjectNumber { get; set; }
+        public string? ProjectPhase { get; set; }
+        public string? ProjectStatus { get; set; }
+
+        // Relations normalisées (Phase 2)
+        public int? SiteID { get; set; }
+        public string? SiteNom { get; set; }
+        public Guid? ClientID { get; set; }
+        public string? ClientRaisonSociale { get; set; }
+
         // Info du technicien
         public string TechnicianFirstName { get; set; } = string.Empty;
         public string TechnicianLastName { get; set; } = string.Empty;

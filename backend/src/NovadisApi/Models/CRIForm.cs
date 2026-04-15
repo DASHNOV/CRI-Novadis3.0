@@ -49,7 +49,7 @@ namespace NovadisApi.Models
         [MaxLength(50)]
         public string Status { get; set; } = "Draft"; // Draft, Submitted, Validated
 
-        // ✅ Champ pour stocker toutes les données spécifiques (JSON)
+        // Champ JSON pour données spécifiques (conservé pour rétrocompatibilité)
         public string? Data { get; set; }
 
         public string? TechnicianSignature { get; set; } // Base64
@@ -62,7 +62,64 @@ namespace NovadisApi.Models
 
         public DateTime? SubmittedAt { get; set; }
 
-        // Relations
+        // ── Colonnes extraites du JSON Data (Phase 1 — statistiques) ──
+
+        // Horaires
+        public TimeSpan? HeureDebut { get; set; }
+        public TimeSpan? HeureFin { get; set; }
+        public int? DureeMinutes { get; set; }
+
+        // Localisation client (extraits du JSON)
+        [MaxLength(100)]
+        public string? Ville { get; set; }
+
+        [MaxLength(10)]
+        public string? CodePostal { get; set; }
+
+        [MaxLength(100)]
+        public string? Pays { get; set; }
+
+        [MaxLength(100)]
+        public string? ClientContact { get; set; }
+
+        // Champs Service
+        [MaxLength(50)]
+        public string? TicketNumber { get; set; }
+
+        [MaxLength(20)]
+        public string? Priority { get; set; } // basse, normale, haute, critique
+
+        [MaxLength(30)]
+        public string? ResolutionStatus { get; set; } // resolu, nonResolu, partiellementResolu, enAttente
+
+        public bool? AdditionalInterventionRequired { get; set; }
+
+        // Champs Projet
+        [MaxLength(255)]
+        public string? ProjectName { get; set; }
+
+        [MaxLength(50)]
+        public string? ProjectNumber { get; set; }
+
+        [MaxLength(30)]
+        public string? ProjectPhase { get; set; } // etude, realisation, maintenance
+
+        [MaxLength(30)]
+        public string? ProjectStatus { get; set; } // enCours, termine, suspendu
+
+        // ── Relations normalisées (Phase 2) ──
+
+        public int? SiteID { get; set; }
+
+        [ForeignKey("SiteID")]
+        public virtual Site? Site { get; set; }
+
+        public Guid? ClientID { get; set; }
+
+        [ForeignKey("ClientID")]
+        public virtual Client? Client { get; set; }
+
+        // Relations existantes
         [ForeignKey("TechnicianId")]
         public virtual User? Technician { get; set; }
 

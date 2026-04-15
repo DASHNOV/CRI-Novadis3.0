@@ -5,6 +5,9 @@ import 'package:novadis_cri/models/personal_stats.dart';
 import 'package:novadis_cri/models/global_stats.dart';
 import 'package:novadis_cri/models/technician_activity.dart';
 import 'package:novadis_cri/models/daily_activity.dart';
+import 'package:novadis_cri/models/site_stats.dart';
+import 'package:novadis_cri/models/technician_detailed_stats.dart';
+import 'package:novadis_cri/models/distribution_stats.dart';
 
 /// Provider pour le StatsApiService
 final statsApiServiceProvider = Provider<StatsApiService>((ref) {
@@ -65,11 +68,72 @@ class StatsApiService {
   // ──────────────────────────────────────────────────
 
   /// Récupère les statistiques globales (admin uniquement)
-  Future<GlobalStats> getGlobalStats() async {
+  /// [periodDays] : 1, 7, 30, 90, 365 ou null pour tout
+  Future<GlobalStats> getGlobalStats({int? periodDays}) async {
     try {
-      final response = await _dio.get('/global/stats');
+      final queryParams = <String, dynamic>{};
+      if (periodDays != null) queryParams['period'] = periodDays;
+      final response = await _dio.get(
+        '/global/stats',
+        queryParameters: queryParams,
+      );
       final data = response.data['data'];
       return GlobalStats.fromJson(data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Récupère les statistiques par site (admin uniquement)
+  Future<List<SiteStats>> getStatsBySite({int? periodDays}) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (periodDays != null) queryParams['period'] = periodDays;
+      final response = await _dio.get(
+        '/global/stats/by-site',
+        queryParameters: queryParams,
+      );
+      final data = response.data['data'] as List;
+      return data
+          .map((item) => SiteStats.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Récupère les statistiques par technicien (admin uniquement)
+  Future<List<TechnicianDetailedStats>> getStatsByTechnician({
+    int? periodDays,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (periodDays != null) queryParams['period'] = periodDays;
+      final response = await _dio.get(
+        '/global/stats/by-technician',
+        queryParameters: queryParams,
+      );
+      final data = response.data['data'] as List;
+      return data
+          .map((item) =>
+              TechnicianDetailedStats.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Récupère les statistiques de distribution croisées (admin uniquement)
+  Future<DistributionStats> getDistributionStats({int? periodDays}) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (periodDays != null) queryParams['period'] = periodDays;
+      final response = await _dio.get(
+        '/global/stats/distribution',
+        queryParameters: queryParams,
+      );
+      final data = response.data['data'];
+      return DistributionStats.fromJson(data);
     } on DioException catch (e) {
       throw _handleError(e);
     }

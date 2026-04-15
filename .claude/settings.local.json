@@ -80,7 +80,10 @@
       "Bash(python3 -c \"from PIL import Image; print\\(''OK''\\)\")",
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(dotnet ef:*)",
+      "Bash(dotnet script:*)",
+      "Bash(sqlcmd:*)"
     ]
   }
 }

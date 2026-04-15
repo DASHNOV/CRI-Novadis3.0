@@ -114,6 +114,18 @@ class $CriServiceTableTable extends CriServiceTable
   late final GeneratedColumn<String> requestDescription =
       GeneratedColumn<String>('request_description', aliasedName, false,
           type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _contratTypeMeta =
+      const VerificationMeta('contratType');
+  @override
+  late final GeneratedColumn<String> contratType = GeneratedColumn<String>(
+      'contrat_type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _systemTypesMeta =
+      const VerificationMeta('systemTypes');
+  @override
+  late final GeneratedColumn<String> systemTypes = GeneratedColumn<String>(
+      'system_types', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _diagnosticPerformedMeta =
       const VerificationMeta('diagnosticPerformed');
   @override
@@ -266,6 +278,8 @@ class $CriServiceTableTable extends CriServiceTable
         requestType,
         priority,
         requestDescription,
+        contratType,
+        systemTypes,
         diagnosticPerformed,
         identifiedCause,
         actionsPerformed,
@@ -397,6 +411,18 @@ class $CriServiceTableTable extends CriServiceTable
               data['request_description']!, _requestDescriptionMeta));
     } else if (isInserting) {
       context.missing(_requestDescriptionMeta);
+    }
+    if (data.containsKey('contrat_type')) {
+      context.handle(
+          _contratTypeMeta,
+          contratType.isAcceptableOrUnknown(
+              data['contrat_type']!, _contratTypeMeta));
+    }
+    if (data.containsKey('system_types')) {
+      context.handle(
+          _systemTypesMeta,
+          systemTypes.isAcceptableOrUnknown(
+              data['system_types']!, _systemTypesMeta));
     }
     if (data.containsKey('diagnostic_performed')) {
       context.handle(
@@ -564,6 +590,10 @@ class $CriServiceTableTable extends CriServiceTable
           .read(DriftSqlType.string, data['${effectivePrefix}priority'])!,
       requestDescription: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}request_description'])!,
+      contratType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}contrat_type']),
+      systemTypes: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}system_types']),
       diagnosticPerformed: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}diagnostic_performed']),
       identifiedCause: attachedDatabase.typeMapping.read(
@@ -634,6 +664,8 @@ class CriService extends DataClass implements Insertable<CriService> {
   final String requestType;
   final String priority;
   final String requestDescription;
+  final String? contratType;
+  final String? systemTypes;
   final String? diagnosticPerformed;
   final String? identifiedCause;
   final String actionsPerformed;
@@ -672,6 +704,8 @@ class CriService extends DataClass implements Insertable<CriService> {
       required this.requestType,
       required this.priority,
       required this.requestDescription,
+      this.contratType,
+      this.systemTypes,
       this.diagnosticPerformed,
       this.identifiedCause,
       required this.actionsPerformed,
@@ -726,6 +760,12 @@ class CriService extends DataClass implements Insertable<CriService> {
     map['request_type'] = Variable<String>(requestType);
     map['priority'] = Variable<String>(priority);
     map['request_description'] = Variable<String>(requestDescription);
+    if (!nullToAbsent || contratType != null) {
+      map['contrat_type'] = Variable<String>(contratType);
+    }
+    if (!nullToAbsent || systemTypes != null) {
+      map['system_types'] = Variable<String>(systemTypes);
+    }
     if (!nullToAbsent || diagnosticPerformed != null) {
       map['diagnostic_performed'] = Variable<String>(diagnosticPerformed);
     }
@@ -804,6 +844,12 @@ class CriService extends DataClass implements Insertable<CriService> {
       requestType: Value(requestType),
       priority: Value(priority),
       requestDescription: Value(requestDescription),
+      contratType: contratType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contratType),
+      systemTypes: systemTypes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(systemTypes),
       diagnosticPerformed: diagnosticPerformed == null && nullToAbsent
           ? const Value.absent()
           : Value(diagnosticPerformed),
@@ -873,6 +919,8 @@ class CriService extends DataClass implements Insertable<CriService> {
       priority: serializer.fromJson<String>(json['priority']),
       requestDescription:
           serializer.fromJson<String>(json['requestDescription']),
+      contratType: serializer.fromJson<String?>(json['contratType']),
+      systemTypes: serializer.fromJson<String?>(json['systemTypes']),
       diagnosticPerformed:
           serializer.fromJson<String?>(json['diagnosticPerformed']),
       identifiedCause: serializer.fromJson<String?>(json['identifiedCause']),
@@ -921,6 +969,8 @@ class CriService extends DataClass implements Insertable<CriService> {
       'requestType': serializer.toJson<String>(requestType),
       'priority': serializer.toJson<String>(priority),
       'requestDescription': serializer.toJson<String>(requestDescription),
+      'contratType': serializer.toJson<String?>(contratType),
+      'systemTypes': serializer.toJson<String?>(systemTypes),
       'diagnosticPerformed': serializer.toJson<String?>(diagnosticPerformed),
       'identifiedCause': serializer.toJson<String?>(identifiedCause),
       'actionsPerformed': serializer.toJson<String>(actionsPerformed),
@@ -965,6 +1015,8 @@ class CriService extends DataClass implements Insertable<CriService> {
           String? requestType,
           String? priority,
           String? requestDescription,
+          Value<String?> contratType = const Value.absent(),
+          Value<String?> systemTypes = const Value.absent(),
           Value<String?> diagnosticPerformed = const Value.absent(),
           Value<String?> identifiedCause = const Value.absent(),
           String? actionsPerformed,
@@ -1004,6 +1056,8 @@ class CriService extends DataClass implements Insertable<CriService> {
         requestType: requestType ?? this.requestType,
         priority: priority ?? this.priority,
         requestDescription: requestDescription ?? this.requestDescription,
+        contratType: contratType.present ? contratType.value : this.contratType,
+        systemTypes: systemTypes.present ? systemTypes.value : this.systemTypes,
         diagnosticPerformed: diagnosticPerformed.present
             ? diagnosticPerformed.value
             : this.diagnosticPerformed,
@@ -1074,6 +1128,10 @@ class CriService extends DataClass implements Insertable<CriService> {
       requestDescription: data.requestDescription.present
           ? data.requestDescription.value
           : this.requestDescription,
+      contratType:
+          data.contratType.present ? data.contratType.value : this.contratType,
+      systemTypes:
+          data.systemTypes.present ? data.systemTypes.value : this.systemTypes,
       diagnosticPerformed: data.diagnosticPerformed.present
           ? data.diagnosticPerformed.value
           : this.diagnosticPerformed,
@@ -1149,6 +1207,8 @@ class CriService extends DataClass implements Insertable<CriService> {
           ..write('requestType: $requestType, ')
           ..write('priority: $priority, ')
           ..write('requestDescription: $requestDescription, ')
+          ..write('contratType: $contratType, ')
+          ..write('systemTypes: $systemTypes, ')
           ..write('diagnosticPerformed: $diagnosticPerformed, ')
           ..write('identifiedCause: $identifiedCause, ')
           ..write('actionsPerformed: $actionsPerformed, ')
@@ -1194,6 +1254,8 @@ class CriService extends DataClass implements Insertable<CriService> {
         requestType,
         priority,
         requestDescription,
+        contratType,
+        systemTypes,
         diagnosticPerformed,
         identifiedCause,
         actionsPerformed,
@@ -1236,6 +1298,8 @@ class CriService extends DataClass implements Insertable<CriService> {
           other.requestType == this.requestType &&
           other.priority == this.priority &&
           other.requestDescription == this.requestDescription &&
+          other.contratType == this.contratType &&
+          other.systemTypes == this.systemTypes &&
           other.diagnosticPerformed == this.diagnosticPerformed &&
           other.identifiedCause == this.identifiedCause &&
           other.actionsPerformed == this.actionsPerformed &&
@@ -1279,6 +1343,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
   final Value<String> requestType;
   final Value<String> priority;
   final Value<String> requestDescription;
+  final Value<String?> contratType;
+  final Value<String?> systemTypes;
   final Value<String?> diagnosticPerformed;
   final Value<String?> identifiedCause;
   final Value<String> actionsPerformed;
@@ -1318,6 +1384,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     this.requestType = const Value.absent(),
     this.priority = const Value.absent(),
     this.requestDescription = const Value.absent(),
+    this.contratType = const Value.absent(),
+    this.systemTypes = const Value.absent(),
     this.diagnosticPerformed = const Value.absent(),
     this.identifiedCause = const Value.absent(),
     this.actionsPerformed = const Value.absent(),
@@ -1358,6 +1426,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     required String requestType,
     required String priority,
     required String requestDescription,
+    this.contratType = const Value.absent(),
+    this.systemTypes = const Value.absent(),
     this.diagnosticPerformed = const Value.absent(),
     this.identifiedCause = const Value.absent(),
     required String actionsPerformed,
@@ -1411,6 +1481,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     Expression<String>? requestType,
     Expression<String>? priority,
     Expression<String>? requestDescription,
+    Expression<String>? contratType,
+    Expression<String>? systemTypes,
     Expression<String>? diagnosticPerformed,
     Expression<String>? identifiedCause,
     Expression<String>? actionsPerformed,
@@ -1451,6 +1523,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
       if (requestType != null) 'request_type': requestType,
       if (priority != null) 'priority': priority,
       if (requestDescription != null) 'request_description': requestDescription,
+      if (contratType != null) 'contrat_type': contratType,
+      if (systemTypes != null) 'system_types': systemTypes,
       if (diagnosticPerformed != null)
         'diagnostic_performed': diagnosticPerformed,
       if (identifiedCause != null) 'identified_cause': identifiedCause,
@@ -1498,6 +1572,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
       Value<String>? requestType,
       Value<String>? priority,
       Value<String>? requestDescription,
+      Value<String?>? contratType,
+      Value<String?>? systemTypes,
       Value<String?>? diagnosticPerformed,
       Value<String?>? identifiedCause,
       Value<String>? actionsPerformed,
@@ -1537,6 +1613,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
       requestType: requestType ?? this.requestType,
       priority: priority ?? this.priority,
       requestDescription: requestDescription ?? this.requestDescription,
+      contratType: contratType ?? this.contratType,
+      systemTypes: systemTypes ?? this.systemTypes,
       diagnosticPerformed: diagnosticPerformed ?? this.diagnosticPerformed,
       identifiedCause: identifiedCause ?? this.identifiedCause,
       actionsPerformed: actionsPerformed ?? this.actionsPerformed,
@@ -1617,6 +1695,12 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     }
     if (requestDescription.present) {
       map['request_description'] = Variable<String>(requestDescription.value);
+    }
+    if (contratType.present) {
+      map['contrat_type'] = Variable<String>(contratType.value);
+    }
+    if (systemTypes.present) {
+      map['system_types'] = Variable<String>(systemTypes.value);
     }
     if (diagnosticPerformed.present) {
       map['diagnostic_performed'] = Variable<String>(diagnosticPerformed.value);
@@ -1707,6 +1791,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
           ..write('requestType: $requestType, ')
           ..write('priority: $priority, ')
           ..write('requestDescription: $requestDescription, ')
+          ..write('contratType: $contratType, ')
+          ..write('systemTypes: $systemTypes, ')
           ..write('diagnosticPerformed: $diagnosticPerformed, ')
           ..write('identifiedCause: $identifiedCause, ')
           ..write('actionsPerformed: $actionsPerformed, ')
@@ -1873,6 +1959,12 @@ class $CriProjetTableTable extends CriProjetTable
   late final GeneratedColumn<String> solutionsProvided =
       GeneratedColumn<String>('solutions_provided', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _softwaresMeta =
+      const VerificationMeta('softwares');
+  @override
+  late final GeneratedColumn<String> softwares = GeneratedColumn<String>(
+      'softwares', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _actionsToDoMeta =
       const VerificationMeta('actionsToDo');
   @override
@@ -1975,6 +2067,7 @@ class $CriProjetTableTable extends CriProjetTable
         materialsUsed,
         problemsEncountered,
         solutionsProvided,
+        softwares,
         actionsToDo,
         nextInterventionDate,
         projectStatus,
@@ -2127,6 +2220,10 @@ class $CriProjetTableTable extends CriProjetTable
           solutionsProvided.isAcceptableOrUnknown(
               data['solutions_provided']!, _solutionsProvidedMeta));
     }
+    if (data.containsKey('softwares')) {
+      context.handle(_softwaresMeta,
+          softwares.isAcceptableOrUnknown(data['softwares']!, _softwaresMeta));
+    }
     if (data.containsKey('actions_to_do')) {
       context.handle(
           _actionsToDoMeta,
@@ -2246,6 +2343,8 @@ class $CriProjetTableTable extends CriProjetTable
           DriftSqlType.string, data['${effectivePrefix}problems_encountered']),
       solutionsProvided: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}solutions_provided']),
+      softwares: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}softwares']),
       actionsToDo: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}actions_to_do']),
       nextInterventionDate: attachedDatabase.typeMapping.read(
@@ -2302,6 +2401,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
   final String? materialsUsed;
   final String? problemsEncountered;
   final String? solutionsProvided;
+  final String? softwares;
   final String? actionsToDo;
   final DateTime? nextInterventionDate;
   final String projectStatus;
@@ -2336,6 +2436,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
       this.materialsUsed,
       this.problemsEncountered,
       this.solutionsProvided,
+      this.softwares,
       this.actionsToDo,
       this.nextInterventionDate,
       required this.projectStatus,
@@ -2391,6 +2492,9 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
     }
     if (!nullToAbsent || solutionsProvided != null) {
       map['solutions_provided'] = Variable<String>(solutionsProvided);
+    }
+    if (!nullToAbsent || softwares != null) {
+      map['softwares'] = Variable<String>(softwares);
     }
     if (!nullToAbsent || actionsToDo != null) {
       map['actions_to_do'] = Variable<String>(actionsToDo);
@@ -2459,6 +2563,9 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
       solutionsProvided: solutionsProvided == null && nullToAbsent
           ? const Value.absent()
           : Value(solutionsProvided),
+      softwares: softwares == null && nullToAbsent
+          ? const Value.absent()
+          : Value(softwares),
       actionsToDo: actionsToDo == null && nullToAbsent
           ? const Value.absent()
           : Value(actionsToDo),
@@ -2514,6 +2621,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
           serializer.fromJson<String?>(json['problemsEncountered']),
       solutionsProvided:
           serializer.fromJson<String?>(json['solutionsProvided']),
+      softwares: serializer.fromJson<String?>(json['softwares']),
       actionsToDo: serializer.fromJson<String?>(json['actionsToDo']),
       nextInterventionDate:
           serializer.fromJson<DateTime?>(json['nextInterventionDate']),
@@ -2555,6 +2663,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
       'materialsUsed': serializer.toJson<String?>(materialsUsed),
       'problemsEncountered': serializer.toJson<String?>(problemsEncountered),
       'solutionsProvided': serializer.toJson<String?>(solutionsProvided),
+      'softwares': serializer.toJson<String?>(softwares),
       'actionsToDo': serializer.toJson<String?>(actionsToDo),
       'nextInterventionDate':
           serializer.toJson<DateTime?>(nextInterventionDate),
@@ -2593,6 +2702,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
           Value<String?> materialsUsed = const Value.absent(),
           Value<String?> problemsEncountered = const Value.absent(),
           Value<String?> solutionsProvided = const Value.absent(),
+          Value<String?> softwares = const Value.absent(),
           Value<String?> actionsToDo = const Value.absent(),
           Value<DateTime?> nextInterventionDate = const Value.absent(),
           String? projectStatus,
@@ -2633,6 +2743,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
         solutionsProvided: solutionsProvided.present
             ? solutionsProvided.value
             : this.solutionsProvided,
+        softwares: softwares.present ? softwares.value : this.softwares,
         actionsToDo: actionsToDo.present ? actionsToDo.value : this.actionsToDo,
         nextInterventionDate: nextInterventionDate.present
             ? nextInterventionDate.value
@@ -2697,6 +2808,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
       solutionsProvided: data.solutionsProvided.present
           ? data.solutionsProvided.value
           : this.solutionsProvided,
+      softwares: data.softwares.present ? data.softwares.value : this.softwares,
       actionsToDo:
           data.actionsToDo.present ? data.actionsToDo.value : this.actionsToDo,
       nextInterventionDate: data.nextInterventionDate.present
@@ -2750,6 +2862,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
           ..write('materialsUsed: $materialsUsed, ')
           ..write('problemsEncountered: $problemsEncountered, ')
           ..write('solutionsProvided: $solutionsProvided, ')
+          ..write('softwares: $softwares, ')
           ..write('actionsToDo: $actionsToDo, ')
           ..write('nextInterventionDate: $nextInterventionDate, ')
           ..write('projectStatus: $projectStatus, ')
@@ -2789,6 +2902,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
         materialsUsed,
         problemsEncountered,
         solutionsProvided,
+        softwares,
         actionsToDo,
         nextInterventionDate,
         projectStatus,
@@ -2827,6 +2941,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
           other.materialsUsed == this.materialsUsed &&
           other.problemsEncountered == this.problemsEncountered &&
           other.solutionsProvided == this.solutionsProvided &&
+          other.softwares == this.softwares &&
           other.actionsToDo == this.actionsToDo &&
           other.nextInterventionDate == this.nextInterventionDate &&
           other.projectStatus == this.projectStatus &&
@@ -2863,6 +2978,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
   final Value<String?> materialsUsed;
   final Value<String?> problemsEncountered;
   final Value<String?> solutionsProvided;
+  final Value<String?> softwares;
   final Value<String?> actionsToDo;
   final Value<DateTime?> nextInterventionDate;
   final Value<String> projectStatus;
@@ -2898,6 +3014,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
     this.materialsUsed = const Value.absent(),
     this.problemsEncountered = const Value.absent(),
     this.solutionsProvided = const Value.absent(),
+    this.softwares = const Value.absent(),
     this.actionsToDo = const Value.absent(),
     this.nextInterventionDate = const Value.absent(),
     this.projectStatus = const Value.absent(),
@@ -2934,6 +3051,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
     this.materialsUsed = const Value.absent(),
     this.problemsEncountered = const Value.absent(),
     this.solutionsProvided = const Value.absent(),
+    this.softwares = const Value.absent(),
     this.actionsToDo = const Value.absent(),
     this.nextInterventionDate = const Value.absent(),
     required String projectStatus,
@@ -2982,6 +3100,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
     Expression<String>? materialsUsed,
     Expression<String>? problemsEncountered,
     Expression<String>? solutionsProvided,
+    Expression<String>? softwares,
     Expression<String>? actionsToDo,
     Expression<DateTime>? nextInterventionDate,
     Expression<String>? projectStatus,
@@ -3019,6 +3138,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
       if (problemsEncountered != null)
         'problems_encountered': problemsEncountered,
       if (solutionsProvided != null) 'solutions_provided': solutionsProvided,
+      if (softwares != null) 'softwares': softwares,
       if (actionsToDo != null) 'actions_to_do': actionsToDo,
       if (nextInterventionDate != null)
         'next_intervention_date': nextInterventionDate,
@@ -3059,6 +3179,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
       Value<String?>? materialsUsed,
       Value<String?>? problemsEncountered,
       Value<String?>? solutionsProvided,
+      Value<String?>? softwares,
       Value<String?>? actionsToDo,
       Value<DateTime?>? nextInterventionDate,
       Value<String>? projectStatus,
@@ -3094,6 +3215,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
       materialsUsed: materialsUsed ?? this.materialsUsed,
       problemsEncountered: problemsEncountered ?? this.problemsEncountered,
       solutionsProvided: solutionsProvided ?? this.solutionsProvided,
+      softwares: softwares ?? this.softwares,
       actionsToDo: actionsToDo ?? this.actionsToDo,
       nextInterventionDate: nextInterventionDate ?? this.nextInterventionDate,
       projectStatus: projectStatus ?? this.projectStatus,
@@ -3176,6 +3298,9 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
     if (solutionsProvided.present) {
       map['solutions_provided'] = Variable<String>(solutionsProvided.value);
     }
+    if (softwares.present) {
+      map['softwares'] = Variable<String>(softwares.value);
+    }
     if (actionsToDo.present) {
       map['actions_to_do'] = Variable<String>(actionsToDo.value);
     }
@@ -3243,6 +3368,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
           ..write('materialsUsed: $materialsUsed, ')
           ..write('problemsEncountered: $problemsEncountered, ')
           ..write('solutionsProvided: $solutionsProvided, ')
+          ..write('softwares: $softwares, ')
           ..write('actionsToDo: $actionsToDo, ')
           ..write('nextInterventionDate: $nextInterventionDate, ')
           ..write('projectStatus: $projectStatus, ')
@@ -3796,6 +3922,8 @@ typedef $$CriServiceTableTableCreateCompanionBuilder = CriServiceTableCompanion
   required String requestType,
   required String priority,
   required String requestDescription,
+  Value<String?> contratType,
+  Value<String?> systemTypes,
   Value<String?> diagnosticPerformed,
   Value<String?> identifiedCause,
   required String actionsPerformed,
@@ -3837,6 +3965,8 @@ typedef $$CriServiceTableTableUpdateCompanionBuilder = CriServiceTableCompanion
   Value<String> requestType,
   Value<String> priority,
   Value<String> requestDescription,
+  Value<String?> contratType,
+  Value<String?> systemTypes,
   Value<String?> diagnosticPerformed,
   Value<String?> identifiedCause,
   Value<String> actionsPerformed,
@@ -3921,6 +4051,12 @@ class $$CriServiceTableTableFilterComposer
   ColumnFilters<String> get requestDescription => $composableBuilder(
       column: $table.requestDescription,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get contratType => $composableBuilder(
+      column: $table.contratType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get systemTypes => $composableBuilder(
+      column: $table.systemTypes, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get diagnosticPerformed => $composableBuilder(
       column: $table.diagnosticPerformed,
@@ -4060,6 +4196,12 @@ class $$CriServiceTableTableOrderingComposer
       column: $table.requestDescription,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get contratType => $composableBuilder(
+      column: $table.contratType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get systemTypes => $composableBuilder(
+      column: $table.systemTypes, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get diagnosticPerformed => $composableBuilder(
       column: $table.diagnosticPerformed,
       builder: (column) => ColumnOrderings(column));
@@ -4198,6 +4340,12 @@ class $$CriServiceTableTableAnnotationComposer
   GeneratedColumn<String> get requestDescription => $composableBuilder(
       column: $table.requestDescription, builder: (column) => column);
 
+  GeneratedColumn<String> get contratType => $composableBuilder(
+      column: $table.contratType, builder: (column) => column);
+
+  GeneratedColumn<String> get systemTypes => $composableBuilder(
+      column: $table.systemTypes, builder: (column) => column);
+
   GeneratedColumn<String> get diagnosticPerformed => $composableBuilder(
       column: $table.diagnosticPerformed, builder: (column) => column);
 
@@ -4307,6 +4455,8 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             Value<String> requestType = const Value.absent(),
             Value<String> priority = const Value.absent(),
             Value<String> requestDescription = const Value.absent(),
+            Value<String?> contratType = const Value.absent(),
+            Value<String?> systemTypes = const Value.absent(),
             Value<String?> diagnosticPerformed = const Value.absent(),
             Value<String?> identifiedCause = const Value.absent(),
             Value<String> actionsPerformed = const Value.absent(),
@@ -4347,6 +4497,8 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             requestType: requestType,
             priority: priority,
             requestDescription: requestDescription,
+            contratType: contratType,
+            systemTypes: systemTypes,
             diagnosticPerformed: diagnosticPerformed,
             identifiedCause: identifiedCause,
             actionsPerformed: actionsPerformed,
@@ -4387,6 +4539,8 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             required String requestType,
             required String priority,
             required String requestDescription,
+            Value<String?> contratType = const Value.absent(),
+            Value<String?> systemTypes = const Value.absent(),
             Value<String?> diagnosticPerformed = const Value.absent(),
             Value<String?> identifiedCause = const Value.absent(),
             required String actionsPerformed,
@@ -4427,6 +4581,8 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             requestType: requestType,
             priority: priority,
             requestDescription: requestDescription,
+            contratType: contratType,
+            systemTypes: systemTypes,
             diagnosticPerformed: diagnosticPerformed,
             identifiedCause: identifiedCause,
             actionsPerformed: actionsPerformed,
@@ -4494,6 +4650,7 @@ typedef $$CriProjetTableTableCreateCompanionBuilder = CriProjetTableCompanion
   Value<String?> materialsUsed,
   Value<String?> problemsEncountered,
   Value<String?> solutionsProvided,
+  Value<String?> softwares,
   Value<String?> actionsToDo,
   Value<DateTime?> nextInterventionDate,
   required String projectStatus,
@@ -4531,6 +4688,7 @@ typedef $$CriProjetTableTableUpdateCompanionBuilder = CriProjetTableCompanion
   Value<String?> materialsUsed,
   Value<String?> problemsEncountered,
   Value<String?> solutionsProvided,
+  Value<String?> softwares,
   Value<String?> actionsToDo,
   Value<DateTime?> nextInterventionDate,
   Value<String> projectStatus,
@@ -4622,6 +4780,9 @@ class $$CriProjetTableTableFilterComposer
   ColumnFilters<String> get solutionsProvided => $composableBuilder(
       column: $table.solutionsProvided,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get softwares => $composableBuilder(
+      column: $table.softwares, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get actionsToDo => $composableBuilder(
       column: $table.actionsToDo, builder: (column) => ColumnFilters(column));
@@ -4746,6 +4907,9 @@ class $$CriProjetTableTableOrderingComposer
       column: $table.solutionsProvided,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get softwares => $composableBuilder(
+      column: $table.softwares, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get actionsToDo => $composableBuilder(
       column: $table.actionsToDo, builder: (column) => ColumnOrderings(column));
 
@@ -4861,6 +5025,9 @@ class $$CriProjetTableTableAnnotationComposer
   GeneratedColumn<String> get solutionsProvided => $composableBuilder(
       column: $table.solutionsProvided, builder: (column) => column);
 
+  GeneratedColumn<String> get softwares =>
+      $composableBuilder(column: $table.softwares, builder: (column) => column);
+
   GeneratedColumn<String> get actionsToDo => $composableBuilder(
       column: $table.actionsToDo, builder: (column) => column);
 
@@ -4943,6 +5110,7 @@ class $$CriProjetTableTableTableManager extends RootTableManager<
             Value<String?> materialsUsed = const Value.absent(),
             Value<String?> problemsEncountered = const Value.absent(),
             Value<String?> solutionsProvided = const Value.absent(),
+            Value<String?> softwares = const Value.absent(),
             Value<String?> actionsToDo = const Value.absent(),
             Value<DateTime?> nextInterventionDate = const Value.absent(),
             Value<String> projectStatus = const Value.absent(),
@@ -4979,6 +5147,7 @@ class $$CriProjetTableTableTableManager extends RootTableManager<
             materialsUsed: materialsUsed,
             problemsEncountered: problemsEncountered,
             solutionsProvided: solutionsProvided,
+            softwares: softwares,
             actionsToDo: actionsToDo,
             nextInterventionDate: nextInterventionDate,
             projectStatus: projectStatus,
@@ -5015,6 +5184,7 @@ class $$CriProjetTableTableTableManager extends RootTableManager<
             Value<String?> materialsUsed = const Value.absent(),
             Value<String?> problemsEncountered = const Value.absent(),
             Value<String?> solutionsProvided = const Value.absent(),
+            Value<String?> softwares = const Value.absent(),
             Value<String?> actionsToDo = const Value.absent(),
             Value<DateTime?> nextInterventionDate = const Value.absent(),
             required String projectStatus,
@@ -5051,6 +5221,7 @@ class $$CriProjetTableTableTableManager extends RootTableManager<
             materialsUsed: materialsUsed,
             problemsEncountered: problemsEncountered,
             solutionsProvided: solutionsProvided,
+            softwares: softwares,
             actionsToDo: actionsToDo,
             nextInterventionDate: nextInterventionDate,
             projectStatus: projectStatus,

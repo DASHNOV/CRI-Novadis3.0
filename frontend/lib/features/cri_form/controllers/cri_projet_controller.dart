@@ -200,6 +200,15 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     );
   }
 
+  /// Met à jour la liste des logiciels utilisés (sélection + versions).
+  void updateSoftwares(List<SoftwareEntry> softwares) {
+    if (state.currentCri == null) return;
+    state = state.copyWith(
+      currentCri: state.currentCri!.copyWith(softwares: softwares),
+      isDirty: true,
+    );
+  }
+
   void updatePhotos(List<String> photos) {
     if (state.currentCri == null) return;
     state = state.copyWith(

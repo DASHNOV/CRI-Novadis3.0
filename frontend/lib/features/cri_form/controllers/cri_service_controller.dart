@@ -145,6 +145,27 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
+  /// Met à jour le statut du contrat (facultatif). Passer null efface la valeur.
+  void updateContratType(ServiceContratType? contratType) {
+    if (state.currentCri == null) return;
+    state = state.copyWith(
+      currentCri: state.currentCri!.copyWith(
+        contratType: contratType,
+        clearContratType: contratType == null,
+      ),
+      isDirty: true,
+    );
+  }
+
+  /// Met à jour la liste des types de système concernés (obligatoire).
+  void updateSystemTypes(List<ServiceSystemType> systemTypes) {
+    if (state.currentCri == null) return;
+    state = state.copyWith(
+      currentCri: state.currentCri!.copyWith(systemTypes: systemTypes),
+      isDirty: true,
+    );
+  }
+
   void updateDiagnosticInfo({
     String? diagnosticPerformed,
     String? identifiedCause,
@@ -263,7 +284,7 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(isSaving: false, errorMessage: 'Erreur lors de la sauvegarde');
+      state = state.copyWith(isSaving: false, errorMessage: 'Erreur lors de la sauvegarde: $e');
       return false;
     }
   }
@@ -291,7 +312,7 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     } catch (e) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: 'Erreur lors de la soumission',
+        errorMessage: 'Erreur lors de la soumission: $e',
       );
       return false;
     }

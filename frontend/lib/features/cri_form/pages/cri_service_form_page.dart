@@ -169,6 +169,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       return 'Le diagnostic réalisé est requis';
     }
 
+    // Vérifier qu'au moins un type de système est sélectionné
+    if (cri.systemTypes.isEmpty) {
+      return 'Sélectionnez au moins un type d\'intervention (Vidéo, Contrôle d\'accès ou Intrusion)';
+    }
+
     return null; // Tout est OK
   }
 
@@ -946,8 +951,150 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                   .updateRequestInfo(requestDescription: value);
             },
           ),
+          const SizedBox(height: 24),
+          _buildContratTypeField(state),
+          const SizedBox(height: 24),
+          _buildSystemTypesField(state),
         ],
       ),
+    );
+  }
+
+  /// Statut du contrat (facultatif) — Sous contrat / Hors contrat
+  Widget _buildContratTypeField(CriServiceFormState state) {
+    final current = state.currentCri?.contratType;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Statut du contrat',
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '(facultatif)',
+              style: TextStyle(
+                color: AppTheme.textTertiary,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ...ServiceContratType.values.map((type) {
+              final isSelected = current == type;
+              return ChoiceChip(
+                label: Text(type.label),
+                selected: isSelected,
+                onSelected: (v) {
+                  ref
+                      .read(criServiceFormProvider.notifier)
+                      .updateContratType(v ? type : null);
+                },
+              );
+            }),
+            if (current != null)
+              TextButton.icon(
+                onPressed: () {
+                  ref
+                      .read(criServiceFormProvider.notifier)
+                      .updateContratType(null);
+                },
+                icon: const Icon(Icons.clear, size: 16),
+                label: const Text('Effacer'),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Type d'intervention (sélection multiple obligatoire) — Vidéo / Contrôle d'accès / Intrusion
+  Widget _buildSystemTypesField(CriServiceFormState state) {
+    final selected =
+        state.currentCri?.systemTypes ?? const <ServiceSystemType>[];
+
+    return FormBuilderField<List<ServiceSystemType>>(
+      name: 'systemTypes',
+      initialValue: selected,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Sélectionnez au moins un type d\'intervention';
+        }
+        return null;
+      },
+      builder: (field) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Type d\'intervention *',
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '(sélection multiple)',
+                  style: TextStyle(
+                    color: AppTheme.textTertiary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: ServiceSystemType.values.map((sys) {
+                final isSelected = selected.contains(sys);
+                return FilterChip(
+                  label: Text(sys.label),
+                  selected: isSelected,
+                  onSelected: (v) {
+                    final list =
+                        List<ServiceSystemType>.from(selected);
+                    if (v) {
+                      if (!list.contains(sys)) list.add(sys);
+                    } else {
+                      list.remove(sys);
+                    }
+                    ref
+                        .read(criServiceFormProvider.notifier)
+                        .updateSystemTypes(list);
+                    field.didChange(list);
+                  },
+                );
+              }).toList(),
+            ),
+            if (field.hasError) ...[
+              const SizedBox(height: 6),
+              Text(
+                field.errorText ?? '',
+                style: TextStyle(
+                  color: AppTheme.error,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 

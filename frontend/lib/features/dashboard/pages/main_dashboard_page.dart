@@ -10,12 +10,18 @@ import 'package:novadis_cri/features/dashboard/widgets/dashboard_common_widgets.
 import 'package:novadis_cri/features/dashboard/widgets/intervention_list_item.dart';
 import 'package:novadis_cri/features/dashboard/widgets/kpi_card_widget.dart';
 import 'package:novadis_cri/features/dashboard/widgets/time_evolution_chart_widget.dart';
+import 'package:novadis_cri/features/dashboard/widgets/admin_top_sites_chart_widget.dart';
+import 'package:novadis_cri/features/dashboard/widgets/admin_request_types_pie_widget.dart';
+import 'package:novadis_cri/features/dashboard/widgets/admin_technician_site_heatmap_widget.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/core/theme/responsive.dart';
 import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
 import 'package:novadis_cri/core/theme/theme_provider.dart';
 import 'package:novadis_cri/features/auth/presentation/providers/permissions_provider.dart';
 import 'package:novadis_cri/core/constants/permissions.dart';
+import 'package:novadis_cri/models/site_stats.dart';
+import 'package:novadis_cri/models/technician_detailed_stats.dart';
+import 'package:intl/intl.dart';
 
 /// Page principale du Dashboard avec design modernisé
 class MainDashboardPage extends ConsumerStatefulWidget {
@@ -137,17 +143,34 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                     LayoutBuilder(
                       builder: (context, constraints) {
                         final isDesktop = constraints.maxWidth >= 1000;
-                        if (isAdmin && isDesktop && viewMode == DashboardViewMode.general) {
-                          return _buildAdminDesktopView(dashboardDataAsync);
+
+                        // Mode admin : utilise les données API
+                        if (isAdmin) {
+                          if (viewMode == DashboardViewMode.general) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildAdminKpiSection(ref),
+                                const SizedBox(height: AppTheme.space24),
+                                if (isDesktop)
+                                  _buildAdminDesktopGeneralView(ref, dashboardDataAsync)
+                                else
+                                  _buildAdminMobileGeneralView(ref, dashboardDataAsync),
+                              ],
+                            );
+                          } else if (viewMode == DashboardViewMode.parSite) {
+                            return _buildAdminSitesView(ref);
+                          } else if (viewMode == DashboardViewMode.parTechnicien) {
+                            return _buildAdminTechniciansView(ref);
+                          }
                         }
 
+                        // Mode technicien : garde le comportement existant
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // KPI Grid
                             _buildKpiSection(dashboardDataAsync),
                             const SizedBox(height: AppTheme.space24),
-                            // Content based on View Mode
                             if (viewMode == DashboardViewMode.general)
                               _buildGeneralView(dashboardDataAsync)
                             else if (viewMode == DashboardViewMode.parSite)
@@ -423,104 +446,6 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
     );
   }
 
-  Widget _buildAdminDesktopView(AsyncValue<DashboardData> dataAsync) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: _buildEvolutionChart(dataAsync)),
-            const SizedBox(width: AppTheme.space24),
-            Expanded(child: _buildAdminDesktopKpiSection(dataAsync)),
-          ],
-        ),
-        const SizedBox(height: AppTheme.space24),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: _buildTopSitesSummary(dataAsync)),
-            const SizedBox(width: AppTheme.space24),
-            Expanded(child: _buildTechWorkloadSummary(dataAsync)),
-          ],
-        ),
-        const SizedBox(height: AppTheme.space24),
-        _buildRecentInterventionsSummary(dataAsync),
-      ],
-    );
-  }
-
-  Widget _buildAdminDesktopKpiSection(AsyncValue<DashboardData> dataAsync) {
-    final aspectRatio = 1.3; // Desktop 2x2 ratio
-
-    return dataAsync.when(
-      data: (data) {
-        final cards = [
-          KpiCard(
-            title: 'En cours',
-            value: data.kpis.pendingInterventions.toString(),
-            icon: Icons.pending_actions,
-            iconColor: AppTheme.error,
-            subtitle: 'Action requise',
-          ),
-          KpiCard(
-            title: 'Prévues',
-            value: data.kpis.plannedInterventions.toString(),
-            icon: Icons.calendar_today,
-            iconColor: AppTheme.primaryLight,
-            subtitle: 'Futures',
-          ),
-          KpiCard(
-            title: 'Interventions',
-            value: data.kpis.totalInterventions.toString(),
-            icon: Icons.assignment,
-            iconColor: ChartConfig.kpiColors['interventions']!,
-            subtitle: 'Total sur la période',
-          ),
-          KpiCard(
-            title: 'Réalisées',
-            value: data.kpis.realizedInterventions.toString(),
-            icon: Icons.check_circle,
-            iconColor: const Color(0xFF10B981),
-            subtitle: '${data.kpis.completionRate.toStringAsFixed(0)}% Taux',
-          ),
-        ];
-
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: AppTheme.space16,
-            mainAxisSpacing: AppTheme.space16,
-            childAspectRatio: aspectRatio,
-          ),
-          itemCount: 4,
-          itemBuilder: (context, index) => cards[index],
-        );
-      },
-      loading: () => GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: AppTheme.space16,
-          mainAxisSpacing: AppTheme.space16,
-          childAspectRatio: aspectRatio,
-        ),
-        itemCount: 4,
-        itemBuilder: (context, index) => KpiCard(
-          title: '',
-          value: '',
-          icon: Icons.help,
-          iconColor: AppTheme.textTertiary,
-          isLoading: true,
-        ),
-      ),
-      error: (e, s) => Text('Erreur: $e'),
-    );
-  }
-
   /// Helper to build a consistent section card with title and action
   Widget _buildSectionCard({
     required String title,
@@ -729,6 +654,774 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           ),
         ),
       ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────
+  // Vues Admin API (données serveur)
+  // ──────────────────────────────────────────────────
+
+  Widget _buildAdminKpiSection(WidgetRef ref) {
+    final statsAsync = ref.watch(adminGlobalStatsProvider);
+
+    return statsAsync.when(
+      data: (stats) => KpiGrid(
+        cards: [
+          KpiCard(
+            title: 'Interventions',
+            value: stats.totalCeMois.toString(),
+            icon: Icons.assignment,
+            iconColor: ChartConfig.kpiColors['interventions']!,
+            subtitle: 'Total sur la période',
+          ),
+          KpiCard(
+            title: 'Résolues',
+            value: stats.totalResolu.toString(),
+            icon: Icons.check_circle,
+            iconColor: const Color(0xFF10B981),
+            subtitle: '${stats.tauxResolution.toStringAsFixed(0)}% résolution',
+          ),
+          KpiCard(
+            title: 'Durée moy.',
+            value: stats.dureeMoyenneFormatee,
+            icon: Icons.timer,
+            iconColor: const Color(0xFF6366F1),
+            subtitle: 'Par intervention',
+          ),
+          KpiCard(
+            title: 'Récurrences',
+            value: stats.totalRecurrenceRequise.toString(),
+            icon: Icons.replay,
+            iconColor: AppTheme.error,
+            subtitle: 'Retours nécessaires',
+          ),
+        ],
+      ),
+      loading: () => KpiGrid(
+        cards: List.generate(
+          4,
+          (index) => KpiCard(
+            title: '',
+            value: '',
+            icon: Icons.help,
+            iconColor: AppTheme.textTertiary,
+            isLoading: true,
+          ),
+        ),
+      ),
+      error: (e, s) => Text('Erreur: $e'),
+    );
+  }
+
+  Widget _buildAdminDesktopGeneralView(
+    WidgetRef ref,
+    AsyncValue<DashboardData> dashboardDataAsync,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildEvolutionChart(dashboardDataAsync)),
+            const SizedBox(width: AppTheme.space24),
+            Expanded(child: _buildAdminTopSitesSummary(ref)),
+          ],
+        ),
+        const SizedBox(height: AppTheme.space24),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildAdminTopSitesChart(ref)),
+            const SizedBox(width: AppTheme.space24),
+            Expanded(child: _buildAdminRequestTypesPie(ref)),
+          ],
+        ),
+        const SizedBox(height: AppTheme.space24),
+        _buildAdminTechSiteHeatmap(ref),
+        const SizedBox(height: AppTheme.space24),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildAdminTechWorkloadSummary(ref)),
+            const SizedBox(width: AppTheme.space24),
+            Expanded(child: _buildRecentInterventionsSummary(dashboardDataAsync)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdminMobileGeneralView(
+    WidgetRef ref,
+    AsyncValue<DashboardData> dashboardDataAsync,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildEvolutionChart(dashboardDataAsync),
+        const SizedBox(height: AppTheme.space16),
+        _buildAdminTopSitesChart(ref),
+        const SizedBox(height: AppTheme.space16),
+        _buildAdminRequestTypesPie(ref),
+        const SizedBox(height: AppTheme.space16),
+        _buildAdminTechSiteHeatmap(ref),
+        const SizedBox(height: AppTheme.space16),
+        _buildAdminTopSitesSummary(ref),
+        const SizedBox(height: AppTheme.space16),
+        _buildAdminTechWorkloadSummary(ref),
+        const SizedBox(height: AppTheme.space16),
+        _buildRecentInterventionsSummary(dashboardDataAsync),
+      ],
+    );
+  }
+
+  Widget _buildAdminTopSitesChart(WidgetRef ref) {
+    final siteStatsAsync = ref.watch(adminSiteStatsProvider);
+    return siteStatsAsync.when(
+      data: (sites) => AdminTopSitesChartWidget(
+        sites: sites,
+        subtitle: 'Classement des sites les plus sollicités',
+      ),
+      loading: () => Container(
+        height: 300,
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, s) => Text('Erreur: $e',
+          style: TextStyle(color: AppTheme.error)),
+    );
+  }
+
+  Widget _buildAdminRequestTypesPie(WidgetRef ref) {
+    final distAsync = ref.watch(adminDistributionStatsProvider);
+    return distAsync.when(
+      data: (dist) => AdminRequestTypesPieWidget(
+        distribution: dist.repartitionParCategorie ?? const {},
+        subtitle: 'Répartition par catégorie',
+      ),
+      loading: () => Container(
+        height: 300,
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, s) => Text('Erreur: $e',
+          style: TextStyle(color: AppTheme.error)),
+    );
+  }
+
+  Widget _buildAdminTechSiteHeatmap(WidgetRef ref) {
+    final distAsync = ref.watch(adminDistributionStatsProvider);
+    return distAsync.when(
+      data: (dist) => AdminTechnicianSiteHeatmapWidget(
+        entries: dist.technicienParSite ?? const [],
+      ),
+      loading: () => Container(
+        height: 300,
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, s) => Text('Erreur: $e',
+          style: TextStyle(color: AppTheme.error)),
+    );
+  }
+
+  Widget _buildAdminTopSitesSummary(WidgetRef ref) {
+    final siteStatsAsync = ref.watch(adminSiteStatsProvider);
+
+    return _buildSectionCard(
+      title: 'Top Sites (nb interventions)',
+      actionLabel: 'Voir tous',
+      onAction: () => ref.read(dashboardViewModeProvider.notifier).state =
+          DashboardViewMode.parSite,
+      child: siteStatsAsync.when(
+        data: (sites) {
+          final top3 = sites.take(3).toList();
+          if (top3.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(AppTheme.space16),
+              child: Text('Aucune donnée de site',
+                  style: TextStyle(color: AppTheme.textTertiary)),
+            );
+          }
+          return Column(
+            children: top3.map((site) => _buildAdminSiteItem(site)).toList(),
+          );
+        },
+        loading: () => Padding(
+          padding: const EdgeInsets.all(AppTheme.space16),
+          child: LinearProgressIndicator(
+            backgroundColor: AppTheme.surfaceVariant,
+            valueColor: AlwaysStoppedAnimation(AppTheme.primaryContent),
+          ),
+        ),
+        error: (e, s) => Padding(
+          padding: const EdgeInsets.all(AppTheme.space16),
+          child: Text('Erreur: $e',
+              style: TextStyle(color: AppTheme.error, fontSize: 13)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdminSiteItem(SiteStats site) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.space16,
+        vertical: AppTheme.space12,
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppTheme.space8),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryContent.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            ),
+            child: Icon(Icons.location_on_rounded,
+                color: AppTheme.primaryContent, size: 18),
+          ),
+          const SizedBox(width: AppTheme.space12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  site.siteNom,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                    fontSize: 14,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${site.clientNom ?? '-'} · ${site.tauxResolution.toStringAsFixed(0)}% résolu',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textTertiary),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.space8, vertical: AppTheme.space4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryContent.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                ),
+                child: Text(
+                  '${site.totalInterventions} CRI',
+                  style: TextStyle(
+                    color: AppTheme.primaryContent,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              if (site.topCategorie != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  site.topCategorie!,
+                  style: TextStyle(fontSize: 11, color: AppTheme.textTertiary),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdminTechWorkloadSummary(WidgetRef ref) {
+    final techStatsAsync = ref.watch(adminTechnicianStatsProvider);
+
+    return _buildSectionCard(
+      title: 'Répartition techniciens',
+      actionLabel: 'Détails',
+      onAction: () => ref.read(dashboardViewModeProvider.notifier).state =
+          DashboardViewMode.parTechnicien,
+      child: techStatsAsync.when(
+        data: (techs) {
+          final top3 = techs.take(3).toList();
+          if (top3.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(AppTheme.space16),
+              child: Text('Aucun technicien actif',
+                  style: TextStyle(color: AppTheme.textTertiary)),
+            );
+          }
+          return Column(
+            children:
+                top3.map((tech) => _buildAdminTechItem(tech)).toList(),
+          );
+        },
+        loading: () => Padding(
+          padding: const EdgeInsets.all(AppTheme.space16),
+          child: LinearProgressIndicator(
+            backgroundColor: AppTheme.surfaceVariant,
+            valueColor: AlwaysStoppedAnimation(AppTheme.primaryContent),
+          ),
+        ),
+        error: (e, s) => Padding(
+          padding: const EdgeInsets.all(AppTheme.space16),
+          child: Text('Erreur: $e',
+              style: TextStyle(color: AppTheme.error, fontSize: 13)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdminTechItem(TechnicianDetailedStats tech) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.space16,
+        vertical: AppTheme.space12,
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: AppTheme.accent.withValues(alpha: 0.1),
+            child: Text(
+              tech.prenom.isNotEmpty ? tech.prenom[0].toUpperCase() : '?',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.accent,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppTheme.space12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tech.nomComplet,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${tech.sitesDistincts} sites · ${tech.totalHeures.toStringAsFixed(1)}h',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textTertiary),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${tech.totalInterventions} CRI',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  color: tech.tauxResolution > 80
+                      ? AppTheme.successLight
+                      : AppTheme.warningLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                ),
+                child: Text(
+                  '${tech.tauxResolution.toStringAsFixed(0)}% résolu',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: tech.tauxResolution > 80
+                        ? AppTheme.success
+                        : AppTheme.warning,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Vue complète "Par Site" avec données API enrichies
+  Widget _buildAdminSitesView(WidgetRef ref) {
+    final siteStatsAsync = ref.watch(adminSiteStatsProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Statistiques par site',
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: AppTheme.space12),
+        _buildAdminTopSitesChart(ref),
+        const SizedBox(height: AppTheme.space16),
+        _buildAdminRequestTypesPie(ref),
+        const SizedBox(height: AppTheme.space16),
+        siteStatsAsync.when(
+          data: (sites) {
+            if (sites.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(AppTheme.space24),
+                child: Center(
+                  child: Text('Aucune donnée de site sur cette période',
+                      style: TextStyle(color: AppTheme.textTertiary)),
+                ),
+              );
+            }
+            return Column(
+              children: sites.map((site) => _buildAdminSiteCard(site)).toList(),
+            );
+          },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(AppTheme.space24),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (e, s) => Text('Erreur: $e'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdminSiteCard(SiteStats site) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.space8),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.space16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppTheme.space8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  ),
+                  child: Icon(Icons.business_rounded,
+                      color: AppTheme.primaryContent, size: 20),
+                ),
+                const SizedBox(width: AppTheme.space12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        site.siteNom,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                          fontSize: 15,
+                        ),
+                      ),
+                      if (site.clientNom != null)
+                        Text(
+                          '${site.clientNom}${site.ville != null ? ' · ${site.ville}' : ''}',
+                          style: TextStyle(
+                              color: AppTheme.textTertiary, fontSize: 13),
+                        ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.space12, vertical: AppTheme.space4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryContent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  ),
+                  child: Text(
+                    '${site.totalInterventions} CRI',
+                    style: TextStyle(
+                      color: AppTheme.primaryContent,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.space12),
+            Divider(height: 1, color: AppTheme.border.withValues(alpha: 0.3)),
+            const SizedBox(height: AppTheme.space12),
+            // Métriques
+            Wrap(
+              spacing: AppTheme.space16,
+              runSpacing: AppTheme.space8,
+              children: [
+                _buildMetric('Résolution', '${site.tauxResolution.toStringAsFixed(0)}%',
+                    site.tauxResolution > 80 ? AppTheme.success : AppTheme.warning),
+                _buildMetric('Récurrence', '${site.tauxRecurrence.toStringAsFixed(0)}%',
+                    site.tauxRecurrence > 20 ? AppTheme.error : AppTheme.textSecondary),
+                _buildMetric('Durée moy.', site.dureeMoyenneFormatee, AppTheme.textSecondary),
+                _buildMetric('Techniciens', '${site.techniciensDistincts}', AppTheme.textSecondary),
+                _buildMetric('Services', '${site.totalServices}', AppTheme.textSecondary),
+                _buildMetric('Projets', '${site.totalProjets}', AppTheme.textSecondary),
+              ],
+            ),
+            // Top catégorie
+            if (site.topCategorie != null) ...[
+              const SizedBox(height: AppTheme.space8),
+              Row(
+                children: [
+                  Icon(Icons.trending_up_rounded,
+                      size: 14, color: AppTheme.textTertiary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Top demande : ${site.topCategorie} (${site.topCategorieCount}x)',
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textTertiary,
+                        fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ),
+            ],
+            // Dernière intervention
+            if (site.derniereIntervention != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(Icons.schedule_rounded,
+                      size: 14, color: AppTheme.textTertiary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Dernière : ${DateFormat('dd/MM/yyyy').format(site.derniereIntervention!)}',
+                    style: TextStyle(fontSize: 12, color: AppTheme.textTertiary),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Vue complète "Par Technicien" avec données API enrichies
+  Widget _buildAdminTechniciansView(WidgetRef ref) {
+    final techStatsAsync = ref.watch(adminTechnicianStatsProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Statistiques par technicien',
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: AppTheme.space12),
+        _buildAdminTechSiteHeatmap(ref),
+        const SizedBox(height: AppTheme.space16),
+        techStatsAsync.when(
+          data: (techs) {
+            if (techs.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(AppTheme.space24),
+                child: Center(
+                  child: Text('Aucun technicien actif sur cette période',
+                      style: TextStyle(color: AppTheme.textTertiary)),
+                ),
+              );
+            }
+            return Column(
+              children:
+                  techs.map((tech) => _buildAdminTechCard(tech)).toList(),
+            );
+          },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(AppTheme.space24),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (e, s) => Text('Erreur: $e'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdminTechCard(TechnicianDetailedStats tech) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.space8),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.space16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
+                  child: Text(
+                    tech.prenom.isNotEmpty
+                        ? tech.prenom[0].toUpperCase()
+                        : '?',
+                    style: TextStyle(
+                      color: AppTheme.primaryContent,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppTheme.space12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tech.nomComplet,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        '${tech.sitesDistincts} sites · ${tech.clientsDistincts} clients',
+                        style: TextStyle(
+                            color: AppTheme.textTertiary, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${tech.totalInterventions} CRI',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      '${tech.totalHeures.toStringAsFixed(1)}h',
+                      style: TextStyle(
+                          color: AppTheme.textTertiary, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.space12),
+            Divider(height: 1, color: AppTheme.border.withValues(alpha: 0.3)),
+            const SizedBox(height: AppTheme.space12),
+            // Métriques
+            Wrap(
+              spacing: AppTheme.space16,
+              runSpacing: AppTheme.space8,
+              children: [
+                _buildMetric('Résolution', '${tech.tauxResolution.toStringAsFixed(0)}%',
+                    tech.tauxResolution > 80 ? AppTheme.success : AppTheme.warning),
+                _buildMetric('1er passage', '${tech.tauxResolutionPremierPassage.toStringAsFixed(0)}%',
+                    tech.tauxResolutionPremierPassage > 70
+                        ? AppTheme.success
+                        : AppTheme.warning),
+                _buildMetric('Durée moy.', tech.dureeMoyenneFormatee, AppTheme.textSecondary),
+                _buildMetric('Services', '${tech.totalServices}', AppTheme.textSecondary),
+                _buildMetric('Projets', '${tech.totalProjets}', AppTheme.textSecondary),
+              ],
+            ),
+            // Top sites
+            if (tech.topSites != null && tech.topSites!.isNotEmpty) ...[
+              const SizedBox(height: AppTheme.space8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.place_rounded,
+                      size: 14, color: AppTheme.textTertiary),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      'Sites : ${tech.topSites!.take(3).join(', ')}',
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textTertiary,
+                          fontStyle: FontStyle.italic),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetric(String label, String value, Color valueColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, color: AppTheme.textTertiary),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: valueColor,
+          ),
+        ),
+      ],
     );
   }
 

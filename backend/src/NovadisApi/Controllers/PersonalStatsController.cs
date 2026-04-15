@@ -64,7 +64,21 @@ namespace NovadisApi.Controllers
                         .CountAsync(c => c.TechnicianId == userId && c.Status == "Draft"),
 
                     CriEnAttente = await _context.CRIForms
-                        .CountAsync(c => c.TechnicianId == userId && c.ClientSignature == null)
+                        .CountAsync(c => c.TechnicianId == userId && c.ClientSignature == null),
+
+                    // Stats enrichies Phase 1
+                    DureeMoyenneMinutes = await _context.CRIForms
+                        .Where(c => c.TechnicianId == userId && c.DureeMinutes != null && c.DureeMinutes > 0)
+                        .AverageAsync(c => (double?)c.DureeMinutes),
+
+                    TotalResolu = await _context.CRIForms
+                        .CountAsync(c => c.TechnicianId == userId && c.ResolutionStatus == "resolu"),
+
+                    TotalNonResolu = await _context.CRIForms
+                        .CountAsync(c => c.TechnicianId == userId && (c.ResolutionStatus == "nonResolu" || c.ResolutionStatus == "partiellementResolu")),
+
+                    TotalRecurrenceRequise = await _context.CRIForms
+                        .CountAsync(c => c.TechnicianId == userId && c.AdditionalInterventionRequired == true)
                 };
 
                 return Ok(ApiResponse<PersonalStatsDto>.SuccessResponse(stats));

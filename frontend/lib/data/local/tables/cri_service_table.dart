@@ -32,6 +32,13 @@ class CriServiceTable extends Table {
   TextColumn get priority => text()(); // Enum value
   TextColumn get requestDescription => text()();
 
+  // Statut du contrat (facultatif) — Sous contrat / Hors contrat
+  TextColumn get contratType => text().nullable()();
+
+  // Types de système concernés (obligatoire à la soumission, JSON array)
+  // Valeurs possibles : video, controleAcces, intrusion
+  TextColumn get systemTypes => text().nullable()();
+
   // Section 4: Diagnostic
   TextColumn get diagnosticPerformed => text().nullable()();
   TextColumn get identifiedCause => text().nullable()();
@@ -122,6 +129,41 @@ enum ServicePriority {
       (e) => e.name == value || e.label == value,
       orElse: () => ServicePriority.normale,
     );
+  }
+}
+
+/// Statut du contrat (facultatif)
+enum ServiceContratType {
+  sousContrat('Sous contrat'),
+  horsContrat('Hors contrat');
+
+  final String label;
+  const ServiceContratType(this.label);
+
+  static ServiceContratType? fromString(String? value) {
+    if (value == null || value.isEmpty) return null;
+    for (final v in ServiceContratType.values) {
+      if (v.name == value || v.label == value) return v;
+    }
+    return null;
+  }
+}
+
+/// Type de système concerné par l'intervention (sélection multiple, obligatoire)
+enum ServiceSystemType {
+  video('Vidéo'),
+  controleAcces('Contrôle d\'accès'),
+  intrusion('Intrusion');
+
+  final String label;
+  const ServiceSystemType(this.label);
+
+  static ServiceSystemType? fromString(String? value) {
+    if (value == null) return null;
+    for (final v in ServiceSystemType.values) {
+      if (v.name == value || v.label == value) return v;
+    }
+    return null;
   }
 }
 

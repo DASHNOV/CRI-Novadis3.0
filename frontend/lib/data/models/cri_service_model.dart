@@ -29,6 +29,12 @@ class CriServiceModel {
   final ServicePriority priority;
   final String requestDescription;
 
+  /// Statut du contrat (facultatif)
+  final ServiceContratType? contratType;
+
+  /// Types de système concernés (au moins 1 requis à la soumission)
+  final List<ServiceSystemType> systemTypes;
+
   // Section 4: Diagnostic
   final String? diagnosticPerformed;
   final String? identifiedCause;
@@ -79,6 +85,8 @@ class CriServiceModel {
     required this.requestType,
     required this.priority,
     required this.requestDescription,
+    this.contratType,
+    this.systemTypes = const [],
     this.diagnosticPerformed,
     this.identifiedCause,
     required this.actionsPerformed,
@@ -109,12 +117,6 @@ class CriServiceModel {
 
   /// Champ utilisé dans le PDF - par défaut 'Terminée'
   String get interventionStatus => 'Terminée';
-
-  /// Champ utilisé dans le PDF - par défaut 'Hors contrat'
-  String get contratType => 'Hors contrat';
-
-  /// Champ utilisé dans le PDF - par défaut 'Vidéo'
-  String get systemType => 'Vidéo';
 
   /// Champ utilisé dans le PDF - par défaut liste vide
   List<dynamic> get piecesDetachees => [];
@@ -153,6 +155,9 @@ class CriServiceModel {
     ServiceRequestType? requestType,
     ServicePriority? priority,
     String? requestDescription,
+    ServiceContratType? contratType,
+    bool clearContratType = false,
+    List<ServiceSystemType>? systemTypes,
     String? diagnosticPerformed,
     String? identifiedCause,
     String? actionsPerformed,
@@ -192,6 +197,8 @@ class CriServiceModel {
       requestType: requestType ?? this.requestType,
       priority: priority ?? this.priority,
       requestDescription: requestDescription ?? this.requestDescription,
+      contratType: clearContratType ? null : (contratType ?? this.contratType),
+      systemTypes: systemTypes ?? this.systemTypes,
       diagnosticPerformed: diagnosticPerformed ?? this.diagnosticPerformed,
       identifiedCause: identifiedCause ?? this.identifiedCause,
       actionsPerformed: actionsPerformed ?? this.actionsPerformed,
@@ -238,6 +245,8 @@ class CriServiceModel {
       'requestType': requestType.name,
       'priority': priority.name,
       'requestDescription': requestDescription,
+      'contratType': contratType?.name,
+      'systemTypes': systemTypes.map((e) => e.name).toList(),
       'diagnosticPerformed': diagnosticPerformed,
       'identifiedCause': identifiedCause,
       'actionsPerformed': actionsPerformed,
@@ -281,6 +290,12 @@ class CriServiceModel {
       requestType: Value(requestType.name),
       priority: Value(priority.name),
       requestDescription: Value(requestDescription),
+      contratType: Value(contratType?.name),
+      systemTypes: Value(
+        systemTypes.isEmpty
+            ? null
+            : jsonEncode(systemTypes.map((e) => e.name).toList()),
+      ),
       diagnosticPerformed: Value(diagnosticPerformed),
       identifiedCause: Value(identifiedCause),
       actionsPerformed: Value(actionsPerformed),
@@ -323,6 +338,13 @@ class CriServiceModel {
       requestType: ServiceRequestType.fromString(db.requestType),
       priority: ServicePriority.fromString(db.priority),
       requestDescription: db.requestDescription,
+      contratType: ServiceContratType.fromString(db.contratType),
+      systemTypes: db.systemTypes == null || db.systemTypes!.isEmpty
+          ? const []
+          : (jsonDecode(db.systemTypes!) as List)
+              .map((e) => ServiceSystemType.fromString(e as String?))
+              .whereType<ServiceSystemType>()
+              .toList(),
       diagnosticPerformed: db.diagnosticPerformed,
       identifiedCause: db.identifiedCause,
       actionsPerformed: db.actionsPerformed,
@@ -368,6 +390,15 @@ class CriServiceModel {
       requestType: ServiceRequestType.fromString(json['requestType'] as String),
       priority: ServicePriority.fromString(json['priority'] as String),
       requestDescription: json['requestDescription'] as String,
+      contratType: ServiceContratType.fromString(json['contratType'] as String?),
+      systemTypes: json['systemTypes'] == null
+          ? const []
+          : (json['systemTypes'] is String
+                  ? (jsonDecode(json['systemTypes'] as String) as List)
+                  : (json['systemTypes'] as List))
+              .map((e) => ServiceSystemType.fromString(e as String?))
+              .whereType<ServiceSystemType>()
+              .toList(),
       diagnosticPerformed: json['diagnosticPerformed'] as String?,
       identifiedCause: json['identifiedCause'] as String?,
       actionsPerformed: json['actionsPerformed'] as String,

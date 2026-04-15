@@ -5,6 +5,7 @@ using NovadisApi.Data;
 using NovadisApi.Models;
 using NovadisApi.Models.DTOs;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace NovadisApi.Controllers
 {
@@ -85,6 +86,9 @@ namespace NovadisApi.Controllers
             cri.TechnicianId = userId.Value;
             cri.CreatedAt = DateTime.UtcNow;
 
+            ExtractDataFields(cri);
+            await ResolveRelations(cri);
+
             _context.CRIForms.Add(cri);
             await _context.SaveChangesAsync();
 
@@ -118,9 +122,13 @@ namespace NovadisApi.Controllers
             cri.MaterialsUsed = criUpdate.MaterialsUsed;
             cri.Duration = criUpdate.Duration;
             cri.Status = criUpdate.Status;
+            cri.Data = criUpdate.Data;
             cri.TechnicianSignature = criUpdate.TechnicianSignature;
             cri.ClientSignature = criUpdate.ClientSignature;
             cri.UpdatedAt = DateTime.UtcNow;
+
+            ExtractDataFields(cri);
+            await ResolveRelations(cri);
 
             if (cri.Status == "Submitted" && cri.SubmittedAt == null)
             {
@@ -195,6 +203,142 @@ namespace NovadisApi.Controllers
                 .ToListAsync();
 
             return Ok(ApiResponse<IEnumerable<string>>.SuccessResponse(sites!));
+        }
+
+        /// <summary>
+        /// Résout les relations normalisées : ClientSite → SiteID, ClientName → ClientID.
+        /// Si le client n'existe pas, il est créé automatiquement.
+        /// </summary>
+        private async Task ResolveRelations(CRIForm cri)
+        {
+            // ── Résolution Site ──
+            if (!string.IsNullOrWhiteSpace(cri.ClientSite))
+            {
+                var siteName = cri.ClientSite.Trim();
+                var site = await _context.Sites
+                    .FirstOrDefaultAsync(s => s.NomDuSite == siteName);
+                cri.SiteID = site?.Numero;
+            }
+
+            // ── Résolution Client (lookup ou auto-création) ──
+            if (!string.IsNullOrWhiteSpace(cri.ClientName))
+            {
+                var clientName = cri.ClientName.Trim();
+                var client = await _context.ClientsNormalises
+                    .FirstOrDefaultAsync(c => c.RaisonSociale == clientName);
+
+                if (client == null)
+                {
+                    client = new Client
+                    {
+                        Id = Guid.NewGuid(),
+                        RaisonSociale = clientName,
+                        Contact = cri.ClientContact,
+                        Telephone = cri.ClientPhone,
+                        Email = cri.ClientEmail,
+                        Adresse = cri.ClientAddress,
+                        CodePostal = cri.CodePostal,
+                        Ville = cri.Ville,
+                        Pays = cri.Pays,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.ClientsNormalises.Add(client);
+                }
+                else
+                {
+                    // Mettre à jour les coordonnées si plus récentes
+                    if (!string.IsNullOrWhiteSpace(cri.ClientContact))
+                        client.Contact = cri.ClientContact;
+                    if (!string.IsNullOrWhiteSpace(cri.ClientPhone))
+                        client.Telephone = cri.ClientPhone;
+                    if (!string.IsNullOrWhiteSpace(cri.ClientEmail))
+                        client.Email = cri.ClientEmail;
+                    if (!string.IsNullOrWhiteSpace(cri.ClientAddress))
+                        client.Adresse = cri.ClientAddress;
+                    if (!string.IsNullOrWhiteSpace(cri.Ville))
+                        client.Ville = cri.Ville;
+                    client.UpdatedAt = DateTime.UtcNow;
+                }
+
+                cri.ClientID = client.Id;
+            }
+        }
+
+        /// <summary>
+        /// Extrait les champs statistiques du JSON Data vers les colonnes typées.
+        /// Le JSON Data est envoyé par le frontend (jsonEncode du modèle Dart complet).
+        /// </summary>
+        private void ExtractDataFields(CRIForm cri)
+        {
+            if (string.IsNullOrWhiteSpace(cri.Data))
+                return;
+
+            try
+            {
+                using var doc = JsonDocument.Parse(cri.Data);
+                var root = doc.RootElement;
+
+                // Horaires
+                if (root.TryGetProperty("startTime", out var startTime) && startTime.ValueKind == JsonValueKind.String)
+                {
+                    if (DateTime.TryParse(startTime.GetString(), out var dt))
+                        cri.HeureDebut = dt.TimeOfDay;
+                }
+                if (root.TryGetProperty("endTime", out var endTime) && endTime.ValueKind == JsonValueKind.String)
+                {
+                    if (DateTime.TryParse(endTime.GetString(), out var dt))
+                        cri.HeureFin = dt.TimeOfDay;
+                }
+
+                // Durée : utiliser interventionDurationMinutes (Service) ou calculer depuis start/end (Projet)
+                if (root.TryGetProperty("interventionDurationMinutes", out var durationProp) && durationProp.ValueKind == JsonValueKind.Number)
+                {
+                    cri.DureeMinutes = durationProp.GetInt32();
+                }
+                else if (cri.HeureDebut.HasValue && cri.HeureFin.HasValue)
+                {
+                    cri.DureeMinutes = (int)(cri.HeureFin.Value - cri.HeureDebut.Value).TotalMinutes;
+                }
+
+                // Localisation client
+                cri.Ville = GetStringOrNull(root, "ville");
+                cri.CodePostal = GetStringOrNull(root, "codePostal");
+                cri.Pays = GetStringOrNull(root, "pays");
+                cri.ClientContact = GetStringOrNull(root, "clientContact");
+
+                // Champs Service
+                cri.TicketNumber = GetStringOrNull(root, "ticketNumber");
+                cri.Priority = GetStringOrNull(root, "priority");
+                cri.ResolutionStatus = GetStringOrNull(root, "resolutionStatus");
+
+                if (root.TryGetProperty("additionalInterventionRequired", out var addIntProp))
+                {
+                    if (addIntProp.ValueKind == JsonValueKind.True || addIntProp.ValueKind == JsonValueKind.False)
+                        cri.AdditionalInterventionRequired = addIntProp.GetBoolean();
+                    else if (addIntProp.ValueKind == JsonValueKind.Number)
+                        cri.AdditionalInterventionRequired = addIntProp.GetInt32() == 1;
+                }
+
+                // Champs Projet
+                cri.ProjectName = GetStringOrNull(root, "projectName");
+                cri.ProjectNumber = GetStringOrNull(root, "projectNumber");
+                cri.ProjectPhase = GetStringOrNull(root, "projectPhase");
+                cri.ProjectStatus = GetStringOrNull(root, "projectStatus");
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogWarning(ex, "Impossible de parser le champ Data du CRI {CriId}", cri.Id);
+            }
+        }
+
+        private static string? GetStringOrNull(JsonElement root, string propertyName)
+        {
+            if (root.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.String)
+            {
+                var value = prop.GetString();
+                return string.IsNullOrWhiteSpace(value) ? null : value;
+            }
+            return null;
         }
     }
 }

@@ -147,17 +147,28 @@ mixin PdfBuilderCommon {
                   _buildCheckboxGroup([
                     _checkbox(
                       'Sous contrat',
-                      cri.contratType == 'Sous contrat',
+                      cri.contratType == ServiceContratType.sousContrat,
                     ),
                     _checkbox(
                       'Hors contrat',
-                      cri.contratType == 'Hors contrat',
+                      cri.contratType == ServiceContratType.horsContrat,
                     ),
                   ], flex: 2),
                   _buildCheckboxGroup([
-                    _checkbox('Vidéo', true),
-                    _checkbox('Contrôle d\'accès', false),
-                    _checkbox('Intrusion', false),
+                    _checkbox(
+                      'Vidéo',
+                      cri.systemTypes.contains(ServiceSystemType.video),
+                    ),
+                    _checkbox(
+                      'Contrôle d\'accès',
+                      cri.systemTypes.contains(
+                        ServiceSystemType.controleAcces,
+                      ),
+                    ),
+                    _checkbox(
+                      'Intrusion',
+                      cri.systemTypes.contains(ServiceSystemType.intrusion),
+                    ),
                   ], flex: 2),
                 ]),
               ]),
@@ -173,7 +184,7 @@ mixin PdfBuilderCommon {
                 _buildLinedTextBlock(
                   'Travail Effectué :',
                   cri.actionsPerformed,
-                  lineCount: 15,
+                  lineCount: 10,
                 ),
                 if (cri.diagnosticPerformed != null &&
                     cri.diagnosticPerformed!.isNotEmpty)
@@ -182,7 +193,7 @@ mixin PdfBuilderCommon {
                     cri.diagnosticPerformed!,
                   ),
               ]),
-              pw.Spacer(),
+              pw.SizedBox(height: 6),
               _buildTableSection([
                 _buildRow([
                   _buildCheckboxGroup(
@@ -313,15 +324,7 @@ mixin PdfBuilderCommon {
                         horizontal: 6,
                         vertical: 4,
                       ),
-                      child: pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        mainAxisSize: pw.MainAxisSize.min,
-                        children: [
-                          pw.Text('Logiciel :', style: _labelStyle),
-                          pw.SizedBox(height: 1),
-                          pw.Text('Version :', style: _labelStyle),
-                        ],
-                      ),
+                      child: _buildSoftwaresCell(cri.softwares),
                     ),
                   ),
                 ]),
@@ -342,7 +345,7 @@ mixin PdfBuilderCommon {
                 _buildLinedTextBlock(
                   'Travail Effectué :',
                   cri.workDescription,
-                  lineCount: 20,
+                  lineCount: 15,
                 ),
               ]),
 
@@ -717,6 +720,45 @@ mixin PdfBuilderCommon {
       }
     }
     return pw.Container(height: 50);
+  }
+
+  /// Construit la cellule "Logiciel / Version" pour le CRI Projet.
+  /// Affiche la liste des logiciels sélectionnés avec leur version
+  /// (ou "-" si aucune version saisie). Si la liste est vide, reste
+  /// sur l'affichage placeholder pour compatibilité.
+  pw.Widget _buildSoftwaresCell(List<SoftwareEntry> softwares) {
+    if (softwares.isEmpty) {
+      return pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisSize: pw.MainAxisSize.min,
+        children: [
+          pw.Text('Logiciel :', style: _labelStyle),
+          pw.SizedBox(height: 1),
+          pw.Text('Version :', style: _labelStyle),
+        ],
+      );
+    }
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      mainAxisSize: pw.MainAxisSize.min,
+      children: [
+        pw.Text('Logiciel(s) :', style: _labelStyle),
+        pw.SizedBox(height: 2),
+        ...softwares.map((s) {
+          final version = (s.version == null || s.version!.trim().isEmpty)
+              ? '-'
+              : s.version!.trim();
+          return pw.Padding(
+            padding: const pw.EdgeInsets.only(bottom: 1),
+            child: pw.Text(
+              '• ${s.software.label} (v. $version)',
+              style: _valueStyle,
+            ),
+          );
+        }),
+      ],
+    );
   }
 
   pw.Widget _buildFooter() {
