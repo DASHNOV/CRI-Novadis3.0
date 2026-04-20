@@ -13,6 +13,7 @@ import 'package:novadis_cri/features/dashboard/widgets/time_evolution_chart_widg
 import 'package:novadis_cri/features/dashboard/widgets/admin_top_sites_chart_widget.dart';
 import 'package:novadis_cri/features/dashboard/widgets/admin_request_types_pie_widget.dart';
 import 'package:novadis_cri/features/dashboard/widgets/admin_technician_site_heatmap_widget.dart';
+import 'package:novadis_cri/core/providers/main_nav_provider.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/core/theme/responsive.dart';
 import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
@@ -41,6 +42,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
     final userName = ref.watch(userNameProvider);
     final userRole = ref.watch(userRoleProvider);
     final isAdmin = userRole == UserRole.admin;
+    final isMobile = MediaQuery.of(context).size.width < 640;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -56,14 +58,17 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                 backgroundColor: AppTheme.background,
                 surfaceTintColor: Colors.transparent,
                 elevation: 0,
-                leading: Container(
-                  margin: const EdgeInsets.only(left: AppTheme.space12),
-                  child: Icon(
-                    Icons.dashboard_rounded,
-                    color: AppTheme.textPrimary,
-                    size: 24,
-                  ),
-                ),
+                automaticallyImplyLeading: false,
+                leading: isMobile
+                    ? null
+                    : Container(
+                        margin: const EdgeInsets.only(left: AppTheme.space12),
+                        child: Icon(
+                          Icons.dashboard_rounded,
+                          color: AppTheme.textPrimary,
+                          size: 24,
+                        ),
+                      ),
                 title: Text(
                   'Dashboard Global',
                   style: TextStyle(

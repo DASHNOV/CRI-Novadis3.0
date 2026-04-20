@@ -144,7 +144,12 @@ class AppRouter {
       GoRoute(
         path: criSelection,
         name: 'cri-selection',
-        builder: (context, state) => const CriSelectionPage(),
+        builder: (context, state) {
+          final extra = state.extra;
+          final format =
+              extra is CriExportFormat ? extra : CriExportFormat.pdf;
+          return CriSelectionPage(format: format);
+        },
       ),
       GoRoute(
         path: admin,

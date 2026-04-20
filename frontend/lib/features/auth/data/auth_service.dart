@@ -48,6 +48,9 @@ class AuthService {
         // Save user role and name for permissions and UI
         final user = data['user'];
         if (user != null) {
+          if (user['id'] != null) {
+            await _storage.saveUserId(user['id'].toString());
+          }
           if (user['role'] != null) {
             await _storage.saveUserRole(user['role']);
           }

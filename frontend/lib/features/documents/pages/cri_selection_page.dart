@@ -8,9 +8,14 @@ import '../providers/documents_providers.dart';
 import '../../export/providers/export_providers.dart';
 import 'package:novadis_cri/core/theme/theme_provider.dart';
 
-/// Page de sélection d'un CRI pour l'exportation PDF
+/// Format d'export disponible depuis la sélection d'un CRI.
+enum CriExportFormat { pdf, xlsx }
+
+/// Page de sélection d'un CRI pour l'exportation (PDF ou Excel)
 class CriSelectionPage extends ConsumerStatefulWidget {
-  const CriSelectionPage({super.key});
+  final CriExportFormat format;
+
+  const CriSelectionPage({super.key, this.format = CriExportFormat.pdf});
 
   @override
   ConsumerState<CriSelectionPage> createState() => _CriSelectionPageState();
@@ -43,7 +48,9 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Sélectionner un CRI'),
+        title: Text(widget.format == CriExportFormat.xlsx
+            ? 'Sélectionner un CRI (Excel)'
+            : 'Sélectionner un CRI'),
         backgroundColor: AppTheme.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -176,7 +183,7 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
               itemCount: filteredReports.length,
               itemBuilder: (context, index) {
                 final report = filteredReports[index];
-                return _CriReportCard(report: report);
+                return _CriReportCard(report: report, format: widget.format);
               },
             ),
           );
@@ -242,8 +249,9 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
 
 class _CriReportCard extends ConsumerWidget {
   final CriReportModel report;
+  final CriExportFormat format;
 
-  const _CriReportCard({required this.report});
+  const _CriReportCard({required this.report, required this.format});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -378,7 +386,12 @@ class _CriReportCard extends ConsumerWidget {
                     ),
                     FilledButton.icon(
                       onPressed: () => _showExportConfirm(context, ref),
-                      icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
+                      icon: Icon(
+                        format == CriExportFormat.xlsx
+                            ? Icons.table_chart_rounded
+                            : Icons.picture_as_pdf_rounded,
+                        size: 16,
+                      ),
                       label: const Text('Exporter'),
                       style: FilledButton.styleFrom(
                         backgroundColor: AppTheme.primary,
@@ -413,15 +426,17 @@ class _CriReportCard extends ConsumerWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => _ExportProgressDialog(report: report),
+      builder: (context) =>
+          _ExportProgressDialog(report: report, format: format),
     );
   }
 }
 
 class _ExportProgressDialog extends ConsumerStatefulWidget {
   final CriReportModel report;
+  final CriExportFormat format;
 
-  const _ExportProgressDialog({required this.report});
+  const _ExportProgressDialog({required this.report, required this.format});
 
   @override
   ConsumerState<_ExportProgressDialog> createState() =>
@@ -438,20 +453,27 @@ class _ExportProgressDialogState extends ConsumerState<_ExportProgressDialog> {
 
   Future<void> _startExport() async {
     try {
-      // Invalider le cache pour forcer une nouvelle génération à chaque fois
-      ref.invalidate(generateCriPdfProvider(widget.report.id));
-      await ref.read(generateCriPdfProvider(widget.report.id).future);
+      if (widget.format == CriExportFormat.xlsx) {
+        ref.invalidate(exportCriXlsxProvider(widget.report.id));
+        await ref.read(exportCriXlsxProvider(widget.report.id).future);
+      } else {
+        // Invalider le cache pour forcer une nouvelle génération à chaque fois
+        ref.invalidate(generateCriPdfProvider(widget.report.id));
+        await ref.read(generateCriPdfProvider(widget.report.id).future);
+      }
 
       if (mounted) {
         Navigator.pop(context); // Fermer le dialog de progrès
         Navigator.pop(context); // Retourner à la page Documents
 
+        final formatLabel =
+            widget.format == CriExportFormat.xlsx ? 'Excel' : 'PDF';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               kIsWeb
-                  ? 'PDF téléchargé pour ${widget.report.clientName}'
-                  : 'PDF généré avec succès pour ${widget.report.clientName}',
+                  ? '$formatLabel téléchargé pour ${widget.report.clientName}'
+                  : '$formatLabel généré avec succès pour ${widget.report.clientName}',
             ),
             backgroundColor: Colors.green,
           ),
@@ -511,7 +533,9 @@ class _ExportProgressDialogState extends ConsumerState<_ExportProgressDialog> {
           ),
           const SizedBox(height: AppTheme.space20),
           Text(
-            'Génération du PDF',
+            widget.format == CriExportFormat.xlsx
+                ? 'Génération de l\'Excel'
+                : 'Génération du PDF',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,

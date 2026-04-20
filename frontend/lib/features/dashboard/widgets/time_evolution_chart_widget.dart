@@ -155,7 +155,8 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
                     widget.data[index].label,
                     style: TextStyle(
                       fontSize: 11,
-                      color: AppTheme.textTertiary,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 );
@@ -173,7 +174,8 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
                 ChartConfig.formatAxisValue(value),
                 style: TextStyle(
                   fontSize: 11,
-                  color: AppTheme.textTertiary,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textSecondary,
                 ),
               );
             },
@@ -191,8 +193,12 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
       maxY: maxY,
       lineTouchData: LineTouchData(
         touchTooltipData: LineTouchTooltipData(
-          getTooltipColor: (touchedSpot) => AppTheme.textPrimary,
+          getTooltipColor: (touchedSpot) => const Color(0xFF1F242D),
           tooltipRoundedRadius: 8,
+          tooltipPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
           getTooltipItems: (touchedSpots) {
             return touchedSpots.map((spot) {
               final data = widget.data[spot.x.toInt()];
@@ -237,7 +243,7 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
                 radius: isSelected ? 6 : ChartConfig.dotRadius,
                 color: AppTheme.primaryContent,
                 strokeWidth: 2,
-                strokeColor: Colors.white,
+                strokeColor: AppTheme.surface,
               );
             },
           ),
@@ -247,8 +253,8 @@ class _TimeEvolutionChartWidgetState extends State<TimeEvolutionChartWidget>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                AppTheme.primary.withValues(alpha: 0.2),
-                AppTheme.primary.withValues(alpha: 0.0),
+                AppTheme.primaryContent.withValues(alpha: 0.18),
+                AppTheme.primaryContent.withValues(alpha: 0.0),
               ],
             ),
           ),

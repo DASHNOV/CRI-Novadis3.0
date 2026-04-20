@@ -111,7 +111,8 @@ class ExportedDocumentModel {
 /// Types de fichiers exportés
 enum DocumentFileType {
   pdf('PDF'),
-  csv('CSV');
+  csv('CSV'),
+  xlsx('Excel');
 
   final String label;
   const DocumentFileType(this.label);

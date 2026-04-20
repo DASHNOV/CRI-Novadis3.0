@@ -193,6 +193,28 @@ class StatsApiService {
     }
   }
 
+  /// Marqueur écrit dans `clientSignature` lorsqu'un CRI est validé manuellement
+  /// (sans capture de signature physique). Doit rester synchronisé avec
+  /// `UpdateSignatureDto.ManualValidationMarker` côté backend.
+  static const String manualValidationMarker = 'MANUAL_VALIDATION';
+
+  /// Met à jour manuellement le statut "Signé / En attente" d'un CRI.
+  /// Passe `setSigned: true` pour marquer signé, `false` pour repasser en attente.
+  /// Le backend rejette toute tentative de modification sur un CRI dont l'appelant
+  /// n'est pas le propriétaire (strict, même pour les admins).
+  Future<void> toggleClientSignature(String criId, {required bool setSigned}) async {
+    try {
+      await _dio.patch(
+        '/cri/$criId/signature',
+        data: {
+          'clientSignature': setSigned ? manualValidationMarker : null,
+        },
+      );
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// Récupère la liste des techniciens pour le filtre dropdown (admin)
   Future<List<Map<String, dynamic>>> getTechnicians() async {
     try {
@@ -209,11 +231,18 @@ class StatsApiService {
   // ──────────────────────────────────────────────────
 
   String _handleError(DioException e) {
-    if (e.response?.statusCode == 403) {
-      return 'Accès refusé. Permissions insuffisantes.';
+    final status = e.response?.statusCode;
+    if (status == 403) {
+      return 'Accès refusé. Ce CRI ne vous appartient pas.';
     }
-    if (e.response?.statusCode == 401) {
+    if (status == 401) {
       return 'Session expirée. Veuillez vous reconnecter.';
+    }
+    if (status == 404) {
+      return 'Endpoint introuvable (404). Le backend est-il à jour ?';
+    }
+    if (status == 405) {
+      return 'Méthode non autorisée (405). Le backend est-il à jour ?';
     }
     if (e.response != null && e.response?.data != null) {
       final data = e.response?.data;
@@ -221,6 +250,9 @@ class StatsApiService {
         return data['message'];
       }
     }
-    return 'Une erreur est survenue. Veuillez réessayer.';
+    if (status != null) {
+      return 'Erreur HTTP $status. Veuillez réessayer.';
+    }
+    return 'Erreur réseau (${e.type.name}). Veuillez réessayer.';
   }
 }

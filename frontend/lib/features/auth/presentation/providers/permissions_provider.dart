@@ -26,6 +26,25 @@ class UserRoleNotifier extends StateNotifier<String?> {
   }
 }
 
+// Provides the current user ID (for ownership checks)
+final userIdProvider = StateNotifierProvider<UserIdNotifier, String?>((ref) {
+  return UserIdNotifier(ref.read(storageServiceProvider));
+});
+
+class UserIdNotifier extends StateNotifier<String?> {
+  final StorageService _storage;
+
+  UserIdNotifier(this._storage) : super(null) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    state = await _storage.getUserId();
+  }
+
+  Future<void> refresh() async => _load();
+}
+
 // Provides helper to check permissions
 final permissionsProvider = Provider<PermissionsService>((ref) {
   final role = ref.watch(userRoleProvider);

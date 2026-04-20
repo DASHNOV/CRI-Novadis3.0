@@ -2,10 +2,17 @@ import 'dart:io' show File;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 
+import '../../../core/network/dio_provider.dart';
 import '../../../data/local/app_database.dart';
 import '../models/exported_document_model.dart';
+import '../models/server_exported_document.dart';
 import '../services/base_service_interfaces.dart';
 import '../services/service_factory.dart' as serviceFactory;
+import '../services/xlsx_export_api_service.dart';
+import '../services/exported_documents_api_service.dart';
+
+export '../services/xlsx_export_api_service.dart' show XlsxExportPeriod, XlsxExportPeriodX, XlsxExportResult;
+export '../models/server_exported_document.dart';
 
 // ============================================================
 // Providers de services
@@ -41,6 +48,51 @@ final fileManagementServiceProvider = Provider<BaseFileManagementService>((ref) 
   final database = ref.watch(databaseProvider);
   return serviceFactory.getFileService(database);
 });
+
+/// Provider pour le service XLSX (backend via Dio)
+final xlsxExportApiServiceProvider = Provider<XlsxExportApiService>((ref) {
+  return XlsxExportApiService(ref.watch(dioProvider));
+});
+
+/// Provider pour le service d'historique serveur (liste / download / delete / rename / upload).
+final exportedDocumentsApiServiceProvider = Provider<ExportedDocumentsApiService>((ref) {
+  return ExportedDocumentsApiService(ref.watch(dioProvider));
+});
+
+/// Filtres côté serveur (fileType / exportType).
+class ServerDocumentsFilter {
+  final String? fileType;
+  final String? exportType;
+  const ServerDocumentsFilter({this.fileType, this.exportType});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ServerDocumentsFilter &&
+          fileType == other.fileType &&
+          exportType == other.exportType;
+
+  @override
+  int get hashCode => fileType.hashCode ^ exportType.hashCode;
+}
+
+/// Liste des documents côté serveur (Admin -> tous, Technicien -> les siens).
+final serverDocumentsProvider =
+    FutureProvider.family<List<ServerExportedDocument>, ServerDocumentsFilter>((ref, filter) async {
+  final api = ref.watch(exportedDocumentsApiServiceProvider);
+  return api.list(fileType: filter.fileType, exportType: filter.exportType);
+});
+
+/// Filtre actif pour la liste serveur.
+final serverDocumentsFilterProvider =
+    StateProvider<ServerDocumentsFilter>((ref) => const ServerDocumentsFilter());
+
+/// Recherche texte + tri côté client sur la liste serveur.
+final serverSearchQueryProvider = StateProvider<String>((ref) => '');
+final serverSortProvider = StateProvider<DocumentSortOption>((ref) => DocumentSortOption.newestFirst);
+
+/// Documents sélectionnés (pour actions multiples, par id UUID).
+final selectedServerDocumentsProvider = StateProvider<Set<String>>((ref) => {});
 
 // ============================================================
 // Providers de données
@@ -242,6 +294,22 @@ final generateCriPdfProvider = FutureProvider.family<dynamic, String>((
         criId: criId,
       );
       ref.invalidate(exportedDocumentsProvider);
+
+      // Upload côté serveur pour apparaître dans l'inventaire global
+      try {
+        final fileObj = file as File;
+        final bytes = await fileObj.readAsBytes();
+        final api = ref.read(exportedDocumentsApiServiceProvider);
+        await api.upload(
+          bytes: bytes,
+          filename: fileObj.uri.pathSegments.last,
+          criId: criId,
+          exportType: 'cri',
+        );
+        ref.invalidate(serverDocumentsProvider);
+      } catch (e) {
+        debugPrint('[PDF] Upload serveur échoué (non bloquant): $e');
+      }
     }
 
     // Réinitialiser le progrès
@@ -549,6 +617,119 @@ final exportTechnicianStatsCsvProvider =
         rethrow;
       }
     });
+
+/// Provider pour générer un XLSX d'un CRI via le backend.
+final exportCriXlsxProvider = FutureProvider.family<XlsxExportResult, String>((
+  ref,
+  criId,
+) async {
+  final api = ref.watch(xlsxExportApiServiceProvider);
+
+  Future.microtask(() {
+    ref.read(exportProgressProvider.notifier).state = ExportProgress(
+      type: 'XLSX',
+      status: 'Génération du classeur...',
+      progress: 0.3,
+    );
+  });
+
+  try {
+    final result = await api.exportCri(criId);
+
+    if (!kIsWeb && result.file is File) {
+      final fileService = ref.watch(fileManagementServiceProvider);
+      await fileService.registerExportedDocument(
+        file: result.file,
+        fileType: DocumentFileType.xlsx,
+        exportType: ExportType.cri,
+        criId: criId,
+      );
+      ref.invalidate(exportedDocumentsProvider);
+    }
+
+    // Le backend a déjà persisté le XLSX (cf. ExportController), il suffit de rafraîchir.
+    ref.invalidate(serverDocumentsProvider);
+
+    ref.read(exportProgressProvider.notifier).state = ExportProgress(
+      type: 'XLSX',
+      status: 'Terminé',
+      progress: 1.0,
+    );
+    return result;
+  } catch (e) {
+    ref.read(exportProgressProvider.notifier).state = ExportProgress(
+      type: 'XLSX',
+      status: 'Erreur: $e',
+      progress: 0.0,
+      hasError: true,
+    );
+    rethrow;
+  }
+});
+
+/// Paramètres pour l'export XLSX par période.
+typedef XlsxPeriodParams = ({XlsxExportPeriod period, DateTime referenceDate});
+
+/// Provider pour générer un XLSX agrégé (jour/semaine/mois/année).
+final exportPeriodXlsxProvider =
+    FutureProvider.family<XlsxExportResult, XlsxPeriodParams>((ref, params) async {
+  final api = ref.watch(xlsxExportApiServiceProvider);
+
+  Future.microtask(() {
+    ref.read(exportProgressProvider.notifier).state = ExportProgress(
+      type: 'XLSX',
+      status: 'Génération (${params.period.label})...',
+      progress: 0.3,
+    );
+  });
+
+  try {
+    final result = await api.exportPeriod(
+      period: params.period,
+      referenceDate: params.referenceDate,
+    );
+
+    if (!kIsWeb && result.file is File) {
+      final fileService = ref.watch(fileManagementServiceProvider);
+      await fileService.registerExportedDocument(
+        file: result.file,
+        fileType: DocumentFileType.xlsx,
+        exportType: ExportType.dashboard,
+        metadata: {
+          'period': params.period.slug,
+          'referenceDate': params.referenceDate.toIso8601String(),
+        },
+      );
+      ref.invalidate(exportedDocumentsProvider);
+    }
+
+    ref.invalidate(serverDocumentsProvider);
+
+    ref.read(exportProgressProvider.notifier).state = ExportProgress(
+      type: 'XLSX',
+      status: 'Terminé',
+      progress: 1.0,
+    );
+    return result;
+  } catch (e) {
+    ref.read(exportProgressProvider.notifier).state = ExportProgress(
+      type: 'XLSX',
+      status: 'Erreur: $e',
+      progress: 0.0,
+      hasError: true,
+    );
+    rethrow;
+  }
+});
+
+/// Provider pour les documents XLSX uniquement
+final xlsxDocumentsProvider = FutureProvider<List<ExportedDocument>>((
+  ref,
+) async {
+  if (kIsWeb) return [];
+  final database = ref.watch(databaseProvider);
+  return await database.getExportedDocumentsByType('xlsx');
+});
 
 // ============================================================
 // Modèles

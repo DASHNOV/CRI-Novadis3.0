@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:novadis_cri/features/documents/pages/documents_page.dart';
+import 'package:novadis_cri/core/providers/main_nav_provider.dart';
 import 'package:intl/intl.dart';
 
 import 'package:novadis_cri/models/personal_stats.dart';
@@ -189,10 +189,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
           icon: Icons.folder_outlined,
           tooltip: 'Mes Documents & Exports',
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const DocumentsPage()),
-            );
+            ref.read(requestedMainTabProvider.notifier).state = 'Documents';
           },
         ),
         const Gap(AppTheme.space8),

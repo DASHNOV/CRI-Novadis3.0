@@ -2,59 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:novadis_cri/data/local/local_storage_service.dart';
 import 'package:novadis_cri/core/storage/storage_service.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/core/theme/theme_provider.dart';
+import 'package:novadis_cri/features/auth/presentation/providers/permissions_provider.dart';
 
-/// Écran d'administration
-/// Affiche des statistiques et options de gestion
+const String _appVersion = '1.0.0';
+
 class AdminScreen extends HookConsumerWidget {
   const AdminScreen({super.key});
-
-  /// Charge les statistiques des CRI
-  static Future<Map<String, dynamic>> _loadStats(
-    LocalStorageService service,
-  ) async {
-    final criList = await service.getAllCri();
-
-    // Calcul des statistiques
-    final totalCri = criList.length;
-    final clientsSet = criList.map((cri) => cri.client).toSet();
-    final sitesSet = criList.map((cri) => cri.site).toSet();
-
-    // Comptage par type d'intervention
-    final typeCount = <String, int>{};
-    for (var cri in criList) {
-      typeCount[cri.typeIntervention] =
-          (typeCount[cri.typeIntervention] ?? 0) + 1;
-    }
-
-    return {
-      'totalCri': totalCri,
-      'totalClients': clientsSet.length,
-      'totalSites': sitesSet.length,
-      'typeCount': typeCount,
-    };
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(themeAnimationProvider);
-    final storageService = useMemoized(() => LocalStorageService());
-    final statsFuture = useMemoized(() => _loadStats(storageService));
-    final refreshKey = useState(0);
-
-    Future<void> handleRefresh() async {
-      refreshKey.value++;
-    }
+    final storage = ref.watch(storageServiceProvider);
+    final role = ref.watch(userRoleProvider);
+    final nameFuture = useMemoized(() => storage.getUserName(), [storage]);
+    final nameSnap = useFuture(nameFuture);
+    final themeMode = ref.watch(themeModeProvider);
+    final isDark = themeMode == ThemeMode.dark;
 
     Future<void> handleLogout() async {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          ),
           title: const Text('Déconnexion'),
           content: const Text('Voulez-vous vraiment vous déconnecter ?'),
           actions: [
@@ -64,6 +40,7 @@ class AdminScreen extends HookConsumerWidget {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(foregroundColor: AppTheme.error),
               child: const Text('Se déconnecter'),
             ),
           ],
@@ -78,381 +55,127 @@ class AdminScreen extends HookConsumerWidget {
       }
     }
 
+    void showAbout() {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          ),
+          title: const Text('À propos'),
+          content: const Text(
+            'Novadis CRI v$_appVersion\n\n'
+            'Application de gestion des comptes rendus d\'intervention.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Fermer'),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: FutureBuilder<Map<String, dynamic>>(
-        key: ValueKey(refreshKey.value),
-        future: statsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryContent),
-            );
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(AppTheme.space20),
-                    decoration: BoxDecoration(
-                      color: AppTheme.errorLight,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.error_outline_rounded,
-                      size: 40,
-                      color: AppTheme.error,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.space16),
-                  Text(
-                    'Erreur de chargement',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.space8),
-                  Text(
-                    'Impossible de charger les statistiques',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppTheme.textTertiary,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final stats = snapshot.data!;
-          final totalCri = stats['totalCri'] as int;
-          final totalClients = stats['totalClients'] as int;
-          final totalSites = stats['totalSites'] as int;
-          final typeCount = stats['typeCount'] as Map<String, int>;
-
-          return ContentContainer(
-            maxWidth: 1200,
-            child: ListView(
-              padding: const EdgeInsets.all(AppTheme.space20),
-              children: [
-                // ─── Inline header ───
-                SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: AppTheme.space24),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Administration',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.textPrimary,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              SizedBox(height: AppTheme.space4),
-                              Text(
-                                'Statistiques et gestion',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AppTheme.textTertiary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        _HeaderActionButton(
-                          icon: Icons.refresh_rounded,
-                          tooltip: 'Actualiser',
-                          onPressed: handleRefresh,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // ─── Stat cards ───
-                Row(
+      body: ContentContainer(
+        maxWidth: 720,
+        child: ListView(
+          padding: const EdgeInsets.all(AppTheme.space20),
+          children: [
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppTheme.space24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: _StatCard(
-                        icon: Icons.description_outlined,
-                        label: 'CRI',
-                        value: totalCri.toString(),
-                        color: AppTheme.primaryContent,
-                        bgColor: AppTheme.infoLight,
+                    Text(
+                      'Paramètres',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                        letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(width: AppTheme.space12),
-                    Expanded(
-                      child: _StatCard(
-                        icon: Icons.people_outline_rounded,
-                        label: 'Clients',
-                        value: totalClients.toString(),
-                        color: AppTheme.success,
-                        bgColor: AppTheme.successLight,
-                      ),
-                    ),
-                    const SizedBox(width: AppTheme.space12),
-                    Expanded(
-                      child: _StatCard(
-                        icon: Icons.location_on_outlined,
-                        label: 'Sites',
-                        value: totalSites.toString(),
-                        color: AppTheme.warning,
-                        bgColor: AppTheme.warningLight,
+                    const SizedBox(height: AppTheme.space4),
+                    Text(
+                      'Compte, apparence et préférences',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.textTertiary,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: AppTheme.space24),
+              ),
+            ),
 
-                // ─── Type distribution card ───
-                if (typeCount.isNotEmpty) ...[
-                  Text(
-                    'Répartition par type',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.space12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                      border: Border.all(
-                        color: AppTheme.border.withValues(alpha: 0.5),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        for (int i = 0; i < typeCount.entries.length; i++) ...[
-                          if (i > 0)
-                            Divider(
-                              height: 1,
-                              indent: AppTheme.space16,
-                              endIndent: AppTheme.space16,
-                              color: AppTheme.border.withValues(alpha: 0.5),
-                            ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppTheme.space16,
-                              vertical: AppTheme.space12,
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: _getTypeColor(i),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: AppTheme.space12),
-                                Expanded(
-                                  child: Text(
-                                    typeCount.entries.elementAt(i).key,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppTheme.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppTheme.space12,
-                                    vertical: AppTheme.space4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.surfaceVariant,
-                                    borderRadius: BorderRadius.circular(
-                                      AppTheme.radiusFull,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    typeCount.entries
-                                        .elementAt(i)
-                                        .value
-                                        .toString(),
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.textSecondary,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.space24),
-                ],
+            _AccountCard(
+              name: nameSnap.data ?? 'Utilisateur',
+              role: role ?? '',
+            ),
+            const SizedBox(height: AppTheme.space24),
 
-                // ─── Actions section ───
-                Text(
-                  'Actions',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
+            const _SectionLabel('Apparence'),
+            const SizedBox(height: AppTheme.space12),
+            _SettingsGroup(
+              children: [
+                _ThemeToggleTile(
+                  isDark: isDark,
+                  onChanged: (value) {
+                    ref.read(themeModeProvider.notifier).setMode(
+                          value ? ThemeMode.dark : ThemeMode.light,
+                        );
+                  },
                 ),
-                const SizedBox(height: AppTheme.space12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                    border: Border.all(
-                      color: AppTheme.border.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      _ActionListTile(
-                        icon: Icons.info_outline_rounded,
-                        iconColor: AppTheme.primaryContent,
-                        title: 'À propos',
-                        subtitle: 'Informations sur l\'application',
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('À propos'),
-                              content: const Text(
-                                'Novadis CRI v1.0.0\n\n'
-                                'Application de gestion des comptes rendus d\'intervention.\n\n'
-                                'Architecture: Clean Architecture\n'
-                                'Navigation: GoRouter\n'
-                                'State Management: Flutter Hooks\n\n'
-                                'Mode démonstration - Données locales uniquement.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Fermer'),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppTheme.space24),
-
-                // ─── Logout button ───
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: handleLogout,
-                    icon: const Icon(
-                      Icons.logout_rounded,
-                      size: 18,
-                      color: AppTheme.error,
-                    ),
-                    label: const Text('Se déconnecter'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.error,
-                      side: const BorderSide(color: AppTheme.error),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppTheme.space16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppTheme.radiusLg,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppTheme.space32),
               ],
             ),
-          );
-        },
-      ),
-    );
-  }
+            const SizedBox(height: AppTheme.space24),
 
-  static Color _getTypeColor(int index) {
-    final colors = [
-      AppTheme.primaryContent,
-      AppTheme.success,
-      AppTheme.warning,
-      AppTheme.accent,
-      AppTheme.error,
-      AppTheme.primaryLight,
-    ];
-    return colors[index % colors.length];
-  }
-}
-
-// ─── Header action button ───
-class _HeaderActionButton extends StatelessWidget {
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onPressed;
-
-  const _HeaderActionButton({
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(icon, size: 20),
-      color: AppTheme.textSecondary,
-      tooltip: tooltip,
-      onPressed: onPressed,
-      style: IconButton.styleFrom(
-        backgroundColor: AppTheme.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          side: BorderSide(color: AppTheme.border.withValues(alpha: 0.5)),
+            const _SectionLabel('Application'),
+            const SizedBox(height: AppTheme.space12),
+            _SettingsGroup(
+              children: [
+                _ActionListTile(
+                  icon: Icons.info_outline_rounded,
+                  iconColor: AppTheme.primaryContent,
+                  title: 'À propos',
+                  subtitle: 'Version $_appVersion',
+                  onTap: showAbout,
+                ),
+                _Divider(),
+                _ActionListTile(
+                  icon: Icons.logout_rounded,
+                  iconColor: AppTheme.error,
+                  title: 'Se déconnecter',
+                  subtitle: 'Fermer la session sur cet appareil',
+                  destructive: true,
+                  onTap: handleLogout,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.space32),
+          ],
         ),
       ),
     );
   }
 }
 
-/// Widget de carte pour afficher une statistique
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-  final Color bgColor;
+class _AccountCard extends StatelessWidget {
+  final String name;
+  final String role;
 
-  const _StatCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.bgColor,
-  });
+  const _AccountCard({required this.name, required this.role});
 
   @override
   Widget build(BuildContext context) {
+    final initial = name.isNotEmpty ? name.characters.first.toUpperCase() : '?';
+    final displayRole = role.isEmpty ? '—' : role;
+
     return Container(
       padding: const EdgeInsets.all(AppTheme.space16),
       decoration: BoxDecoration(
@@ -461,34 +184,67 @@ class _StatCard extends StatelessWidget {
         border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
         boxShadow: AppTheme.shadowSm,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(AppTheme.space8),
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: bgColor,
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primaryContent,
+                  AppTheme.primaryContent.withValues(alpha: 0.7),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
             ),
-            child: Icon(icon, size: 20, color: color),
-          ),
-          const SizedBox(height: AppTheme.space12),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
-              letterSpacing: -0.5,
+            alignment: Alignment.center,
+            child: Text(
+              initial,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
-          const SizedBox(height: AppTheme.space4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textTertiary,
+          const SizedBox(width: AppTheme.space12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.space8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryContent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                  ),
+                  child: Text(
+                    displayRole,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryContent,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -497,12 +253,119 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ─── Action list tile ───
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  const _SectionLabel(this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label.toUpperCase(),
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppTheme.textTertiary,
+        letterSpacing: 0.8,
+      ),
+    );
+  }
+}
+
+class _SettingsGroup extends StatelessWidget {
+  final List<Widget> children;
+  const _SettingsGroup({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+      ),
+      child: Column(children: children),
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Divider(
+      height: 1,
+      indent: AppTheme.space16,
+      endIndent: AppTheme.space16,
+      color: AppTheme.border.withValues(alpha: 0.5),
+    );
+  }
+}
+
+class _ThemeToggleTile extends StatelessWidget {
+  final bool isDark;
+  final ValueChanged<bool> onChanged;
+
+  const _ThemeToggleTile({required this.isDark, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded;
+    final color = isDark ? AppTheme.accent : AppTheme.warning;
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.space16,
+        vertical: AppTheme.space8,
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppTheme.space8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
+          const SizedBox(width: AppTheme.space12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Mode sombre',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isDark ? 'Activé' : 'Désactivé',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: isDark,
+            onChanged: onChanged,
+            activeThumbColor: AppTheme.primaryContent,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ActionListTile extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String title;
   final String subtitle;
+  final bool destructive;
   final VoidCallback onTap;
 
   const _ActionListTile({
@@ -511,13 +374,13 @@ class _ActionListTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.destructive = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppTheme.space16,
@@ -543,7 +406,7 @@ class _ActionListTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
+                      color: destructive ? AppTheme.error : AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),

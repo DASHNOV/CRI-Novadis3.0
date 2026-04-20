@@ -72,108 +72,125 @@ class _AdminRequestTypesPieWidgetState
               ),
             )
           else
-            SizedBox(
-              height: 220,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: PieChart(
-                      PieChartData(
-                        pieTouchData: PieTouchData(
-                          touchCallback:
-                              (FlTouchEvent event, pieTouchResponse) {
-                            setState(() {
-                              if (!event.isInterestedForInteractions ||
-                                  pieTouchResponse == null ||
-                                  pieTouchResponse.touchedSection == null) {
-                                _touchedIndex = -1;
-                                return;
-                              }
-                              _touchedIndex = pieTouchResponse
-                                  .touchedSection!.touchedSectionIndex;
-                            });
-                          },
-                        ),
-                        borderData: FlBorderData(show: false),
-                        sectionsSpace: 2,
-                        centerSpaceRadius: 40,
-                        sections: List.generate(display.length, (i) {
-                          final isTouched = i == _touchedIndex;
-                          final e = display[i];
-                          final pct = (e.value / total) * 100;
-                          return PieChartSectionData(
-                            color: ChartConfig.getBarColor(i),
-                            value: e.value.toDouble(),
-                            title: pct >= 5
-                                ? '${pct.toStringAsFixed(0)}%'
-                                : '',
-                            radius: isTouched ? 70 : 60,
-                            titleStyle: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          );
-                        }),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 420;
+                final pie = _buildPieChart(display, total);
+                final legend = _buildLegend(display, total);
+                if (isNarrow) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 200, child: pie),
+                      const SizedBox(height: 16),
+                      legend,
+                    ],
+                  );
+                }
+                return SizedBox(
+                  height: 220,
+                  child: Row(
+                    children: [
+                      Expanded(flex: 3, child: pie),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 4,
+                        child: SingleChildScrollView(child: legend),
                       ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 4,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(display.length, (i) {
-                          final e = display[i];
-                          final pct = (e.value / total) * 100;
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: ChartConfig.getBarColor(i),
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    e.key,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppTheme.textPrimary,
-                                      fontWeight: i == _touchedIndex
-                                          ? FontWeight.w700
-                                          : FontWeight.w400,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  '${e.value} (${pct.toStringAsFixed(1)}%)',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppTheme.textTertiary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPieChart(List<MapEntry<String, int>> display, int total) {
+    return PieChart(
+      PieChartData(
+        pieTouchData: PieTouchData(
+          touchCallback: (FlTouchEvent event, pieTouchResponse) {
+            setState(() {
+              if (!event.isInterestedForInteractions ||
+                  pieTouchResponse == null ||
+                  pieTouchResponse.touchedSection == null) {
+                _touchedIndex = -1;
+                return;
+              }
+              _touchedIndex =
+                  pieTouchResponse.touchedSection!.touchedSectionIndex;
+            });
+          },
+        ),
+        borderData: FlBorderData(show: false),
+        sectionsSpace: 2,
+        centerSpaceRadius: 40,
+        sections: List.generate(display.length, (i) {
+          final isTouched = i == _touchedIndex;
+          final e = display[i];
+          final pct = (e.value / total) * 100;
+          return PieChartSectionData(
+            color: ChartConfig.getBarColor(i),
+            value: e.value.toDouble(),
+            title: pct >= 5 ? '${pct.toStringAsFixed(0)}%' : '',
+            radius: isTouched ? 70 : 60,
+            titleStyle: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildLegend(List<MapEntry<String, int>> display, int total) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(display.length, (i) {
+        final e = display[i];
+        final pct = (e.value / total) * 100;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: ChartConfig.getBarColor(i),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  e.key,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textPrimary,
+                    fontWeight: i == _touchedIndex
+                        ? FontWeight.w700
+                        : FontWeight.w400,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '${e.value} (${pct.toStringAsFixed(1)}%)',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppTheme.textTertiary,
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }

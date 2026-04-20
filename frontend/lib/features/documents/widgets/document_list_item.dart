@@ -245,6 +245,8 @@ class _DocumentListItemState extends State<DocumentListItem> {
         return Icons.picture_as_pdf;
       case DocumentFileType.csv:
         return Icons.table_chart;
+      case DocumentFileType.xlsx:
+        return Icons.grid_on;
     }
   }
 
@@ -254,6 +256,8 @@ class _DocumentListItemState extends State<DocumentListItem> {
         return AppTheme.error;
       case DocumentFileType.csv:
         return AppTheme.success;
+      case DocumentFileType.xlsx:
+        return AppTheme.primaryContent;
     }
   }
 

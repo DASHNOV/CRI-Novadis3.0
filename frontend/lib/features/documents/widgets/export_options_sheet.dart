@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:novadis_cri/core/config/app_router.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
-import 'package:novadis_cri/features/dashboard/providers/dashboard_providers.dart';
+import 'package:novadis_cri/features/documents/pages/cri_selection_page.dart';
 import 'package:novadis_cri/features/export/providers/export_providers.dart';
 
 /// Bottom sheet pour choisir le type d'export à créer
@@ -23,7 +23,6 @@ class ExportOptionsSheet extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Titre
           Row(
             children: [
               Container(
@@ -50,7 +49,6 @@ class ExportOptionsSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // Export PDF — disponible sur toutes les plateformes
           _ExportOption(
             icon: Icons.picture_as_pdf,
             iconColor: AppTheme.error,
@@ -60,36 +58,36 @@ class ExportOptionsSheet extends ConsumerWidget {
                 : 'Générer un rapport PDF pour un CRI',
             onTap: () {
               Navigator.pop(context);
-              context.push(AppRouter.criSelection);
+              context.push(AppRouter.criSelection, extra: CriExportFormat.pdf);
             },
           ),
+          const SizedBox(height: 12),
 
-          if (!kIsWeb) ...[
-            const SizedBox(height: 12),
+          _ExportOption(
+            icon: Icons.table_chart,
+            iconColor: AppTheme.success,
+            title: 'Exporter CRI (Excel)',
+            subtitle: kIsWeb
+                ? 'Télécharger un classeur Excel d\'un CRI'
+                : 'Générer un classeur Excel pour un CRI',
+            onTap: () {
+              Navigator.pop(context);
+              context.push(AppRouter.criSelection,
+                  extra: CriExportFormat.xlsx);
+            },
+          ),
+          const SizedBox(height: 12),
 
-            _ExportOption(
-              icon: Icons.dashboard,
-              iconColor: AppTheme.primaryContent,
-              title: 'Exporter Dashboard (CSV)',
-              subtitle: 'Exporter les statistiques du dashboard',
-              onTap: () {
-                Navigator.pop(context);
-                _showDashboardExportDialog(context);
-              },
-            ),
-            const SizedBox(height: 12),
-
-            _ExportOption(
-              icon: Icons.person,
-              iconColor: AppTheme.success,
-              title: 'Exporter Stats Technicien (CSV)',
-              subtitle: 'Exporter les statistiques d\'un technicien',
-              onTap: () {
-                Navigator.pop(context);
-                _showTechnicianExportDialog(context);
-              },
-            ),
-          ],
+          _ExportOption(
+            icon: Icons.calendar_month,
+            iconColor: AppTheme.primaryContent,
+            title: 'Exporter période (Excel)',
+            subtitle: 'Synthèse jour / semaine / mois / année',
+            onTap: () {
+              Navigator.pop(context);
+              _showPeriodXlsxDialog(context);
+            },
+          ),
 
           const SizedBox(height: 16),
         ],
@@ -97,15 +95,18 @@ class ExportOptionsSheet extends ConsumerWidget {
     );
   }
 
-  void _showDashboardExportDialog(BuildContext context) {
+  void _showPeriodXlsxDialog(BuildContext context) {
+    XlsxExportPeriod selectedPeriod = XlsxExportPeriod.month;
+    DateTime selectedDate = DateTime.now();
+
     showDialog(
       context: context,
       builder: (dialogContext) => Consumer(
-        builder: (context, ref, child) {
-          return AlertDialog(
+        builder: (context, ref, child) => StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
             backgroundColor: AppTheme.surface,
             title: Text(
-              'Export Dashboard',
+              'Export Excel — période',
               style: TextStyle(color: AppTheme.textPrimary),
             ),
             content: Column(
@@ -113,73 +114,53 @@ class ExportOptionsSheet extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Choisissez le type d\'export :',
-                  style: TextStyle(color: AppTheme.textSecondary),
+                  'Période à synthétiser',
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: XlsxExportPeriod.values.map((p) {
+                    final selected = p == selectedPeriod;
+                    return ChoiceChip(
+                      label: Text(p.label),
+                      selected: selected,
+                      onSelected: (_) =>
+                          setState(() => selectedPeriod = p),
+                    );
+                  }).toList(),
                 ),
                 const SizedBox(height: 16),
-                ListTile(
-                  leading: Icon(Icons.list, color: AppTheme.primaryContent),
-                  title: const Text('Interventions globales'),
-                  onTap: () {
-                    _pickDateAndExport(
-                      dialogContext,
-                      ref,
-                      (start, end) => ref.refresh(
-                        exportInterventionsCsvProvider((
-                          startDate: start,
-                          endDate: end,
-                        )).future,
-                      ),
-                    );
-                  },
+                Text(
+                  'Date de référence',
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                  ),
                 ),
-                ListTile(
-                  leading: Icon(Icons.analytics, color: AppTheme.primaryContent),
-                  title: const Text('Synthèse KPI'),
-                  onTap: () {
-                    _pickDateAndExport(
-                      dialogContext,
-                      ref,
-                      (start, end) => ref.refresh(
-                        exportKPICsvProvider((
-                          startDate: start,
-                          endDate: end,
-                        )).future,
-                      ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
                     );
+                    if (picked != null) {
+                      setState(() => selectedDate = picked);
+                    }
                   },
-                ),
-                ListTile(
-                  leading: Icon(Icons.leaderboard, color: AppTheme.primaryContent),
-                  title: const Text('Top Sites'),
-                  onTap: () {
-                    _pickDateAndExport(
-                      dialogContext,
-                      ref,
-                      (start, end) => ref.refresh(
-                        exportTopSitesCsvProvider((
-                          startDate: start,
-                          endDate: end,
-                        )).future,
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.all_inclusive, color: AppTheme.primaryContent),
-                  title: const Text('Tout exporter'),
-                  onTap: () {
-                    _pickDateAndExport(
-                      dialogContext,
-                      ref,
-                      (start, end) => ref.refresh(
-                        exportAllDashboardCsvProvider((
-                          startDate: start,
-                          endDate: end,
-                        )).future,
-                      ),
-                    );
-                  },
+                  icon: const Icon(Icons.calendar_today, size: 16),
+                  label: Text(
+                    '${selectedDate.day.toString().padLeft(2, '0')}/'
+                    '${selectedDate.month.toString().padLeft(2, '0')}/'
+                    '${selectedDate.year}',
+                  ),
                 ),
               ],
             ),
@@ -188,204 +169,68 @@ class ExportOptionsSheet extends ConsumerWidget {
                 onPressed: () => Navigator.pop(dialogContext),
                 child: const Text('Annuler'),
               ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  void _showTechnicianExportDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => Consumer(
-        builder: (context, ref, child) {
-          final techniciansAsync = ref.watch(techniciansListProvider);
-
-          return techniciansAsync.when(
-            data: (technicians) {
-              if (technicians.isEmpty) {
-                return AlertDialog(
-                  backgroundColor: AppTheme.surface,
-                  title: Text(
-                    'Export Stats Technicien',
-                    style: TextStyle(color: AppTheme.textPrimary),
-                  ),
-                  content: Text(
-                    'Aucun technicien trouvé.',
-                    style: TextStyle(color: AppTheme.textSecondary),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      child: const Text('Fermer'),
-                    ),
-                  ],
-                );
-              }
-
-              // On utilise un StatefulBuilder pour gérer l'état de la sélection
-              // indépendamment de Riverpod pour ce champ local
-              String selectedTech = technicians.first.name;
-
-              return StatefulBuilder(
-                builder: (context, setState) {
-                  return AlertDialog(
-                    backgroundColor: AppTheme.surface,
-                    title: Text(
-                      'Export Stats Technicien',
-                      style: TextStyle(color: AppTheme.textPrimary),
-                    ),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Sélectionnez le technicien :',
-                          style: TextStyle(color: AppTheme.textSecondary),
-                        ),
-                        const SizedBox(height: 12),
-                        DropdownButton<String>(
-                          isExpanded: true,
-                          value: selectedTech,
-                          items: technicians.map((t) {
-                            return DropdownMenuItem(
-                              value: t.name,
-                              child: Text(t.name),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() {
-                                selectedTech = value;
-                              });
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(dialogContext),
-                        child: const Text('Annuler'),
-                      ),
-                      FilledButton(
-                        onPressed: () {
-                          _pickDateAndExport(
-                            dialogContext,
-                            ref,
-                            (start, end) => ref.refresh(
-                              exportTechnicianStatsCsvProvider((
-                                technicianName: selectedTech,
-                                startDate: start,
-                                endDate: end,
-                              )).future,
-                            ),
-                          );
-                        },
-                        child: const Text('Continuer'),
-                      ),
-                    ],
+              FilledButton.icon(
+                icon: const Icon(Icons.download, size: 16),
+                label: const Text('Exporter'),
+                onPressed: () async {
+                  Navigator.pop(dialogContext);
+                  if (!context.mounted) return;
+                  await _runPeriodXlsxExport(
+                    context,
+                    ref,
+                    period: selectedPeriod,
+                    referenceDate: selectedDate,
                   );
                 },
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => AlertDialog(
-              backgroundColor: AppTheme.surface,
-              title: Text(
-                'Erreur',
-                style: TextStyle(color: AppTheme.textPrimary),
               ),
-              content: Text(
-                'Erreur lors du chargement: $error',
-                style: TextStyle(color: AppTheme.textSecondary),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Fermer'),
-                ),
-              ],
-            ),
-          );
-        },
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Future<void> _pickDateAndExport(
-    BuildContext dialogContext,
-    WidgetRef ref,
-    Future<dynamic> Function(DateTime start, DateTime end) exportAction,
-  ) async {
-    final now = DateTime.now();
-    // Utiliser le contexte du dialogue pour afficher le DatePicker
-    final dateRange = await showDateRangePicker(
-      context: dialogContext,
-      firstDate: DateTime(2020),
-      lastDate: now,
-      initialDateRange: DateTimeRange(
-        start: now.subtract(const Duration(days: 30)),
-        end: now,
-      ),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(
-              context,
-            ).colorScheme.copyWith(primary: AppTheme.primary),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (dateRange == null) return;
-
-    // On garde le dialogue ouvert pour avoir un contexte valide pour le ScaffoldMessenger
-    if (!dialogContext.mounted) return;
-
-    ScaffoldMessenger.of(dialogContext).showSnackBar(
-      const SnackBar(
-        content: Text('Génération de l\'export en cours...'),
-        duration: Duration(seconds: 2),
+  Future<void> _runPeriodXlsxExport(
+    BuildContext context,
+    WidgetRef ref, {
+    required XlsxExportPeriod period,
+    required DateTime referenceDate,
+  }) async {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('Génération (${period.label}) en cours...'),
+        duration: const Duration(seconds: 2),
       ),
     );
 
     try {
-      final result = await exportAction(dateRange.start, dateRange.end);
+      final params = (period: period, referenceDate: referenceDate);
+      ref.invalidate(exportPeriodXlsxProvider(params));
+      final result = await ref.read(exportPeriodXlsxProvider(params).future);
 
-      if (dialogContext.mounted) {
-        ScaffoldMessenger.of(dialogContext).showSnackBar(
-          const SnackBar(
-            content: Text('Export réussi !'),
-            backgroundColor: AppTheme.success,
-            duration: Duration(seconds: 2),
+      // Rafraîchir l'inventaire serveur
+      ref.invalidate(serverDocumentsProvider);
+
+      if (!context.mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            kIsWeb
+                ? 'Excel téléchargé: ${result.filename}'
+                : 'Excel généré: ${result.filename}',
           ),
-        );
-
-        // Ouvrir le fichier automatiquement
-        if (!kIsWeb && result != null) {
-           // On ne tente pas d'ouvrir le fichier sur le web car c'est un dynamic qui n'est pas un File
-           // Logic for native opening...
-        }
-
-        // Attendre un peu que le message s'affiche
-        await Future.delayed(const Duration(milliseconds: 1000));
-
-        if (dialogContext.mounted) {
-          Navigator.pop(dialogContext);
-        }
-      }
+          backgroundColor: AppTheme.success,
+        ),
+      );
     } catch (e) {
-      if (dialogContext.mounted) {
-        ScaffoldMessenger.of(dialogContext).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de l\'export: $e'),
-            backgroundColor: AppTheme.error,
-          ),
-        );
-      }
+      if (!context.mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de l\'export: $e'),
+          backgroundColor: AppTheme.error,
+        ),
+      );
     }
   }
 }

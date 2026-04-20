@@ -140,6 +140,35 @@ namespace NovadisApi.Controllers
             return Ok(ApiResponse<CRIForm>.SuccessResponse(cri));
         }
 
+        /// <summary>
+        /// PATCH /api/cri/{id}/signature - Toggle la signature client (validation manuelle).
+        /// Seul le propriétaire du CRI peut effectuer cette action — les admins ne
+        /// peuvent le faire que sur leurs propres CRI.
+        /// </summary>
+        [HttpPatch("{id}/signature")]
+        public async Task<ActionResult<ApiResponse<object>>> UpdateClientSignature(Guid id, [FromBody] UpdateSignatureDto body)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<object>.ErrorResponse("Utilisateur non identifié"));
+
+            var cri = await _context.CRIForms.FindAsync(id);
+            if (cri == null)
+                return NotFound(ApiResponse<object>.ErrorResponse("CRI introuvable"));
+
+            // Strict ownership — pas de bypass admin.
+            if (cri.TechnicianId != userId.Value)
+                return Forbid();
+
+            cri.ClientSignature = body.ClientSignature;
+            cri.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse<object>.SuccessResponse(
+                new { id = cri.Id, clientSignature = cri.ClientSignature },
+                "Signature mise à jour"));
+        }
+
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApiResponse<object>>> DeleteCRI(Guid id)
         {

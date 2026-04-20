@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'package:novadis_cri/core/theme/app_theme.dart';
-import '../../../data/local/app_database.dart';
-import '../../export/providers/export_providers.dart';
-import '../../export/models/exported_document_model.dart';
-import '../widgets/document_list_item.dart';
-import '../widgets/export_options_sheet.dart';
-import '../widgets/document_search_bar.dart';
-import '../widgets/document_filter_chips.dart';
-import '../widgets/empty_documents_state.dart';
+import 'package:novadis_cri/core/providers/main_nav_provider.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/core/theme/theme_provider.dart';
+import 'package:novadis_cri/features/auth/presentation/providers/permissions_provider.dart';
+import '../../export/models/exported_document_model.dart';
+import '../../export/providers/export_providers.dart';
+import '../widgets/export_options_sheet.dart';
+import '../widgets/document_search_bar.dart';
+import '../widgets/empty_documents_state.dart';
 
-/// Page principale de gestion des documents exportés
+/// Page principale de l'inventaire des documents exportés (server-backed).
+///
+/// Admin : tous les documents de tous les utilisateurs.
+/// Technicien : uniquement ses propres documents.
 class DocumentsPage extends ConsumerStatefulWidget {
   const DocumentsPage({super.key});
 
@@ -21,34 +24,28 @@ class DocumentsPage extends ConsumerStatefulWidget {
   ConsumerState<DocumentsPage> createState() => _DocumentsPageState();
 }
 
-class _DocumentsPageState extends ConsumerState<DocumentsPage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _DocumentsPageState extends ConsumerState<DocumentsPage> {
   bool _isSearching = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     ref.watch(themeAnimationProvider);
-    final selectedDocs = ref.watch(selectedDocumentsProvider);
-    final hasSelection = selectedDocs.isNotEmpty;
+    final selected = ref.watch(selectedServerDocumentsProvider);
+    final hasSelection = selected.isNotEmpty;
+    final role = ref.watch(userRoleProvider);
+    final isAdmin = role == 'Admin';
+
+    final filter = ref.watch(serverDocumentsFilterProvider);
+    final docsAsync = ref.watch(serverDocumentsProvider(filter));
+    final query = ref.watch(serverSearchQueryProvider);
+    final sortOption = ref.watch(serverSortProvider);
+    final isMobile = MediaQuery.of(context).size.width < 640;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: Column(
         children: [
-          // ─── Modern toolbar ───
+          // ─── Toolbar ───
           Container(
             decoration: BoxDecoration(
               color: AppTheme.surface,
@@ -58,205 +55,181 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage>
             ),
             child: SafeArea(
               bottom: false,
-              child: Column(
-                children: [
-                  // Title row + actions
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppTheme.space20,
-                      AppTheme.space12,
-                      AppTheme.space12,
-                      0,
-                    ),
-                    child: Row(
-                      children: [
-                        if (_isSearching)
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppTheme.space20,
+                  AppTheme.space12,
+                  AppTheme.space12,
+                  AppTheme.space12,
+                ),
+                child: _isSearching
+                    ? Row(
+                        children: [
                           Expanded(
                             child: DocumentSearchBar(
-                              onChanged: (query) {
-                                ref.read(searchQueryProvider.notifier).state =
-                                    query;
-                              },
+                              onChanged: (q) => ref
+                                  .read(serverSearchQueryProvider.notifier)
+                                  .state = q,
                               onClose: () {
                                 setState(() => _isSearching = false);
-                                ref.read(searchQueryProvider.notifier).state =
-                                    '';
-                                final currentFilter =
-                                    ref.read(documentFilterProvider);
                                 ref
-                                    .read(documentFilterProvider.notifier)
-                                    .state = currentFilter.clearSearch();
+                                    .read(serverSearchQueryProvider.notifier)
+                                    .state = '';
                               },
                             ),
-                          )
-                        else ...[
-                          Expanded(
-                            child: Text(
-                              'Mes Documents',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.textPrimary,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
                           ),
                         ],
-                        if (!_isSearching && !hasSelection) ...[
-                          _ToolbarIconButton(
-                            icon: Icons.search_rounded,
-                            tooltip: 'Rechercher',
-                            onPressed: () =>
-                                setState(() => _isSearching = true),
-                          ),
-                          const SizedBox(width: AppTheme.space4),
-                          PopupMenuButton<String>(
-                            icon: Icon(
-                              Icons.swap_vert_rounded,
-                              color: AppTheme.textSecondary,
-                              size: 20,
-                            ),
-                            tooltip: 'Trier',
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                AppTheme.radiusMd,
-                              ),
-                            ),
-                            onSelected: (value) {
-                              final sortOption =
-                                  DocumentSortOption.values.firstWhere(
-                                (e) => e.name == value,
-                              );
-                              ref.read(documentSortProvider.notifier).state =
-                                  sortOption;
-                            },
-                            itemBuilder: (context) => DocumentSortOption.values
-                                .map(
-                                  (option) => PopupMenuItem(
-                                    value: option.name,
-                                    child: Text(option.label),
+                      )
+                    : isMobile
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  _ToolbarIconButton(
+                                    icon: Icons.arrow_back_rounded,
+                                    tooltip: 'Retour',
+                                    onPressed: () {
+                                      ref
+                                          .read(requestedMainTabProvider
+                                              .notifier)
+                                          .state = 'Accueil';
+                                    },
                                   ),
-                                )
-                                .toList(),
-                          ),
-                        ],
-                        if (hasSelection) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppTheme.space12,
-                              vertical: AppTheme.space4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryContent.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(
-                                AppTheme.radiusFull,
+                                  const SizedBox(width: AppTheme.space8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Mes Documents',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppTheme.textPrimary,
+                                            letterSpacing: -0.3,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        if (isAdmin)
+                                          Text(
+                                            'Tous les exports — vue administrateur',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: AppTheme.textTertiary,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            child: Text(
-                              '${selectedDocs.length}',
-                              style: TextStyle(
-                                color: AppTheme.primaryContent,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
+                              const SizedBox(height: AppTheme.space8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: _buildToolbarActions(
+                                  hasSelection: hasSelection,
+                                  filter: filter,
+                                  sortOption: sortOption,
+                                  selectedCount: selected.length,
+                                ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: AppTheme.space8),
-                          _ToolbarIconButton(
-                            icon: Icons.share_outlined,
-                            tooltip: 'Partager',
-                            onPressed: () => _shareSelected(),
-                          ),
-                          _ToolbarIconButton(
-                            icon: Icons.delete_outline_rounded,
-                            tooltip: 'Supprimer',
-                            color: AppTheme.error,
-                            onPressed: () => _deleteSelected(),
-                          ),
-                          _ToolbarIconButton(
-                            icon: Icons.close_rounded,
-                            tooltip: 'Annuler',
-                            onPressed: () {
-                              ref
-                                  .read(selectedDocumentsProvider.notifier)
-                                  .state = {};
-                            },
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  // ─── Modern TabBar ───
-                  Container(
-                    margin: const EdgeInsets.only(top: AppTheme.space8),
-                    child: TabBar(
-                      controller: _tabController,
-                      labelColor: AppTheme.primaryContent,
-                      unselectedLabelColor: AppTheme.textTertiary,
-                      indicatorColor: AppTheme.primaryContent,
-                      indicatorWeight: 2.5,
-                      indicatorSize: TabBarIndicatorSize.label,
-                      labelStyle: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                      unselectedLabelStyle: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                      ),
-                      dividerColor: Colors.transparent,
-                      tabs: const [
-                        Tab(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                            ],
+                          )
+                        : Row(
                             children: [
-                              Icon(Icons.picture_as_pdf_rounded, size: 18),
-                              SizedBox(width: 8),
-                              Text('CRI (PDF)'),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Mes Documents',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.textPrimary,
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                    if (isAdmin)
+                                      Text(
+                                        'Tous les exports — vue administrateur',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.textTertiary,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              ..._buildToolbarActions(
+                                hasSelection: hasSelection,
+                                filter: filter,
+                                sortOption: sortOption,
+                                selectedCount: selected.length,
+                              ),
                             ],
                           ),
-                        ),
-                        Tab(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.table_chart_outlined, size: 18),
-                              SizedBox(width: 8),
-                              Text('Exports (CSV)'),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
               ),
             ),
           ),
 
-          // ─── Filtres ───
-          const DocumentFilterChips(),
-
-          // ─── Liste des documents ───
+          // ─── Liste ───
           Expanded(
             child: ContentContainer(
               maxWidth: 1400,
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildDocumentList(DocumentFileType.pdf),
-                  _buildDocumentList(DocumentFileType.csv),
-                ],
+              child: docsAsync.when(
+                data: (docs) {
+                  final filtered = _applyClientFilters(docs, query);
+                  final sorted = _sortDocs(filtered, sortOption);
+
+                  if (sorted.isEmpty) {
+                    if (query.isNotEmpty) {
+                      return const EmptySearchState();
+                    }
+                    return EmptyDocumentsState(
+                      fileType: DocumentFileType.pdf,
+                      onCreatePressed: _showExportOptions,
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      ref.invalidate(serverDocumentsProvider);
+                    },
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: sorted.length,
+                      itemBuilder: (context, i) => _ServerDocumentCard(
+                        doc: sorted[i],
+                        isAdmin: isAdmin,
+                        isSelected: selected.contains(sorted[i].id),
+                        onTap: () => _openDocument(sorted[i]),
+                        onLongPress: () => _toggleSelection(sorted[i].id),
+                        onDownload: () => _downloadDocument(sorted[i]),
+                        onRename: () => _renameDocument(sorted[i]),
+                        onDelete: () => _deleteDocument(sorted[i]),
+                      ),
+                    ),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => _ErrorState(
+                  message: '$error',
+                  onRetry: () => ref.invalidate(serverDocumentsProvider),
+                ),
               ),
             ),
           ),
         ],
       ),
 
-      // ─── Modern FAB ───
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showExportOptions(),
+        onPressed: _showExportOptions,
         backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,
         elevation: 2,
@@ -273,170 +246,86 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage>
     );
   }
 
-  Widget _buildDocumentList(DocumentFileType fileType) {
-    final baseFilter = ref.watch(documentFilterProvider);
-    final sortOption = ref.watch(documentSortProvider);
-
-    // Créer un filtre spécifique pour cet onglet sans modifier le provider global
-    final filter = DocumentFilter(
-      fileType: fileType,
-      exportType: baseFilter.exportType,
-      startDate: baseFilter.startDate,
-      endDate: baseFilter.endDate,
-      searchQuery: baseFilter.searchQuery,
-    );
-
-    final documentsAsync = ref.watch(filteredDocumentsProvider(filter));
-
-    return documentsAsync.when(
-      data: (documents) {
-        if (documents.isEmpty) {
-          // Vérifier si c'est à cause d'une recherche active
-          final hasSearchQuery =
-              baseFilter.searchQuery != null &&
-              baseFilter.searchQuery!.isNotEmpty;
-
-          if (hasSearchQuery) {
-            // Afficher l'état de recherche vide
-            return const EmptySearchState();
-          } else {
-            // Afficher l'état de documents vides
-            return EmptyDocumentsState(
-              fileType: fileType,
-              onCreatePressed: _showExportOptions,
-            );
-          }
-        }
-
-        // Trier les documents
-        final sortedDocs = _sortDocuments(documents, sortOption);
-
-        Widget buildDocItem(ExportedDocument doc) {
-              final model = ExportedDocumentModel(
-                id: doc.id,
-                criId: doc.criId,
-                filename: doc.filename,
-                filePath: doc.filePath,
-                fileType: DocumentFileType.fromString(doc.fileType),
-                fileSize: doc.fileSize,
-                exportType: ExportType.fromString(doc.exportType),
-                metadata: doc.metadata != null ? {'raw': doc.metadata} : null,
-                createdAt: doc.createdAt,
-                sharedAt: doc.sharedAt,
-              );
-
-              return DocumentListItem(
-                document: model,
-                onTap: () => _openDocument(model),
-                onLongPress: () => _toggleSelection(model.id!),
-                isSelected: ref
-                    .watch(selectedDocumentsProvider)
-                    .contains(model.id),
-                onShare: () => _shareDocument(model),
-                onRename: () => _renameDocument(model),
-                onDelete: () => _deleteDocument(model),
-              );
-        }
-
-        return RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(exportedDocumentsProvider);
-          },
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth >= 1000) {
-                // Desktop: 2-column grid
-                return GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 4.0,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                  ),
-                  itemCount: sortedDocs.length,
-                  itemBuilder: (context, index) => buildDocItem(sortedDocs[index]),
-                );
-              }
-              // Mobile: simple list
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: sortedDocs.length,
-                itemBuilder: (context, index) => buildDocItem(sortedDocs[index]),
-              );
-            },
+  List<Widget> _buildToolbarActions({
+    required bool hasSelection,
+    required ServerDocumentsFilter filter,
+    required DocumentSortOption sortOption,
+    required int selectedCount,
+  }) {
+    if (hasSelection) {
+      return [
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.space12,
+            vertical: AppTheme.space4,
           ),
-        );
-      },
-      // ─── Shimmer loading placeholder ───
-      loading: () => Padding(
-        padding: const EdgeInsets.all(AppTheme.space16),
-        child: Column(
-          children: List.generate(
-            5,
-            (index) => Padding(
-              padding: const EdgeInsets.only(bottom: AppTheme.space12),
-              child: _ShimmerPlaceholder(delay: index * 100),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryContent.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+          ),
+          child: Text(
+            '$selectedCount',
+            style: TextStyle(
+              color: AppTheme.primaryContent,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
             ),
           ),
         ),
-      ),
-      error: (error, stack) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.space32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppTheme.space16),
-                decoration: BoxDecoration(
-                  color: AppTheme.errorLight,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.error_outline_rounded,
-                  size: 32,
-                  color: AppTheme.error,
-                ),
-              ),
-              const SizedBox(height: AppTheme.space16),
-              Text(
-                'Erreur de chargement',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: AppTheme.space8),
-              Text(
-                '$error',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppTheme.textTertiary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppTheme.space20),
-              OutlinedButton.icon(
-                onPressed: () => ref.invalidate(exportedDocumentsProvider),
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('Réessayer'),
-              ),
-            ],
-          ),
+        const SizedBox(width: AppTheme.space8),
+        _ToolbarIconButton(
+          icon: Icons.delete_outline_rounded,
+          tooltip: 'Supprimer',
+          color: AppTheme.error,
+          onPressed: _deleteSelected,
         ),
+        _ToolbarIconButton(
+          icon: Icons.close_rounded,
+          tooltip: 'Annuler',
+          onPressed: () =>
+              ref.read(selectedServerDocumentsProvider.notifier).state = {},
+        ),
+      ];
+    }
+    return [
+      _ToolbarIconButton(
+        icon: Icons.search_rounded,
+        tooltip: 'Rechercher',
+        onPressed: () => setState(() => _isSearching = true),
       ),
-    );
+      const SizedBox(width: AppTheme.space4),
+      _FileTypeFilterMenu(filter: filter),
+      const SizedBox(width: AppTheme.space4),
+      _SortMenu(current: sortOption),
+      const SizedBox(width: AppTheme.space4),
+      _ToolbarIconButton(
+        icon: Icons.refresh_rounded,
+        tooltip: 'Rafraîchir',
+        onPressed: () => ref.invalidate(serverDocumentsProvider),
+      ),
+    ];
   }
 
-  List<ExportedDocument> _sortDocuments(
-    List<ExportedDocument> documents,
-    DocumentSortOption sortOption,
+  List<ServerExportedDocument> _applyClientFilters(
+    List<ServerExportedDocument> docs,
+    String query,
   ) {
-    final sorted = List<ExportedDocument>.from(documents);
+    if (query.isEmpty) return docs;
+    final q = query.toLowerCase();
+    return docs.where((d) {
+      return d.filename.toLowerCase().contains(q) ||
+          (d.userName?.toLowerCase().contains(q) ?? false) ||
+          (d.userEmail?.toLowerCase().contains(q) ?? false) ||
+          d.exportType.toLowerCase().contains(q);
+    }).toList();
+  }
 
-    switch (sortOption) {
+  List<ServerExportedDocument> _sortDocs(
+    List<ServerExportedDocument> docs,
+    DocumentSortOption option,
+  ) {
+    final sorted = List<ServerExportedDocument>.from(docs);
+    switch (option) {
       case DocumentSortOption.newestFirst:
         sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         break;
@@ -450,299 +339,420 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage>
         sorted.sort((a, b) => b.filename.compareTo(a.filename));
         break;
       case DocumentSortOption.sizeAsc:
-        sorted.sort((a, b) => a.fileSize.compareTo(b.fileSize));
+        sorted.sort((a, b) => a.sizeBytes.compareTo(b.sizeBytes));
         break;
       case DocumentSortOption.sizeDesc:
-        sorted.sort((a, b) => b.fileSize.compareTo(a.fileSize));
+        sorted.sort((a, b) => b.sizeBytes.compareTo(a.sizeBytes));
         break;
     }
-
     return sorted;
   }
 
   void _showExportOptions() {
     showModalBottomSheet(
       context: context,
-      builder: (context) => const ExportOptionsSheet(),
+      builder: (_) => const ExportOptionsSheet(),
     );
   }
 
-  Future<void> _openDocument(ExportedDocumentModel document) async {
-    final fileService = ref.read(fileManagementServiceProvider);
-
-    try {
-      await fileService.openFile(document.filePath);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de l\'ouverture: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+  void _toggleSelection(String id) {
+    final current = ref.read(selectedServerDocumentsProvider);
+    final next = Set<String>.from(current);
+    next.contains(id) ? next.remove(id) : next.add(id);
+    ref.read(selectedServerDocumentsProvider.notifier).state = next;
   }
 
-  Future<void> _shareDocument(ExportedDocumentModel document) async {
-    final fileService = ref.read(fileManagementServiceProvider);
+  Future<void> _openDocument(ServerExportedDocument doc) => _downloadDocument(doc);
 
+  Future<void> _downloadDocument(ServerExportedDocument doc) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final api = ref.read(exportedDocumentsApiServiceProvider);
     try {
-      await fileService.shareFile(
-        document.filePath,
-        subject: 'Document ${document.filename}',
-        text: 'Voici le document demandé',
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Téléchargement en cours...')),
       );
-
-      // Marquer comme partagé
-      if (document.id != null) {
-        await fileService.markAsShared(document.id!);
-        // Rafraîchir la liste
-        ref.invalidate(exportedDocumentsProvider);
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Document partagé')));
-      }
+      await api.download(doc.id, doc.filename);
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Téléchargé: ${doc.filename}'),
+          backgroundColor: AppTheme.success,
+        ),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors du partage: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('Erreur: $e'), backgroundColor: AppTheme.error),
+      );
     }
   }
 
-  Future<void> _renameDocument(ExportedDocumentModel document) async {
-    if (document.id == null) return;
-
-    final controller = TextEditingController(
-      text: document.filename.replaceAll(RegExp(r'\.[^.]+$'), ''),
-    );
-
+  Future<void> _renameDocument(ServerExportedDocument doc) async {
+    final controller = TextEditingController(text: doc.filename);
     final newName = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Renommer le document'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Nouveau nom',
-            hintText: 'Entrez le nouveau nom',
-          ),
           autofocus: true,
-          onSubmitted: (value) => Navigator.pop(context, value),
+          decoration: const InputDecoration(labelText: 'Nouveau nom'),
+          onSubmitted: (v) => Navigator.pop(ctx, v),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(ctx),
             child: const Text('Annuler'),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
+            onPressed: () => Navigator.pop(ctx, controller.text),
             child: const Text('Renommer'),
           ),
         ],
       ),
     );
-
+    controller.dispose();
     if (newName == null || newName.trim().isEmpty) return;
 
-    final fileService = ref.read(fileManagementServiceProvider);
-
+    final messenger = ScaffoldMessenger.of(context);
     try {
-      await fileService.renameFile(document.id!, newName.trim());
-
-      // Rafraîchir la liste
-      ref.invalidate(exportedDocumentsProvider);
-
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Document renommé')));
-      }
+      await ref.read(exportedDocumentsApiServiceProvider).rename(doc.id, newName.trim());
+      ref.invalidate(serverDocumentsProvider);
+      if (!mounted) return;
+      messenger.showSnackBar(const SnackBar(content: Text('Document renommé')));
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors du renommage: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      controller.dispose();
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('Erreur: $e'), backgroundColor: AppTheme.error),
+      );
     }
   }
 
-  Future<void> _deleteDocument(ExportedDocumentModel document) async {
-    if (document.id == null) return;
-
+  Future<void> _deleteDocument(ServerExportedDocument doc) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Confirmer la suppression'),
-        content: Text(
-          'Voulez-vous vraiment supprimer "${document.filename}" ?',
-        ),
+        content: Text('Voulez-vous vraiment supprimer "${doc.filename}" ?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Annuler'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.error),
             child: const Text('Supprimer'),
           ),
         ],
       ),
     );
-
     if (confirmed != true) return;
 
-    final fileService = ref.read(fileManagementServiceProvider);
-
+    final messenger = ScaffoldMessenger.of(context);
     try {
-      await fileService.deleteFile(document.id!);
-
-      // Rafraîchir la liste
-      ref.invalidate(exportedDocumentsProvider);
-
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Document supprimé')));
-      }
+      await ref.read(exportedDocumentsApiServiceProvider).delete(doc.id);
+      ref.invalidate(serverDocumentsProvider);
+      if (!mounted) return;
+      messenger.showSnackBar(const SnackBar(content: Text('Document supprimé')));
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la suppression: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _toggleSelection(int documentId) {
-    final selected = ref.read(selectedDocumentsProvider);
-    final newSelection = Set<int>.from(selected);
-
-    if (newSelection.contains(documentId)) {
-      newSelection.remove(documentId);
-    } else {
-      newSelection.add(documentId);
-    }
-
-    ref.read(selectedDocumentsProvider.notifier).state = newSelection;
-  }
-
-  Future<void> _shareSelected() async {
-    final selected = ref.read(selectedDocumentsProvider);
-    final fileService = ref.read(fileManagementServiceProvider);
-    final database = ref.read(databaseProvider);
-
-    try {
-      final filePaths = <String>[];
-      for (final id in selected) {
-        final doc = await database.getExportedDocumentById(id);
-        if (doc != null) {
-          filePaths.add(doc.filePath);
-        }
-      }
-
-      await fileService.shareMultipleFiles(filePaths);
-
-      // Marquer comme partagés
-      for (final id in selected) {
-        await fileService.markAsShared(id);
-      }
-
-      // Réinitialiser la sélection
-      ref.read(selectedDocumentsProvider.notifier).state = {};
-
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Documents partagés')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors du partage: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('Erreur: $e'), backgroundColor: AppTheme.error),
+      );
     }
   }
 
   Future<void> _deleteSelected() async {
-    final selected = ref.read(selectedDocumentsProvider);
+    final selected = ref.read(selectedServerDocumentsProvider);
+    if (selected.isEmpty) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Confirmer la suppression'),
-        content: Text(
-          'Voulez-vous vraiment supprimer ${selected.length} document(s) ?',
-        ),
+        content: Text('Supprimer ${selected.length} document(s) ?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Annuler'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.error),
             child: const Text('Supprimer'),
           ),
         ],
       ),
     );
-
     if (confirmed != true) return;
 
-    final fileService = ref.read(fileManagementServiceProvider);
-
-    try {
-      final deletedCount = await fileService.deleteMultipleFiles(
-        selected.toList(),
-      );
-
-      // Réinitialiser la sélection
-      ref.read(selectedDocumentsProvider.notifier).state = {};
-
-      // Rafraîchir la liste
-      ref.invalidate(exportedDocumentsProvider);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$deletedCount document(s) supprimé(s)')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la suppression: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+    final messenger = ScaffoldMessenger.of(context);
+    final api = ref.read(exportedDocumentsApiServiceProvider);
+    var ok = 0, fail = 0;
+    for (final id in selected) {
+      try {
+        await api.delete(id);
+        ok++;
+      } catch (_) {
+        fail++;
       }
     }
+    ref.read(selectedServerDocumentsProvider.notifier).state = {};
+    ref.invalidate(serverDocumentsProvider);
+    if (!mounted) return;
+    messenger.showSnackBar(
+      SnackBar(content: Text('Supprimés: $ok${fail > 0 ? ', échecs: $fail' : ''}')),
+    );
   }
 }
 
-// ─── Toolbar icon button ───
+// ─── Card pour un document serveur ───
+class _ServerDocumentCard extends StatelessWidget {
+  final ServerExportedDocument doc;
+  final bool isAdmin;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  final VoidCallback onDownload;
+  final VoidCallback onRename;
+  final VoidCallback onDelete;
+
+  const _ServerDocumentCard({
+    required this.doc,
+    required this.isAdmin,
+    required this.isSelected,
+    required this.onTap,
+    required this.onLongPress,
+    required this.onDownload,
+    required this.onRename,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
+    final iconData = doc.fileType == 'pdf'
+        ? Icons.picture_as_pdf_rounded
+        : Icons.grid_on_rounded;
+    final iconColor = doc.fileType == 'pdf' ? AppTheme.error : AppTheme.success;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: isSelected
+            ? AppTheme.primaryLight.withValues(alpha: 0.1)
+            : AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+              border: Border.all(
+                color: isSelected
+                    ? AppTheme.primaryContent.withValues(alpha: 0.5)
+                    : AppTheme.border.withValues(alpha: 0.5),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(iconData, color: iconColor, size: 24),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        doc.filename,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          _Chip(label: doc.fileType.toUpperCase(), color: iconColor),
+                          _Chip(label: doc.exportType, color: AppTheme.textTertiary),
+                          Text(
+                            dateFmt.format(doc.createdAt.toLocal()),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textTertiary,
+                            ),
+                          ),
+                          Text(
+                            doc.formattedSize,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textTertiary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (isAdmin && doc.userName != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.person_outline,
+                                size: 14, color: AppTheme.textTertiary),
+                            const SizedBox(width: 4),
+                            Text(
+                              doc.userName!,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            if (doc.userEmail != null) ...[
+                              const SizedBox(width: 6),
+                              Text(
+                                '· ${doc.userEmail}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.textTertiary,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert, color: AppTheme.textTertiary),
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'download':
+                        onDownload();
+                        break;
+                      case 'rename':
+                        onRename();
+                        break;
+                      case 'delete':
+                        onDelete();
+                        break;
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    const PopupMenuItem(
+                      value: 'download',
+                      child: Row(children: [
+                        Icon(Icons.download_rounded, size: 18),
+                        SizedBox(width: 8),
+                        Text('Télécharger'),
+                      ]),
+                    ),
+                    const PopupMenuItem(
+                      value: 'rename',
+                      child: Row(children: [
+                        Icon(Icons.edit_rounded, size: 18),
+                        SizedBox(width: 8),
+                        Text('Renommer'),
+                      ]),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(children: [
+                        Icon(Icons.delete_outline_rounded, size: 18),
+                        SizedBox(width: 8),
+                        Text('Supprimer'),
+                      ]),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _Chip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+      ),
+    );
+  }
+}
+
+class _FileTypeFilterMenu extends ConsumerWidget {
+  final ServerDocumentsFilter filter;
+  const _FileTypeFilterMenu({required this.filter});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PopupMenuButton<String?>(
+      icon: Icon(
+        Icons.filter_list_rounded,
+        size: 20,
+        color: filter.fileType != null ? AppTheme.primaryContent : AppTheme.textSecondary,
+      ),
+      tooltip: 'Filtrer par type',
+      onSelected: (value) {
+        ref.read(serverDocumentsFilterProvider.notifier).state =
+            ServerDocumentsFilter(fileType: value, exportType: filter.exportType);
+      },
+      itemBuilder: (_) => const [
+        PopupMenuItem(value: null, child: Text('Tous les types')),
+        PopupMenuItem(value: 'pdf', child: Text('PDF uniquement')),
+        PopupMenuItem(value: 'xlsx', child: Text('Excel uniquement')),
+      ],
+    );
+  }
+}
+
+class _SortMenu extends ConsumerWidget {
+  final DocumentSortOption current;
+  const _SortMenu({required this.current});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PopupMenuButton<DocumentSortOption>(
+      icon: Icon(Icons.swap_vert_rounded, color: AppTheme.textSecondary, size: 20),
+      tooltip: 'Trier',
+      onSelected: (v) => ref.read(serverSortProvider.notifier).state = v,
+      itemBuilder: (_) => DocumentSortOption.values
+          .map((o) => PopupMenuItem(value: o, child: Text(o.label)))
+          .toList(),
+    );
+  }
+}
+
 class _ToolbarIconButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
@@ -772,106 +782,54 @@ class _ToolbarIconButton extends StatelessWidget {
   }
 }
 
-// ─── Shimmer loading placeholder ───
-class _ShimmerPlaceholder extends StatefulWidget {
-  final int delay;
-  const _ShimmerPlaceholder({this.delay = 0});
-
-  @override
-  State<_ShimmerPlaceholder> createState() => _ShimmerPlaceholderState();
-}
-
-class _ShimmerPlaceholderState extends State<_ShimmerPlaceholder>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 0.3, end: 0.7).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-    // Stagger animation
-    Future.delayed(Duration(milliseconds: widget.delay), () {
-      if (mounted) _controller.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+class _ErrorState extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+  const _ErrorState({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
-    return _ShimmerAnimatedContainer(
-      animation: _animation,
-    );
-  }
-}
-
-class _ShimmerAnimatedContainer extends AnimatedWidget {
-  const _ShimmerAnimatedContainer({
-    required Animation<double> animation,
-  }) : super(listenable: animation);
-
-  @override
-  Widget build(BuildContext context) {
-    final double value = (listenable as Animation<double>).value;
-    return Container(
-      height: 72,
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceVariant.withValues(alpha: value),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: AppTheme.space16),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppTheme.border.withValues(alpha: value),
-              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.space32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppTheme.space16),
+              decoration: BoxDecoration(
+                color: AppTheme.errorLight,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                size: 32,
+                color: AppTheme.error,
+              ),
             ),
-          ),
-          const SizedBox(width: AppTheme.space12),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 14,
-                  width: 180,
-                  decoration: BoxDecoration(
-                    color: AppTheme.border.withValues(alpha: value),
-                    borderRadius: BorderRadius.circular(
-                      AppTheme.radiusSm,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  height: 10,
-                  width: 120,
-                  decoration: BoxDecoration(
-                    color: AppTheme.border.withValues(alpha: value * 0.6),
-                    borderRadius: BorderRadius.circular(
-                      AppTheme.radiusSm,
-                    ),
-                  ),
-                ),
-              ],
+            const SizedBox(height: AppTheme.space16),
+            Text(
+              'Erreur de chargement',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: AppTheme.space8),
+            Text(
+              message,
+              style: TextStyle(fontSize: 13, color: AppTheme.textTertiary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppTheme.space20),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('Réessayer'),
+            ),
+          ],
+        ),
       ),
     );
   }

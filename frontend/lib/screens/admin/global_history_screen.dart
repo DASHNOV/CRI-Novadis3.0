@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:novadis_cri/services/stats_api_service.dart';
-import 'package:novadis_cri/features/documents/pages/documents_page.dart';
+import 'package:novadis_cri/core/providers/main_nav_provider.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
+import 'package:novadis_cri/data/local/app_database.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/core/theme/theme_provider.dart';
+import 'package:novadis_cri/data/models/cri_model.dart';
+import 'package:novadis_cri/features/auth/presentation/providers/permissions_provider.dart';
+import 'package:novadis_cri/features/history/widgets/cri_details_dialog.dart';
 
 /// Historique global - tous les CRI de tous les techniciens (admin uniquement)
 class GlobalHistoryScreen extends ConsumerStatefulWidget {
@@ -20,17 +25,17 @@ class GlobalHistoryScreen extends ConsumerStatefulWidget {
 class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
   String _selectedFilter = 'all';
   String? _selectedTechnicienId;
-  String _searchId = '';
+  String? _selectedClient;
+  String? _selectedSite;
   String _sortBy = 'date_desc';
   bool _showFilters = false;
   List<Map<String, dynamic>> _cris = [];
   List<Map<String, dynamic>> _technicians = [];
   bool _isLoading = true;
 
-  final TextEditingController _searchController = TextEditingController();
-
   final List<_FilterOption> _statusFilters = [
     _FilterOption(label: 'Tous', value: 'all'),
+    _FilterOption(label: 'Brouillons', value: 'drafts'),
     _FilterOption(label: 'En attente', value: 'pending'),
     _FilterOption(label: 'Signés', value: 'signed'),
   ];
@@ -41,23 +46,33 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
     _loadData();
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
       final statsService = ref.read(statsApiServiceProvider);
+
+      // Filtre "Brouillons" : charge uniquement les brouillons locaux
+      // (les brouillons ne remontent jamais au serveur).
+      if (_selectedFilter == 'drafts') {
+        final results = await Future.wait([
+          _loadLocalDrafts(),
+          statsService.getTechnicians(),
+        ]);
+        if (mounted) {
+          setState(() {
+            _cris = List<Map<String, dynamic>>.from(results[0] as List);
+            _technicians = List<Map<String, dynamic>>.from(results[1] as List);
+            _isLoading = false;
+          });
+        }
+        return;
+      }
 
       // Charger techniciens et CRI en parallèle
       final results = await Future.wait([
         statsService.getAllCRIsWithTechnician(
           technicienId: _selectedTechnicienId,
           filter: _selectedFilter,
-          searchId: _searchId.isNotEmpty ? _searchId : null,
         ),
         statsService.getTechnicians(),
       ]);
@@ -86,6 +101,53 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
     }
   }
 
+  /// Charge les brouillons locaux (CRI Service + Projet). Les brouillons sont
+  /// stockés uniquement sur l'appareil courant — un admin ne verra que ceux
+  /// créés sur cette installation.
+  Future<List<Map<String, dynamic>>> _loadLocalDrafts() async {
+    final db = ref.read(appDatabaseProvider);
+    final services = await db.getAllCriService();
+    final projets = await db.getAllCriProjet();
+
+    final drafts = <Map<String, dynamic>>[];
+
+    for (final s in services.where((e) => e.isDraft)) {
+      drafts.add({
+        'id': s.id,
+        '_isDraft': true,
+        '_criType': 'service',
+        'clientName': s.clientName,
+        'clientSite': s.site,
+        'siteNom': s.site,
+        'category': s.requestType,
+        'interventionType': s.requestType,
+        'technicianFirstName': s.technicianName,
+        'technicianLastName': '',
+        'createdAt': (s.updatedAt ?? s.createdAt).toIso8601String(),
+        'clientSignature': s.clientSignature,
+      });
+    }
+
+    for (final p in projets.where((e) => e.isDraft)) {
+      drafts.add({
+        'id': p.id,
+        '_isDraft': true,
+        '_criType': 'projet',
+        'clientName': p.clientName,
+        'clientSite': p.site,
+        'siteNom': p.site,
+        'category': p.interventionType,
+        'interventionType': p.interventionType,
+        'technicianFirstName': p.technicianName,
+        'technicianLastName': '',
+        'createdAt': (p.updatedAt ?? p.createdAt).toIso8601String(),
+        'clientSignature': p.clientSignature,
+      });
+    }
+
+    return drafts;
+  }
+
   void _onStatusFilterChanged(String filter) {
     setState(() => _selectedFilter = filter);
     _loadData();
@@ -96,13 +158,40 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
     _loadData();
   }
 
-  void _onSearchSubmit(String value) {
-    setState(() => _searchId = value.trim());
-    _loadData();
+  void _onClientFilterChanged(String? client) {
+    setState(() => _selectedClient = client);
+  }
+
+  void _onSiteFilterChanged(String? site) {
+    setState(() => _selectedSite = site);
+  }
+
+  String _siteOf(Map<String, dynamic> cri) =>
+      ((cri['siteNom'] ?? cri['clientSite'] ?? '') as Object).toString();
+
+  String _clientOf(Map<String, dynamic> cri) =>
+      (cri['clientName'] ?? '').toString();
+
+  List<String> get _distinctClients {
+    final set = _cris.map(_clientOf).where((v) => v.isNotEmpty).toSet().toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return set;
+  }
+
+  List<String> get _distinctSites {
+    final set = _cris.map(_siteOf).where((v) => v.isNotEmpty).toSet().toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return set;
   }
 
   List<Map<String, dynamic>> get _sortedCris {
-    final sorted = List<Map<String, dynamic>>.from(_cris);
+    final sorted = _cris.where((c) {
+      if (_selectedClient != null && _clientOf(c) != _selectedClient) {
+        return false;
+      }
+      if (_selectedSite != null && _siteOf(c) != _selectedSite) return false;
+      return true;
+    }).toList();
     sorted.sort((a, b) {
       switch (_sortBy) {
         case 'date_asc':
@@ -117,6 +206,14 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
           final clientA = (a['clientName'] ?? '').toString().toLowerCase();
           final clientB = (b['clientName'] ?? '').toString().toLowerCase();
           return clientA.compareTo(clientB);
+        case 'site_asc':
+          final siteA = ((a['siteNom'] ?? a['clientSite'] ?? '') as Object)
+              .toString()
+              .toLowerCase();
+          final siteB = ((b['siteNom'] ?? b['clientSite'] ?? '') as Object)
+              .toString()
+              .toLowerCase();
+          return siteA.compareTo(siteB);
         case 'tech_asc':
           final techA = '${a['technicianFirstName']} ${a['technicianLastName']}'
               .toLowerCase();
@@ -141,8 +238,9 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
   Widget build(BuildContext context) {
     ref.watch(themeAnimationProvider);
     final sortedCris = _sortedCris;
-    final total = _cris.length;
-    final signed = _cris.where((c) => c['clientSignature'] != null).length;
+    final total = sortedCris.length;
+    final signed =
+        sortedCris.where((c) => c['clientSignature'] != null).length;
     final pending = total - signed;
 
     return Scaffold(
@@ -210,11 +308,20 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                   child: Row(
                     children: _statusFilters.map((filter) {
                       final isSelected = _selectedFilter == filter.value;
-                      final count = filter.value == 'all'
-                          ? total
-                          : filter.value == 'signed'
-                              ? signed
-                              : pending;
+                      final int count;
+                      switch (filter.value) {
+                        case 'all':
+                          count = total;
+                          break;
+                        case 'signed':
+                          count = signed;
+                          break;
+                        case 'drafts':
+                          count = _selectedFilter == 'drafts' ? total : 0;
+                          break;
+                        default:
+                          count = pending;
+                      }
                       return Padding(
                         padding: const EdgeInsets.only(right: AppTheme.space8),
                         child: _buildStatusChip(
@@ -340,10 +447,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
             icon: Icons.folder_outlined,
             tooltip: 'Documents',
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const DocumentsPage()),
-              );
+              ref.read(requestedMainTabProvider.notifier).state = 'Documents';
             },
           ),
           _buildHeaderAction(
@@ -522,27 +626,19 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
             ),
             const SizedBox(height: AppTheme.space8),
 
-            // Search by ID
-            TextField(
-              controller: _searchController,
+            // Client dropdown
+            DropdownButtonFormField<String>(
+              value: _distinctClients.contains(_selectedClient)
+                  ? _selectedClient
+                  : null,
               decoration: InputDecoration(
-                labelText: 'Rechercher par ID exact',
+                labelText: 'Filtrer par client',
                 labelStyle: TextStyle(
                   color: AppTheme.textTertiary,
                   fontSize: 13,
                 ),
-                prefixIcon: Icon(Icons.search_rounded,
+                prefixIcon: Icon(Icons.business_rounded,
                     color: AppTheme.textTertiary, size: 20),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.clear_rounded,
-                            color: AppTheme.textTertiary, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                          _onSearchSubmit('');
-                        },
-                      )
-                    : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   borderSide: BorderSide(
@@ -566,10 +662,73 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                 ),
                 isDense: true,
               ),
-              onSubmitted: _onSearchSubmit,
-              onChanged: (val) {
-                setState(() {});
-              },
+              isExpanded: true,
+              items: [
+                const DropdownMenuItem<String>(
+                  value: null,
+                  child: Text('Tous les clients'),
+                ),
+                ..._distinctClients.map(
+                  (name) => DropdownMenuItem<String>(
+                    value: name,
+                    child: Text(name, overflow: TextOverflow.ellipsis),
+                  ),
+                ),
+              ],
+              onChanged: _onClientFilterChanged,
+            ),
+            const SizedBox(height: AppTheme.space8),
+
+            // Site dropdown
+            DropdownButtonFormField<String>(
+              value: _distinctSites.contains(_selectedSite)
+                  ? _selectedSite
+                  : null,
+              decoration: InputDecoration(
+                labelText: 'Filtrer par site',
+                labelStyle: TextStyle(
+                  color: AppTheme.textTertiary,
+                  fontSize: 13,
+                ),
+                prefixIcon: Icon(Icons.location_on_rounded,
+                    color: AppTheme.textTertiary, size: 20),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  borderSide: BorderSide(
+                      color: AppTheme.border.withValues(alpha: 0.5)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  borderSide: BorderSide(
+                      color: AppTheme.border.withValues(alpha: 0.5)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  borderSide:
+                      BorderSide(color: AppTheme.primaryContent, width: 1.5),
+                ),
+                filled: true,
+                fillColor: AppTheme.surfaceVariant.withValues(alpha: 0.5),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.space12,
+                  vertical: AppTheme.space8,
+                ),
+                isDense: true,
+              ),
+              isExpanded: true,
+              items: [
+                const DropdownMenuItem<String>(
+                  value: null,
+                  child: Text('Tous les sites'),
+                ),
+                ..._distinctSites.map(
+                  (name) => DropdownMenuItem<String>(
+                    value: name,
+                    child: Text(name, overflow: TextOverflow.ellipsis),
+                  ),
+                ),
+              ],
+              onChanged: _onSiteFilterChanged,
             ),
             const SizedBox(height: AppTheme.space8),
 
@@ -619,6 +778,10 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                 DropdownMenuItem(
                   value: 'client_asc',
                   child: Text('Client (A-Z)'),
+                ),
+                DropdownMenuItem(
+                  value: 'site_asc',
+                  child: Text('Site (A-Z)'),
                 ),
                 DropdownMenuItem(
                   value: 'tech_asc',
@@ -755,8 +918,8 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
               setState(() {
                 _selectedFilter = 'all';
                 _selectedTechnicienId = null;
-                _searchId = '';
-                _searchController.clear();
+                _selectedClient = null;
+                _selectedSite = null;
               });
               _loadData();
             },
@@ -792,6 +955,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
           ).format(DateTime.tryParse(cri['createdAt']) ?? DateTime.now())
         : '';
     final hasSigned = cri['clientSignature'] != null;
+    final isDraft = cri['_isDraft'] == true;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.space8),
@@ -808,52 +972,44 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
           borderRadius: BorderRadius.circular(AppTheme.radiusLg),
           hoverColor: AppTheme.surfaceVariant.withValues(alpha: 0.5),
           onTap: () {
-            showDialog(
+            if (isDraft) {
+              final type = cri['_criType'] ?? 'service';
+              context.push('/cri/edit/${cri['id']}?type=$type');
+              return;
+            }
+            final currentUserId = ref.read(userIdProvider);
+            final criOwnerId = cri['technicianId']?.toString();
+            final canToggle = currentUserId != null &&
+                criOwnerId != null &&
+                currentUserId == criOwnerId;
+
+            final criModel = CriModel(
+              id: cri['id'].toString(),
+              client: clientName,
+              site: cri['clientSite'] ?? clientName,
+              typeIntervention: interventionType,
+              description: cri['workDescription'] ?? '',
+              date: cri['interventionDate'] != null
+                  ? DateTime.tryParse(cri['interventionDate']) ?? DateTime.now()
+                  : DateTime.now(),
+              createdAt: cri['createdAt'] != null
+                  ? DateTime.tryParse(cri['createdAt']) ?? DateTime.now()
+                  : DateTime.now(),
+            );
+
+            showModalBottomSheet(
               context: context,
-              builder: (context) => AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                ),
-                title: Text(
-                  'Résumé d\'intervention',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDetailRow(Icons.calendar_today_rounded, 'Date',
-                        createdAt),
-                    const SizedBox(height: AppTheme.space8),
-                    _buildDetailRow(Icons.person_rounded, 'Technicien',
-                        techFullName),
-                    const SizedBox(height: AppTheme.space8),
-                    _buildDetailRow(Icons.business_rounded, 'Client',
-                        clientName),
-                    const SizedBox(height: AppTheme.space8),
-                    _buildDetailRow(Icons.category_rounded, 'Catégorie',
-                        category),
-                    const SizedBox(height: AppTheme.space8),
-                    _buildDetailRow(Icons.build_rounded, 'Type',
-                        interventionType),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppTheme.primaryContent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusMd),
-                      ),
-                    ),
-                    child: const Text('Fermer'),
-                  ),
-                ],
+              isScrollControlled: true,
+              backgroundColor: Colors.white,
+              shape: const RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              builder: (context) => CriDetailsDialog(
+                cri: criModel,
+                initialClientSignature: cri['clientSignature']?.toString(),
+                canToggleSignature: canToggle,
+                onSignatureChanged: _loadData,
               ),
             );
           },
@@ -875,7 +1031,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                         ),
                       ),
                     ),
-                    _buildStatusBadge(hasSigned),
+                    _buildStatusBadge(hasSigned, isDraft: isDraft),
                   ],
                 ),
                 const SizedBox(height: AppTheme.space8),
@@ -946,13 +1102,27 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
     );
   }
 
-  Widget _buildStatusBadge(bool hasSigned) {
-    final color = hasSigned ? AppTheme.success : AppTheme.warning;
-    final bgColor = hasSigned ? AppTheme.successLight : AppTheme.warningLight;
-    final label = hasSigned ? 'Signé' : 'En attente';
-    final iconData = hasSigned
-        ? Icons.check_circle_rounded
-        : Icons.pending_rounded;
+  Widget _buildStatusBadge(bool hasSigned, {bool isDraft = false}) {
+    final Color color;
+    final Color bgColor;
+    final String label;
+    final IconData iconData;
+    if (isDraft) {
+      color = const Color(0xFF92400E);
+      bgColor = AppTheme.warningLight.withValues(alpha: 0.7);
+      label = 'Brouillon';
+      iconData = Icons.edit_note_rounded;
+    } else if (hasSigned) {
+      color = AppTheme.success;
+      bgColor = AppTheme.successLight;
+      label = 'Signé';
+      iconData = Icons.check_circle_rounded;
+    } else {
+      color = AppTheme.warning;
+      bgColor = AppTheme.warningLight;
+      label = 'En attente';
+      iconData = Icons.pending_rounded;
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -981,32 +1151,6 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: AppTheme.textTertiary),
-        const SizedBox(width: AppTheme.space8),
-        Text(
-          '$label: ',
-          style: TextStyle(
-            color: AppTheme.textTertiary,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        Flexible(
-          child: Text(
-            value,
-            style: TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class _FilterOption {

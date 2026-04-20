@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:novadis_cri/services/stats_api_service.dart';
-import 'package:novadis_cri/features/documents/pages/documents_page.dart';
+import 'package:novadis_cri/core/providers/main_nav_provider.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
+import 'package:novadis_cri/data/local/app_database.dart';
 import 'package:novadis_cri/data/models/cri_model.dart';
 import 'package:novadis_cri/features/history/widgets/cri_details_dialog.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
@@ -28,11 +30,16 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
   List<Map<String, dynamic>> _cris = [];
   bool _isLoading = true;
   int _pendingCount = 0;
+  int _draftCount = 0;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
   final List<_FilterOption> _filters = [
     _FilterOption(label: 'Tous', value: 'all', icon: Icons.list_rounded),
+    _FilterOption(
+        label: 'Brouillons',
+        value: 'drafts',
+        icon: Icons.edit_note_rounded),
     _FilterOption(
         label: 'En attente', value: 'pending', icon: Icons.schedule_rounded),
     _FilterOption(
@@ -58,12 +65,21 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
   Future<void> _loadCRIs() async {
     setState(() => _isLoading = true);
     try {
-      final statsService = ref.read(statsApiServiceProvider);
-      final cris = await statsService.getPersonalCRIs(filter: _selectedFilter);
+      List<Map<String, dynamic>> cris;
+      if (_selectedFilter == 'drafts') {
+        cris = await _loadLocalDrafts();
+      } else {
+        final statsService = ref.read(statsApiServiceProvider);
+        cris =
+            await statsService.getPersonalCRIs(filter: _selectedFilter);
+      }
 
-      // Compter les CRI en attente pour le badge
+      // Rafraîchir les compteurs (pending/draft) sur les filtres globaux.
       if (_selectedFilter == 'all') {
         _pendingCount = cris.where((c) => c['clientSignature'] == null).length;
+        _draftCount = (await _loadLocalDrafts()).length;
+      } else if (_selectedFilter == 'drafts') {
+        _draftCount = cris.length;
       }
 
       if (mounted) {
@@ -80,6 +96,53 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
         );
       }
     }
+  }
+
+  /// Charge les brouillons locaux (CRI Service + Projet) et les normalise au
+  /// format attendu par la liste. La clé `_isDraft` permet à la carte de
+  /// distinguer un brouillon d'un CRI soumis.
+  Future<List<Map<String, dynamic>>> _loadLocalDrafts() async {
+    final db = ref.read(appDatabaseProvider);
+    final services = await db.getAllCriService();
+    final projets = await db.getAllCriProjet();
+
+    final drafts = <Map<String, dynamic>>[];
+
+    for (final s in services.where((e) => e.isDraft)) {
+      drafts.add({
+        'id': s.id,
+        '_isDraft': true,
+        '_criType': 'service',
+        'clientName': s.clientName,
+        'clientSite': s.site,
+        'category': s.requestType,
+        'interventionType': s.requestType,
+        'workDescription': s.requestDescription,
+        'interventionDate': s.interventionDate.toIso8601String(),
+        'createdAt': (s.updatedAt ?? s.createdAt).toIso8601String(),
+        'clientSignature': s.clientSignature,
+      });
+    }
+
+    for (final p in projets.where((e) => e.isDraft)) {
+      drafts.add({
+        'id': p.id,
+        '_isDraft': true,
+        '_criType': 'projet',
+        'clientName': p.clientName,
+        'clientSite': p.site,
+        'category': p.interventionType,
+        'interventionType': p.interventionType,
+        'workDescription': p.workDescription,
+        'interventionDate': p.interventionDate.toIso8601String(),
+        'createdAt': (p.updatedAt ?? p.createdAt).toIso8601String(),
+        'clientSignature': p.clientSignature,
+      });
+    }
+
+    drafts.sort((a, b) => (b['createdAt'] as String)
+        .compareTo(a['createdAt'] as String));
+    return drafts;
   }
 
   void _onFilterChanged(String filter) {
@@ -153,10 +216,8 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
                     icon: Icons.folder_outlined,
                     tooltip: 'Mes Documents & Exports',
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const DocumentsPage()),
-                      );
+                      ref.read(requestedMainTabProvider.notifier).state =
+                          'Documents';
                     },
                   ),
                   const Gap(8),
@@ -314,7 +375,12 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
 
   Widget _buildFilterPill(_FilterOption filter) {
     final isSelected = _selectedFilter == filter.value;
-    final showBadge = filter.value == 'pending' && _pendingCount > 0;
+    final badgeCount = filter.value == 'pending'
+        ? _pendingCount
+        : filter.value == 'drafts'
+            ? _draftCount
+            : 0;
+    final showBadge = badgeCount > 0;
 
     Color pillColor;
     Color pillTextColor;
@@ -322,6 +388,11 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
 
     if (isSelected) {
       switch (filter.value) {
+        case 'drafts':
+          pillColor = AppTheme.warningLight.withValues(alpha: 0.7);
+          pillTextColor = const Color(0xFF92400E);
+          pillBorderColor = AppTheme.warning.withValues(alpha: 0.25);
+          break;
         case 'pending':
           pillColor = AppTheme.warningLight;
           pillTextColor = const Color(0xFFB45309);
@@ -376,11 +447,13 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
-                  color: AppTheme.error,
+                  color: filter.value == 'drafts'
+                      ? AppTheme.warning
+                      : AppTheme.error,
                   borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 ),
                 child: Text(
-                  '$_pendingCount',
+                  '$badgeCount',
                   style: GoogleFonts.inter(
                     color: Colors.white,
                     fontSize: 10,
@@ -470,6 +543,7 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
     final clientName = cri['clientName'] ?? 'Client inconnu';
     final category = cri['category'] ?? '';
     final interventionType = cri['interventionType'] ?? '';
+    final isDraft = cri['_isDraft'] == true;
 
     final createdAt = cri['createdAt'] != null
         ? DateFormat(
@@ -479,12 +553,26 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
     final hasSigned = cri['clientSignature'] != null;
 
     // Status badge config
-    final statusLabel = hasSigned ? 'Signe' : 'En attente';
-    final statusColor = hasSigned ? AppTheme.success : AppTheme.warning;
-    final statusBg =
-        hasSigned ? AppTheme.successLight : AppTheme.warningLight;
-    final statusIcon =
-        hasSigned ? Icons.check_circle_rounded : Icons.schedule_rounded;
+    final String statusLabel;
+    final Color statusColor;
+    final Color statusBg;
+    final IconData statusIcon;
+    if (isDraft) {
+      statusLabel = 'Brouillon';
+      statusColor = const Color(0xFF92400E);
+      statusBg = AppTheme.warningLight.withValues(alpha: 0.7);
+      statusIcon = Icons.edit_note_rounded;
+    } else if (hasSigned) {
+      statusLabel = 'Signe';
+      statusColor = AppTheme.success;
+      statusBg = AppTheme.successLight;
+      statusIcon = Icons.check_circle_rounded;
+    } else {
+      statusLabel = 'En attente';
+      statusColor = AppTheme.warning;
+      statusBg = AppTheme.warningLight;
+      statusIcon = Icons.schedule_rounded;
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -495,6 +583,11 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
           borderRadius: BorderRadius.circular(AppTheme.radiusLg),
           hoverColor: AppTheme.surfaceVariant.withValues(alpha: 0.5),
           onTap: () {
+            if (isDraft) {
+              final type = cri['_criType'] ?? 'service';
+              context.push('/cri/edit/${cri['id']}?type=$type');
+              return;
+            }
             final criModel = CriModel(
               id: cri['id'],
               client: clientName,
@@ -517,7 +610,12 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
                 borderRadius:
                     BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              builder: (context) => CriDetailsDialog(cri: criModel),
+              builder: (context) => CriDetailsDialog(
+                cri: criModel,
+                initialClientSignature: cri['clientSignature']?.toString(),
+                onSignatureChanged: _loadCRIs,
+                canToggleSignature: true,
+              ),
             );
           },
           child: Container(

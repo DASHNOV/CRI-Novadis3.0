@@ -12,6 +12,12 @@ Widget buildCriFormControls(
   required bool isSaving,
   required VoidCallback onSubmit,
 }) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  // Noir Novadis en light, accent bleu en dark pour un contraste suffisant
+  // contre le fond sombre.
+  final primaryBg = isDark ? AppTheme.accent : AppTheme.primary;
+  final primaryFg = isDark ? const Color(0xFF0A0A0A) : AppTheme.textOnPrimary;
+
   return Padding(
     padding: const EdgeInsets.only(top: AppTheme.space16),
     child: Row(
@@ -20,7 +26,8 @@ Widget buildCriFormControls(
           FilledButton(
             onPressed: details.onStepContinue,
             style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.primary,
+              backgroundColor: primaryBg,
+              foregroundColor: primaryFg,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               ),
@@ -31,7 +38,8 @@ Widget buildCriFormControls(
           FilledButton(
             onPressed: isSaving ? null : onSubmit,
             style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.primary,
+              backgroundColor: primaryBg,
+              foregroundColor: primaryFg,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               ),
@@ -42,7 +50,7 @@ Widget buildCriFormControls(
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: AppTheme.surface,
+                      color: primaryFg,
                     ),
                   )
                 : const Text('Soumettre'),

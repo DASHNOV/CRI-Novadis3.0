@@ -113,16 +113,19 @@ class CriFormScreen extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
     return Row(
       children: [
-        _HeaderBackButton(onPressed: () {
-          if (Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
-          } else {
-            context.go('/');
-          }
-        }),
-        const Gap(AppTheme.space12),
+        if (!isMobile) ...[
+          _HeaderBackButton(onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              context.go('/');
+            }
+          }),
+          const Gap(AppTheme.space12),
+        ],
         Text(
           'Nouveau CRI',
           style: GoogleFonts.inter(

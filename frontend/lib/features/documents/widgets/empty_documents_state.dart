@@ -86,6 +86,8 @@ class EmptyDocumentsState extends StatelessWidget {
         return Icons.picture_as_pdf_outlined;
       case DocumentFileType.csv:
         return Icons.table_chart_outlined;
+      case DocumentFileType.xlsx:
+        return Icons.grid_on_outlined;
     }
   }
 
@@ -95,6 +97,8 @@ class EmptyDocumentsState extends StatelessWidget {
         return 'PDF';
       case DocumentFileType.csv:
         return 'CSV';
+      case DocumentFileType.xlsx:
+        return 'Excel';
     }
   }
 
@@ -104,6 +108,8 @@ class EmptyDocumentsState extends StatelessWidget {
         return 'Exportez votre premier CRI en PDF pour le partager avec vos clients';
       case DocumentFileType.csv:
         return 'Exportez vos données en CSV pour les analyser dans Excel';
+      case DocumentFileType.xlsx:
+        return 'Générez un classeur Excel professionnel depuis le backend';
     }
   }
 }

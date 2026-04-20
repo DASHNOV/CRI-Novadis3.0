@@ -27,6 +27,9 @@ namespace NovadisApi.Data
         public DbSet<UserToken> UserTokens { get; set; }
         public DbSet<MagicLink> MagicLinks { get; set; } // Pour Phase 2
 
+        // Historique des documents exportés (PDF/XLSX)
+        public DbSet<ExportedDocument> ExportedDocuments { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -155,6 +158,20 @@ namespace NovadisApi.Data
                     .WithMany(u => u.AuditLogs)
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // Configuration ExportedDocument
+            modelBuilder.Entity<ExportedDocument>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.CriId);
+                entity.HasIndex(e => e.CreatedAt);
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Seed Data (utilisateurs de test)

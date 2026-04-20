@@ -180,9 +180,22 @@ class _ResponsiveScaffoldState extends ConsumerState<ResponsiveScaffold>
   }
 
   Widget _buildMobileLayout(BuildContext context) {
+    final hasExtraDestination = widget.destinations.length > 4;
+    final lastIndex = widget.destinations.length - 1;
+
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: IndexedStack(index: widget.currentIndex, children: widget.screens),
+      body: Column(
+        children: [
+          const _MobileTopBar(),
+          Expanded(
+            child: IndexedStack(
+              index: widget.currentIndex,
+              children: widget.screens,
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppTheme.surface,
@@ -199,18 +212,68 @@ class _ResponsiveScaffoldState extends ConsumerState<ResponsiveScaffold>
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 ...List.generate(
-                  // Max 4 items on mobile to leave room for theme toggle
-                  widget.destinations.length > 4
-                      ? 4
-                      : widget.destinations.length,
+                  // Show first 4 items; the last slot is reserved for the
+                  // final destination (Admin / Profil) when present.
+                  hasExtraDestination ? 4 : widget.destinations.length,
                   (index) => _BottomNavItem(
                     destination: widget.destinations[index],
                     isActive: widget.currentIndex == index,
                     onTap: () => widget.onIndexChanged(index),
                   ),
                 ),
-                const _MobileThemeToggle(),
+                if (hasExtraDestination)
+                  _BottomNavItem(
+                    destination: widget.destinations[lastIndex],
+                    isActive: widget.currentIndex == lastIndex,
+                    onTap: () => widget.onIndexChanged(lastIndex),
+                  ),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Mobile Top Bar (commun à toutes les pages) ───
+class _MobileTopBar extends ConsumerWidget {
+  const _MobileTopBar();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+
+    return SafeArea(
+      bottom: false,
+      child: SizedBox(
+        height: 32,
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: InkWell(
+              onTap: () => ref.read(themeModeProvider.notifier).toggle(),
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: AnimatedSwitcher(
+                  duration: AppTheme.animFast,
+                  transitionBuilder: (child, animation) => RotationTransition(
+                    turns: Tween(begin: 0.75, end: 1.0).animate(animation),
+                    child: FadeTransition(opacity: animation, child: child),
+                  ),
+                  child: Icon(
+                    isDark
+                        ? Icons.dark_mode_rounded
+                        : Icons.light_mode_rounded,
+                    key: ValueKey(isDark),
+                    size: 16,
+                    color: AppTheme.textTertiary,
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -621,69 +684,3 @@ class _BottomNavItem extends StatelessWidget {
   }
 }
 
-// ─── Mobile Theme Toggle ───
-class _MobileThemeToggle extends ConsumerWidget {
-  const _MobileThemeToggle();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
-    final isDark = themeMode == ThemeMode.dark;
-
-    return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => ref.read(themeModeProvider.notifier).toggle(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedSwitcher(
-                  duration: AppTheme.animNormal,
-                  transitionBuilder: (child, animation) => RotationTransition(
-                    turns: Tween(begin: 0.75, end: 1.0).animate(animation),
-                    child: FadeTransition(opacity: animation, child: child),
-                  ),
-                  child: AnimatedContainer(
-                    key: ValueKey(isDark),
-                    duration: AppTheme.animFast,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppTheme.accent.withValues(alpha: 0.1)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                    ),
-                    child: Icon(
-                      isDark
-                          ? Icons.dark_mode_rounded
-                          : Icons.light_mode_rounded,
-                      size: 22,
-                      color: isDark ? AppTheme.accent : AppTheme.warning,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  isDark ? 'Sombre' : 'Clair',
-                  style: TextStyle(
-                    color: AppTheme.textTertiary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

@@ -7,6 +7,8 @@ using NovadisApi.Models;
 using NovadisApi.Services;
 using NovadisApi.Services.Auth;
 using NovadisApi.Services.Email;
+using NovadisApi.Services.Export;
+using NovadisApi.Services.Storage;
 using System.Globalization;
 using System.Text;
 
@@ -126,6 +128,10 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICodeGeneratorService, CodeGeneratorService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISiteSummaryService, SiteSummaryService>();
+builder.Services.AddScoped<IXlsxExportService, XlsxExportService>();
+
+// Stockage des exports (filesystem local, MinIO-ready)
+builder.Services.AddSingleton<IObjectStorageService, LocalFileObjectStorage>();
 
 // Services métier (à ajouter plus tard)
 // builder.Services.AddScoped<ICRIService, CRIService>();
@@ -197,7 +203,7 @@ if (builder.Environment.IsProduction())
 // 7️⃣ CONFIGURATION RÉSEAU & HEALTH CHECKS
 // ========================================
 // ✅ Forcer l'écoute sur toutes les interfaces pour l'accès réseau local
-builder.WebHost.UseUrls("http://0.0.0.0:5200", "https://0.0.0.0:5201");
+builder.WebHost.UseUrls("http://0.0.0.0:5200");
 
 // ✅ Ajouter les health checks
 builder.Services.AddHealthChecks();
@@ -228,11 +234,8 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty; // Swagger à la racine (/)
 });
 
-// HTTPS Redirection
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
+// HTTPS Redirection désactivée : Cloudflare gère le HTTPS (SSL Flexible)
+// app.UseHttpsRedirection();
 
 // ✅ Activer CORS (AVANT UseAuthorization)
 app.UseCors("AllowMobileApp");

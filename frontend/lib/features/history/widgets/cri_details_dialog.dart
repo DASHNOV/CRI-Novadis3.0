@@ -5,15 +5,78 @@ import 'package:novadis_cri/data/models/cri_model.dart';
 import 'package:novadis_cri/data/repositories/site_summary_repository.dart';
 import 'package:novadis_cri/data/models/site_summary_model.dart';
 import 'package:novadis_cri/features/cri_form/widgets/site_summary_card.dart';
+import 'package:novadis_cri/services/stats_api_service.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
 
-class CriDetailsDialog extends ConsumerWidget {
+class CriDetailsDialog extends ConsumerStatefulWidget {
   final CriModel cri;
 
-  const CriDetailsDialog({super.key, required this.cri});
+  /// Signature actuelle du CRI (null = en attente). Fournie quand le dialogue
+  /// permet de basculer le statut manuellement.
+  final String? initialClientSignature;
+
+  /// Appelé après un toggle réussi pour permettre au parent de rafraîchir sa liste.
+  final VoidCallback? onSignatureChanged;
+
+  /// Autorise l'affichage du bouton de bascule de signature manuelle.
+  /// Doit être `false` si l'utilisateur courant n'est pas propriétaire du CRI.
+  final bool canToggleSignature;
+
+  const CriDetailsDialog({
+    super.key,
+    required this.cri,
+    this.initialClientSignature,
+    this.onSignatureChanged,
+    this.canToggleSignature = false,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CriDetailsDialog> createState() => _CriDetailsDialogState();
+}
+
+class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
+  late String? _clientSignature = widget.initialClientSignature;
+  bool _isToggling = false;
+
+  CriModel get cri => widget.cri;
+
+  bool get _isSigned => _clientSignature != null;
+
+  Future<void> _handleToggle() async {
+    if (_isToggling) return;
+    setState(() => _isToggling = true);
+    final wasSigned = _isSigned;
+    try {
+      await ref.read(statsApiServiceProvider).toggleClientSignature(
+            cri.id,
+            setSigned: !wasSigned,
+          );
+      if (!mounted) return;
+      setState(() {
+        _clientSignature = wasSigned ? null : StatsApiService.manualValidationMarker;
+        _isToggling = false;
+      });
+      widget.onSignatureChanged?.call();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(wasSigned ? 'CRI repassé en attente.' : 'CRI marqué comme signé.'),
+          backgroundColor: wasSigned ? AppTheme.warning : AppTheme.success,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isToggling = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: AppTheme.error,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return DraggableScrollableSheet(
@@ -66,9 +129,14 @@ class CriDetailsDialog extends ConsumerWidget {
                   padding: const EdgeInsets.all(16),
                   children: [
                     // Résumé du site
-                    _buildSiteSummary(ref),
+                    _buildSiteSummary(),
 
                     const SizedBox(height: 24),
+
+                    if (widget.canToggleSignature) ...[
+                      _buildSignatureToggle(),
+                      const SizedBox(height: 24),
+                    ],
 
                     Text(
                       'DÉTAILS DE L\'INTERVENTION',
@@ -111,7 +179,67 @@ class CriDetailsDialog extends ConsumerWidget {
     );
   }
 
-  Widget _buildSiteSummary(WidgetRef ref) {
+  Widget _buildSignatureToggle() {
+    final signed = _isSigned;
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: signed
+            ? AppTheme.success.withValues(alpha: 0.08)
+            : AppTheme.warning.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(
+          color: signed ? AppTheme.success : AppTheme.warning,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                signed ? Icons.check_circle : Icons.hourglass_empty,
+                color: signed ? AppTheme.success : AppTheme.warning,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                signed ? 'CRI signé' : 'En attente de signature',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: signed ? AppTheme.success : AppTheme.warning,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _isToggling ? null : _handleToggle,
+              icon: _isToggling
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : Icon(signed ? Icons.undo : Icons.check),
+              label: Text(signed ? 'Repasser en attente' : 'Valider manuellement'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: signed ? AppTheme.warning : AppTheme.success,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSiteSummary() {
     final siteSummaryRepo = ref.watch(siteSummaryRepositoryProvider);
 
     return FutureBuilder<SiteSummaryModel?>(

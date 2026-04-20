@@ -74,6 +74,7 @@ class OtpVerificationScreen extends HookConsumerWidget {
         // Invalider les providers pour forcer le rechargement des donnees de l'utilisateur
         ref.invalidate(userNameProvider);
         ref.invalidate(userRoleProvider);
+        ref.invalidate(userIdProvider);
 
         if (context.mounted) {
           context.go(AppRouter.home);
