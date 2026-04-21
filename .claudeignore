@@ -1,0 +1,122 @@
+# ============================================================
+# .claudeignore — CRI_Novadis 2.0
+# Stack: Flutter/Dart (frontend) + .NET C# (backend) + SQL
+# Objectif: réduire drastiquement la consommation de tokens
+# ============================================================
+
+# ----- Git -----
+.git/
+
+# ----- IDE & OS -----
+.vscode/
+.idea/
+*.suo
+*.user
+*.sln.docstates
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ----- Flutter / Dart — Build & Cache -----
+frontend/build/
+frontend/.dart_tool/
+frontend/.flutter-plugins-dependencies
+frontend/.metadata
+frontend/pubspec.lock
+frontend/flutter_analyze.txt
+frontend/devtools_options.yaml
+
+# ----- Flutter — Plateformes natives (boilerplate non-modifié) -----
+frontend/android/
+frontend/ios/
+frontend/linux/
+frontend/macos/
+frontend/windows/
+frontend/mobile/
+
+# ----- Flutter — Web (fichiers générés / binaires) -----
+frontend/web/drift_worker.js
+frontend/web/drift_worker.js.map
+frontend/web/drift_worker.js.deps
+frontend/web/sqlite3.wasm
+
+# ----- Flutter — Assets binaires -----
+frontend/assets/images/
+frontend/assets/logos/
+frontend/assets/novadis_logo.png
+
+# ----- .NET — Build, Compilation & Publish -----
+backend/src/NovadisApi/bin/
+backend/src/NovadisApi/obj/
+backend/src/NovadisApi/publish/
+backend/src/NovadisApi/export-storage/
+backend/src/NovadisApi.Tests/bin/
+backend/src/NovadisApi.Tests/obj/
+backend/build_logs.txt
+
+# ----- Fichiers de données lourds -----
+*.csv
+*.sqlite
+*.db
+*.db-shm
+*.db-wal
+
+# ----- Images & Médias (globaux) -----
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.ico
+*.svg
+*.webp
+*.mp4
+*.mp3
+*.wav
+*.avi
+*.mov
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.otf
+
+# ----- Binaires & Artefacts compilés -----
+*.exe
+*.dll
+*.pdb
+*.so
+*.dylib
+*.wasm
+*.dill
+*.dill.track.dill
+*.class
+*.jar
+*.apk
+*.aab
+*.ipa
+
+# ----- Logs & Cache -----
+*.log
+.npm/
+.cache/
+.gradle/
+.kotlin/
+
+# ----- Sécurité — Fichiers sensibles -----
+*.env
+local.properties
+
+# ============================================================
+# FICHIERS PRÉSERVÉS (ne PAS ajouter ici) :
+# - CLAUDE.md, SECURITY.md (contexte projet)
+# - docs/*.md (architecture, conventions, api-summary)
+# - frontend/lib/** (code source Dart)
+# - frontend/web/index.html, manifest.json
+# - backend/src/NovadisApi/**/*.cs (code source C#)
+# - backend/src/NovadisApi/*.csproj
+# - backend/src/NovadisApi/appsettings*.json
+# - backend/NovadisApi.slnx
+# - database/*.sql
+# - pubspec.yaml, analysis_options.yaml
+# ============================================================
