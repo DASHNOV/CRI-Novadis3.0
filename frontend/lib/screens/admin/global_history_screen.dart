@@ -571,163 +571,60 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
             ),
             const SizedBox(height: AppTheme.space12),
 
-            // Technician dropdown
-            DropdownButtonFormField<String>(
-              value: _selectedTechnicienId,
-              decoration: InputDecoration(
-                labelText: 'Filtrer par technicien',
-                labelStyle: TextStyle(
-                  color: AppTheme.textTertiary,
-                  fontSize: 13,
-                ),
-                prefixIcon: Icon(Icons.person_search_rounded,
-                    color: AppTheme.textTertiary, size: 20),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  borderSide: BorderSide(
-                      color: AppTheme.border.withValues(alpha: 0.5)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  borderSide: BorderSide(
-                      color: AppTheme.border.withValues(alpha: 0.5)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  borderSide:
-                      BorderSide(color: AppTheme.primaryContent, width: 1.5),
-                ),
-                filled: true,
-                fillColor: AppTheme.surfaceVariant.withValues(alpha: 0.5),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.space12,
-                  vertical: AppTheme.space8,
-                ),
-                isDense: true,
-              ),
-              isExpanded: true,
-              items: [
-                const DropdownMenuItem<String>(
-                  value: null,
-                  child: Text('Tous les techniciens'),
-                ),
-                ..._technicians.map((tech) {
-                  final id = tech['id']?.toString();
-                  final firstName = tech['firstName'] ?? '';
-                  final lastName = tech['lastName'] ?? '';
-                  final role = tech['role'] ?? '';
-                  return DropdownMenuItem<String>(
-                    value: id,
-                    child: Text('$firstName $lastName ($role)'),
-                  );
-                }),
-              ],
+            // Technician searchable filter
+            _SearchableFilterField(
+              labelText: 'Filtrer par technicien',
+              prefixIcon: Icons.person_search_rounded,
+              allLabel: 'Tous les techniciens',
+              selectedValue: _selectedTechnicienId,
+              selectedDisplayLabel: _selectedTechnicienId != null
+                  ? () {
+                      final t = _technicians.firstWhere(
+                        (t) => t['id']?.toString() == _selectedTechnicienId,
+                        orElse: () => {},
+                      );
+                      return t.isEmpty
+                          ? _selectedTechnicienId!
+                          : '${t['firstName']} ${t['lastName']}';
+                    }()
+                  : null,
+              items: _technicians.map((t) {
+                final id = t['id']?.toString() ?? '';
+                final firstName = t['firstName'] ?? '';
+                final lastName = t['lastName'] ?? '';
+                final role = t['role'] ?? '';
+                return _FilterItem(
+                    value: id, label: '$firstName $lastName ($role)');
+              }).toList(),
               onChanged: _onTechnicienFilterChanged,
             ),
             const SizedBox(height: AppTheme.space8),
 
-            // Client dropdown
-            DropdownButtonFormField<String>(
-              value: _distinctClients.contains(_selectedClient)
+            // Client searchable filter
+            _SearchableFilterField(
+              labelText: 'Filtrer par client',
+              prefixIcon: Icons.business_rounded,
+              allLabel: 'Tous les clients',
+              selectedValue: _distinctClients.contains(_selectedClient)
                   ? _selectedClient
                   : null,
-              decoration: InputDecoration(
-                labelText: 'Filtrer par client',
-                labelStyle: TextStyle(
-                  color: AppTheme.textTertiary,
-                  fontSize: 13,
-                ),
-                prefixIcon: Icon(Icons.business_rounded,
-                    color: AppTheme.textTertiary, size: 20),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  borderSide: BorderSide(
-                      color: AppTheme.border.withValues(alpha: 0.5)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  borderSide: BorderSide(
-                      color: AppTheme.border.withValues(alpha: 0.5)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  borderSide:
-                      BorderSide(color: AppTheme.primaryContent, width: 1.5),
-                ),
-                filled: true,
-                fillColor: AppTheme.surfaceVariant.withValues(alpha: 0.5),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.space12,
-                  vertical: AppTheme.space8,
-                ),
-                isDense: true,
-              ),
-              isExpanded: true,
-              items: [
-                const DropdownMenuItem<String>(
-                  value: null,
-                  child: Text('Tous les clients'),
-                ),
-                ..._distinctClients.map(
-                  (name) => DropdownMenuItem<String>(
-                    value: name,
-                    child: Text(name, overflow: TextOverflow.ellipsis),
-                  ),
-                ),
-              ],
+              items: _distinctClients
+                  .map((n) => _FilterItem(value: n, label: n))
+                  .toList(),
               onChanged: _onClientFilterChanged,
             ),
             const SizedBox(height: AppTheme.space8),
 
-            // Site dropdown
-            DropdownButtonFormField<String>(
-              value: _distinctSites.contains(_selectedSite)
-                  ? _selectedSite
-                  : null,
-              decoration: InputDecoration(
-                labelText: 'Filtrer par site',
-                labelStyle: TextStyle(
-                  color: AppTheme.textTertiary,
-                  fontSize: 13,
-                ),
-                prefixIcon: Icon(Icons.location_on_rounded,
-                    color: AppTheme.textTertiary, size: 20),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  borderSide: BorderSide(
-                      color: AppTheme.border.withValues(alpha: 0.5)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  borderSide: BorderSide(
-                      color: AppTheme.border.withValues(alpha: 0.5)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  borderSide:
-                      BorderSide(color: AppTheme.primaryContent, width: 1.5),
-                ),
-                filled: true,
-                fillColor: AppTheme.surfaceVariant.withValues(alpha: 0.5),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.space12,
-                  vertical: AppTheme.space8,
-                ),
-                isDense: true,
-              ),
-              isExpanded: true,
-              items: [
-                const DropdownMenuItem<String>(
-                  value: null,
-                  child: Text('Tous les sites'),
-                ),
-                ..._distinctSites.map(
-                  (name) => DropdownMenuItem<String>(
-                    value: name,
-                    child: Text(name, overflow: TextOverflow.ellipsis),
-                  ),
-                ),
-              ],
+            // Site searchable filter
+            _SearchableFilterField(
+              labelText: 'Filtrer par site',
+              prefixIcon: Icons.location_on_rounded,
+              allLabel: 'Tous les sites',
+              selectedValue:
+                  _distinctSites.contains(_selectedSite) ? _selectedSite : null,
+              items: _distinctSites
+                  .map((n) => _FilterItem(value: n, label: n))
+                  .toList(),
               onChanged: _onSiteFilterChanged,
             ),
             const SizedBox(height: AppTheme.space8),
@@ -769,7 +666,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
               items: const [
                 DropdownMenuItem(
                   value: 'date_desc',
-                  child: Text('Date (récent)'),
+                  child: Text('Trier par...'),
                 ),
                 DropdownMenuItem(
                   value: 'date_asc',
@@ -1158,4 +1055,291 @@ class _FilterOption {
   final String value;
 
   const _FilterOption({required this.label, required this.value});
+}
+
+class _FilterItem {
+  final String value;
+  final String label;
+  const _FilterItem({required this.value, required this.label});
+}
+
+class _FilterResult {
+  final String? value;
+  const _FilterResult(this.value);
+}
+
+class _SearchableFilterField extends StatelessWidget {
+  final String labelText;
+  final IconData prefixIcon;
+  final String allLabel;
+  final String? selectedValue;
+  final String? selectedDisplayLabel;
+  final List<_FilterItem> items;
+  final ValueChanged<String?> onChanged;
+
+  const _SearchableFilterField({
+    required this.labelText,
+    required this.prefixIcon,
+    required this.allLabel,
+    required this.items,
+    required this.onChanged,
+    this.selectedValue,
+    this.selectedDisplayLabel,
+  });
+
+  Future<void> _open(BuildContext context) async {
+    final result = await showModalBottomSheet<_FilterResult>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _SearchBottomSheet(
+        title: labelText,
+        allLabel: allLabel,
+        items: items,
+        selectedValue: selectedValue,
+      ),
+    );
+    if (result != null) onChanged(result.value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSelection = selectedValue != null;
+    final displayText =
+        hasSelection ? (selectedDisplayLabel ?? selectedValue!) : null;
+
+    return GestureDetector(
+      onTap: () => _open(context),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: labelText,
+          labelStyle: TextStyle(color: AppTheme.textTertiary, fontSize: 13),
+          prefixIcon:
+              Icon(prefixIcon, color: AppTheme.textTertiary, size: 20),
+          suffixIcon: hasSelection
+              ? GestureDetector(
+                  onTap: () => onChanged(null),
+                  child: Icon(Icons.clear_rounded,
+                      color: AppTheme.textTertiary, size: 18),
+                )
+              : Icon(Icons.arrow_drop_down_rounded,
+                  color: AppTheme.textTertiary),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            borderSide:
+                BorderSide(color: AppTheme.border.withValues(alpha: 0.5)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            borderSide:
+                BorderSide(color: AppTheme.border.withValues(alpha: 0.5)),
+          ),
+          filled: true,
+          fillColor: AppTheme.surfaceVariant.withValues(alpha: 0.5),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.space12,
+            vertical: AppTheme.space8,
+          ),
+          isDense: true,
+        ),
+        child: Text(
+          displayText ?? allLabel,
+          style: TextStyle(
+            fontSize: 14,
+            color: hasSelection ? AppTheme.textPrimary : AppTheme.textTertiary,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchBottomSheet extends StatefulWidget {
+  final String title;
+  final String allLabel;
+  final List<_FilterItem> items;
+  final String? selectedValue;
+
+  const _SearchBottomSheet({
+    required this.title,
+    required this.allLabel,
+    required this.items,
+    this.selectedValue,
+  });
+
+  @override
+  State<_SearchBottomSheet> createState() => _SearchBottomSheetState();
+}
+
+class _SearchBottomSheetState extends State<_SearchBottomSheet> {
+  String _query = '';
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  List<_FilterItem> get _filtered {
+    if (_query.isEmpty) return widget.items;
+    final q = _query.toLowerCase();
+    return widget.items
+        .where((i) => i.label.toLowerCase().contains(q))
+        .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.4,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (ctx, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppTheme.radiusXl)),
+          ),
+          child: Column(
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.only(top: AppTheme.space8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    AppTheme.space16, AppTheme.space12,
+                    AppTheme.space16, AppTheme.space8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.space12),
+                    TextField(
+                      controller: _controller,
+                      autofocus: true,
+                      onChanged: (v) => setState(() => _query = v),
+                      decoration: InputDecoration(
+                        hintText: 'Rechercher...',
+                        hintStyle:
+                            TextStyle(color: AppTheme.textTertiary, fontSize: 14),
+                        prefixIcon: Icon(Icons.search_rounded,
+                            color: AppTheme.textTertiary, size: 20),
+                        suffixIcon: _query.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(Icons.clear_rounded,
+                                    color: AppTheme.textTertiary, size: 18),
+                                onPressed: () {
+                                  _controller.clear();
+                                  setState(() => _query = '');
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusMd),
+                          borderSide: BorderSide(
+                              color: AppTheme.border.withValues(alpha: 0.5)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusMd),
+                          borderSide: BorderSide(
+                              color: AppTheme.border.withValues(alpha: 0.5)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusMd),
+                          borderSide: BorderSide(
+                              color: AppTheme.primaryContent, width: 1.5),
+                        ),
+                        filled: true,
+                        fillColor:
+                            AppTheme.surfaceVariant.withValues(alpha: 0.5),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: AppTheme.space12,
+                            vertical: AppTheme.space8),
+                        isDense: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.clear_all_rounded,
+                          color: AppTheme.textTertiary, size: 20),
+                      title: Text(widget.allLabel,
+                          style: TextStyle(
+                              color: widget.selectedValue == null
+                                  ? AppTheme.primaryContent
+                                  : AppTheme.textPrimary,
+                              fontWeight: widget.selectedValue == null
+                                  ? FontWeight.w600
+                                  : FontWeight.normal)),
+                      trailing: widget.selectedValue == null
+                          ? Icon(Icons.check_rounded,
+                              color: AppTheme.primaryContent, size: 18)
+                          : null,
+                      onTap: () =>
+                          Navigator.pop(ctx, const _FilterResult(null)),
+                    ),
+                    ..._filtered.map((item) => ListTile(
+                          title: Text(item.label,
+                              style: TextStyle(
+                                  color: widget.selectedValue == item.value
+                                      ? AppTheme.primaryContent
+                                      : AppTheme.textPrimary,
+                                  fontWeight:
+                                      widget.selectedValue == item.value
+                                          ? FontWeight.w600
+                                          : FontWeight.normal)),
+                          trailing: widget.selectedValue == item.value
+                              ? Icon(Icons.check_rounded,
+                                  color: AppTheme.primaryContent, size: 18)
+                              : null,
+                          onTap: () =>
+                              Navigator.pop(ctx, _FilterResult(item.value)),
+                        )),
+                    if (_filtered.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(AppTheme.space24),
+                        child: Center(
+                          child: Text(
+                            'Aucun résultat',
+                            style: TextStyle(
+                                color: AppTheme.textTertiary, fontSize: 14),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
