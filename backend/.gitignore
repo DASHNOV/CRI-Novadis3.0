@@ -63,3 +63,6 @@ StyleCop.Cache
 
 # Environment variables (secrets)
 .env
+
+# Generated export files
+export-storage/
