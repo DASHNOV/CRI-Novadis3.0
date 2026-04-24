@@ -102,3 +102,19 @@ Flutter App
 ## Rôles
 - **Admin** : accès global (stats, tous CRI, gestion users)
 - **Technician** : accès perso (ses CRI, stats perso, dashboard perso)
+
+## Déploiement & CI/CD
+
+### Frontend (Vercel)
+- Trigger : push sur `master` → GitHub Actions → Vercel
+- Build : `flutter build web`
+- Hébergement : `https://cri-novadis.tech`
+
+### Backend (Serveur interne Windows)
+- Trigger : push sur `dev` → GitHub Actions
+- Build : `dotnet publish -c Release`
+- Déploiement : SCP vers `C:\temp\` → SSH → déploiement sur `C:\novadis-api`
+- Service : `NovadisApi` (PowerShell service)
+- Workflow : `.github/workflows/deploy-api.yml`
+  - Arrête service → remplace fichiers (preserve `.env`) → redémarre service
+  - Credentials : SSH key + username ("Administrateur") en GitHub Secrets
