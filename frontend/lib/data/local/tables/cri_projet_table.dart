@@ -13,8 +13,8 @@ class CriProjetTable extends Table {
   DateTimeColumn get endTime => dateTime()();
 
   // Section 2: Client
-  TextColumn get clientName => text().withLength(min: 1, max: 255)();
-  TextColumn get site => text().withLength(min: 1, max: 255)();
+  TextColumn get clientName => text()();
+  TextColumn get site => text()();
   TextColumn get address => text().nullable()();
   TextColumn get ville => text().nullable()();
   TextColumn get codePostal => text().nullable()();
@@ -24,7 +24,7 @@ class CriProjetTable extends Table {
   TextColumn get email => text().nullable()();
 
   // Section 3: Projet
-  TextColumn get projectName => text().withLength(min: 1, max: 255)();
+  TextColumn get projectName => text()();
   TextColumn get projectNumber =>
       text().withLength(min: 1, max: 50)(); // PRJ-YYYY-NNN
   TextColumn get projectPhase => text()(); // Enum value

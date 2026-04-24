@@ -104,6 +104,7 @@ class CriFormAutoSaveBar extends StatelessWidget {
 
 /// Common AppBar for CRI forms.
 AppBar buildCriFormAppBar({
+  required BuildContext context,
   required String title,
   required bool isDirty,
   required VoidCallback onSaveDraft,
@@ -125,7 +126,28 @@ AppBar buildCriFormAppBar({
       if (isDirty)
         IconButton(
           icon: Icon(Icons.save, color: AppTheme.textSecondary),
-          onPressed: onSaveDraft,
+          onPressed: () => showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Sauvegarder le brouillon'),
+              content: const Text(
+                'Voulez-vous sauvegarder ce CRI en tant que brouillon ?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text('Annuler'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop(true);
+                    onSaveDraft();
+                  },
+                  child: const Text('Sauvegarder'),
+                ),
+              ],
+            ),
+          ),
           tooltip: 'Sauvegarder brouillon',
         ),
     ],

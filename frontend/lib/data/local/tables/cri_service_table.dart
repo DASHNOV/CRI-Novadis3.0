@@ -17,8 +17,8 @@ class CriServiceTable extends Table {
       text().withLength(min: 1, max: 50)(); // TICK-YYYY-NNNNN
 
   // Section 2: Client
-  TextColumn get clientName => text().withLength(min: 1, max: 255)();
-  TextColumn get site => text().withLength(min: 1, max: 255)();
+  TextColumn get clientName => text()();
+  TextColumn get site => text()();
   TextColumn get address => text().nullable()();
   TextColumn get ville => text().nullable()();
   TextColumn get codePostal => text().nullable()();

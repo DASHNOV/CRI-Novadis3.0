@@ -132,9 +132,8 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
 
   Future<void> _autoSave() async {
     if (!_autoSaveEnabled) return;
-    if (_formKey.currentState?.saveAndValidate() ?? false) {
-      await ref.read(criServiceFormProvider.notifier).saveDraft();
-    }
+    _formKey.currentState?.save();
+    await ref.read(criServiceFormProvider.notifier).saveDraft();
   }
 
   void _onStepContinue() {
@@ -293,6 +292,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: buildCriFormAppBar(
+        context: context,
         title: widget.criId == null ? 'Nouveau CRI Service' : 'Modifier CRI Service',
         isDirty: state.isDirty,
         onSaveDraft: () => ref.read(criServiceFormProvider.notifier).saveDraft(),

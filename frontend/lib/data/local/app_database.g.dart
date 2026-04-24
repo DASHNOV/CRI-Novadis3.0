@@ -46,16 +46,12 @@ class $CriServiceTableTable extends CriServiceTable
   @override
   late final GeneratedColumn<String> clientName = GeneratedColumn<String>(
       'client_name', aliasedName, false,
-      additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 255),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
   static const VerificationMeta _siteMeta = const VerificationMeta('site');
   @override
   late final GeneratedColumn<String> site = GeneratedColumn<String>(
       'site', aliasedName, false,
-      additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 255),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
   static const VerificationMeta _addressMeta =
@@ -1855,16 +1851,12 @@ class $CriProjetTableTable extends CriProjetTable
   @override
   late final GeneratedColumn<String> clientName = GeneratedColumn<String>(
       'client_name', aliasedName, false,
-      additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 255),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
   static const VerificationMeta _siteMeta = const VerificationMeta('site');
   @override
   late final GeneratedColumn<String> site = GeneratedColumn<String>(
       'site', aliasedName, false,
-      additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 255),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
   static const VerificationMeta _addressMeta =
@@ -1910,8 +1902,6 @@ class $CriProjetTableTable extends CriProjetTable
   @override
   late final GeneratedColumn<String> projectName = GeneratedColumn<String>(
       'project_name', aliasedName, false,
-      additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 255),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
   static const VerificationMeta _projectNumberMeta =
