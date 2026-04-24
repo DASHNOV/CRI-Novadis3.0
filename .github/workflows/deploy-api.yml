@@ -1,6 +1,7 @@
 name: Deploy API to Production
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - dev
