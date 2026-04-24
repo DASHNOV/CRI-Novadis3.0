@@ -88,7 +88,8 @@
       "Bash(/usr/bin/find \"C:/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0\" -maxdepth 1 -type f -o -maxdepth 1 -type d)",
       "Bash(/usr/bin/find \"C:/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0/frontend\" -maxdepth 1 -type f -o -maxdepth 1 -type d)",
       "Bash(rtk git *)",
-      "Bash(rtk gain *)"
+      "Bash(rtk gain *)",
+      "Bash(rtk flutter *)"
     ]
   }
 }

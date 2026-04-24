@@ -55,10 +55,8 @@ namespace NovadisApi.Controllers
                 if (user == null || !user.IsActive)
                 {
                     _logger.LogWarning("Login failed: User not found or inactive - {Email}", request.Email);
-                    // ⚠️ Message générique pour éviter l'énumération des emails
-                    return Ok(ApiResponse<object>.SuccessResponse(
-                        null,
-                        "Si cet email existe, un code de vérification a été envoyé."
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        "Aucun compte associé à cette adresse email."
                     ));
                 }
 

@@ -148,6 +148,37 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
     return drafts;
   }
 
+  Future<void> _deleteDraft(Map<String, dynamic> cri) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer le brouillon'),
+        content: const Text(
+            'Ce brouillon sera définitivement supprimé. Cette action est irréversible.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.error),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final db = ref.read(appDatabaseProvider);
+    final type = cri['_criType'] ?? 'service';
+    if (type == 'projet') {
+      await db.deleteCriProjet(cri['id']);
+    } else {
+      await db.deleteCriService(cri['id']);
+    }
+    _loadData();
+  }
+
   void _onStatusFilterChanged(String filter) {
     setState(() => _selectedFilter = filter);
     _loadData();
@@ -929,6 +960,23 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                       ),
                     ),
                     _buildStatusBadge(hasSigned, isDraft: isDraft),
+                    if (isDraft) ...[
+                      const SizedBox(width: AppTheme.space4),
+                      SizedBox(
+                        width: 30,
+                        height: 30,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: Icon(
+                            Icons.delete_outline_rounded,
+                            size: 18,
+                            color: AppTheme.error,
+                          ),
+                          tooltip: 'Supprimer le brouillon',
+                          onPressed: () => _deleteDraft(cri),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: AppTheme.space8),
