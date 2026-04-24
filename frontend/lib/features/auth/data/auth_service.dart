@@ -54,9 +54,11 @@ class AuthService {
           if (user['role'] != null) {
             await _storage.saveUserRole(user['role']);
           }
-          final firstName = user['firstName'] ?? '';
-          if (firstName.isNotEmpty) {
-            await _storage.saveUserName(firstName);
+          final firstName = (user['firstName'] ?? '') as String;
+          final lastName = (user['lastName'] ?? '') as String;
+          final fullName = '$firstName $lastName'.trim();
+          if (fullName.isNotEmpty) {
+            await _storage.saveUserName(fullName);
           }
         }
       }

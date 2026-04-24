@@ -145,10 +145,20 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
   Future<void> _submit() async {
     // D'abord valider les champs FormBuilder
     if (!(_formKey.currentState?.saveAndValidate() ?? false)) {
+      final fields = _formKey.currentState?.fields ?? {};
+      final errors = fields.entries
+          .where((e) => e.value.hasError)
+          .map((e) => '• ${e.value.errorText ?? ''}')
+          .where((e) => e.isNotEmpty)
+          .toList();
+      final message = errors.isEmpty
+          ? 'Veuillez corriger les erreurs dans le formulaire'
+          : errors.join('\n');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez corriger les erreurs dans le formulaire'),
+        SnackBar(
+          content: Text(message),
           backgroundColor: AppTheme.warning,
+          duration: const Duration(seconds: 5),
         ),
       );
       return;
@@ -1245,12 +1255,14 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
               helperText: 'Format: Prénom Nom',
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Nom requis';
+              if (value == null || value.trim().isEmpty) {
+                return 'Nom du technicien requis';
               }
+              final trimmed = value.trim().toLowerCase();
               if (state.knownTechnicians.isNotEmpty &&
-                  !state.knownTechnicians.contains(value)) {
-                return 'Technicien inconnu dans la base';
+                  !state.knownTechnicians
+                      .any((t) => t.toLowerCase() == trimmed)) {
+                return 'Technicien "$value" inconnu. Vérifiez le nom (Prénom Nom)';
               }
               return null;
             },

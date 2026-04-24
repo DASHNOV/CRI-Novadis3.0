@@ -23,7 +23,7 @@ namespace NovadisApi.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<UserDto>>>> GetTechnicians()
         {
             var technicians = await _context.Users
-                .Where(u => u.Role == "Technician" && u.IsActive)
+                .Where(u => (u.Role == "Technician" || u.Role == "Admin") && u.IsActive)
                 .Select(u => new UserDto
                 {
                     Id = u.Id,
