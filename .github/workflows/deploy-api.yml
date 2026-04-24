@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - uses: actions/checkout@v3
@@ -24,41 +24,24 @@ jobs:
       - name: Build and Publish API
         run: |
           cd backend/src/NovadisApi
-          dotnet build -c Release
           dotnet publish -c Release -o publish
 
-      - name: Copy publish files to server
-        uses: appleboy/scp-action@master
-        with:
-          host: 192.168.200.205
-          username: Administrateur
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "backend/src/NovadisApi/publish/"
-          target: "C:\\temp\\novadis-api-publish"
-
       - name: Deploy to production
-        uses: appleboy/ssh-action@master
-        with:
-          host: 192.168.200.205
-          username: Administrateur
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            $ErrorActionPreference = 'Stop'
-            Write-Host "Stopping NovadisApi service..."
-            Stop-Service -Name NovadisApi -Force
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $publishPath = "backend\src\NovadisApi\publish"
+          $deployPath = "C:\novadis-api"
 
-            Write-Host "Clearing old files..."
-            $deployPath = 'C:\novadis-api'
-            Get-ChildItem -Path $deployPath -Exclude '.env' -Force | Remove-Item -Recurse -Force
+          Write-Host "Stopping NovadisApi service..."
+          Stop-Service -Name NovadisApi -Force
 
-            Write-Host "Copying new files..."
-            $tempPath = 'C:\temp\novadis-api-publish'
-            Copy-Item -Path "$tempPath\*" -Destination $deployPath -Recurse -Force
+          Write-Host "Clearing old files..."
+          Get-ChildItem -Path $deployPath -Exclude '.env' -Force | Remove-Item -Recurse -Force
 
-            Write-Host "Cleaning up temporary files..."
-            Remove-Item -Path $tempPath -Recurse -Force
+          Write-Host "Copying new files..."
+          Copy-Item -Path "$publishPath\*" -Destination $deployPath -Recurse -Force
 
-            Write-Host "Starting NovadisApi service..."
-            Start-Service -Name NovadisApi
+          Write-Host "Starting NovadisApi service..."
+          Start-Service -Name NovadisApi
 
-            Write-Host "Deployment completed successfully!"
+          Write-Host "Deployment completed successfully!"
