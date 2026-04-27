@@ -263,6 +263,10 @@ if (app.Environment.IsDevelopment())
         app.Logger.LogInformation("Skipping automatic migrations (already handled manually)...");
         // dbContext.Database.Migrate();
         // app.Logger.LogInformation("Database migrations applied successfully");
+
+        // Feature "Trusted Device" désactivée : CRI_App_User n'a pas les droits ALTER TABLE.
+        // Pour réactiver : faire appliquer la migration 20260427100000_AddTrustedDeviceToken
+        // par un compte admin (sa/dba), puis retirer [NotMapped] sur UserToken.TrustedDeviceToken.
     }
     catch (Exception ex)
     {

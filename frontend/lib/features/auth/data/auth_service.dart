@@ -22,6 +22,34 @@ class AuthService {
     }
   }
 
+  /// Tente une connexion automatique via l'appareil de confiance.
+  /// Retourne true si succès, false si l'appareil n'est pas reconnu.
+  Future<bool> tryLoginWithTrustedDevice(String email) async {
+    try {
+      final storedEmail = await _storage.getTrustedDeviceEmail();
+      if (storedEmail?.toLowerCase() != email.toLowerCase()) return false;
+
+      final trustedToken = await _storage.getTrustedDeviceToken();
+      if (trustedToken == null) return false;
+
+      final response = await _dio.post(
+        '/auth/verify-device',
+        data: {
+          'email': email,
+          'trustedDeviceToken': trustedToken,
+          'deviceInfo': 'Mobile App',
+        },
+      );
+
+      final data = response.data['data'];
+      await _saveAuthData(email, data);
+      return true;
+    } on DioException {
+      // Appareil non reconnu ou token expiré → continuer avec OTP
+      return false;
+    }
+  }
+
   /// Vérifie le code et connecte l'utilisateur (Step 2)
   Future<void> verifyCode(String email, String code) async {
     try {
@@ -30,46 +58,55 @@ class AuthService {
         data: {
           'email': email,
           'code': code.toUpperCase(),
-          'deviceInfo':
-              'Mobile App', // You can use device_info_plus package here for real info
+          'deviceInfo': 'Mobile App',
         },
       );
 
-      final data = response.data['data']; // Assuming ApiResponse structure
-      final accessToken = data['accessToken'];
-      final refreshToken = data['refreshToken'];
-
-      if (accessToken != null && refreshToken != null) {
-        await _storage.saveTokens(
-          accessToken: accessToken,
-          refreshToken: refreshToken,
-        );
-
-        // Save user role and name for permissions and UI
-        final user = data['user'];
-        if (user != null) {
-          if (user['id'] != null) {
-            await _storage.saveUserId(user['id'].toString());
-          }
-          if (user['role'] != null) {
-            await _storage.saveUserRole(user['role']);
-          }
-          final firstName = (user['firstName'] ?? '') as String;
-          final lastName = (user['lastName'] ?? '') as String;
-          final fullName = '$firstName $lastName'.trim();
-          if (fullName.isNotEmpty) {
-            await _storage.saveUserName(fullName);
-          }
-        }
-      }
+      final data = response.data['data'];
+      await _saveAuthData(email, data);
     } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
+  Future<void> _saveAuthData(String email, dynamic data) async {
+    final accessToken = data['accessToken'];
+    final refreshToken = data['refreshToken'];
+
+    if (accessToken != null && refreshToken != null) {
+      await _storage.saveTokens(
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      );
+
+      final trustedDeviceToken = data['trustedDeviceToken'];
+      if (trustedDeviceToken != null) {
+        await _storage.saveTrustedDevice(
+          token: trustedDeviceToken,
+          email: email,
+        );
+      }
+
+      final user = data['user'];
+      if (user != null) {
+        if (user['id'] != null) {
+          await _storage.saveUserId(user['id'].toString());
+        }
+        if (user['role'] != null) {
+          await _storage.saveUserRole(user['role']);
+        }
+        final firstName = (user['firstName'] ?? '') as String;
+        final lastName = (user['lastName'] ?? '') as String;
+        final fullName = '$firstName $lastName'.trim();
+        if (fullName.isNotEmpty) {
+          await _storage.saveUserName(fullName);
+        }
+      }
+    }
+  }
+
   Future<void> logout() async {
     try {
-      // Optional: call server logout to revoke refresh token
       final refreshToken = await _storage.getRefreshToken();
       if (refreshToken != null) {
         await _dio.post('/auth/logout', data: {'refreshToken': refreshToken});

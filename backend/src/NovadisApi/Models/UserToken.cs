@@ -31,7 +31,10 @@ namespace NovadisApi.Models
         public DateTime ExpiresAt { get; set; }
 
         public bool IsRevoked { get; set; } = false;
-        
+
         public string? RevokedReason { get; set; }
+
+        [MaxLength(128)]
+        public string? TrustedDeviceToken { get; set; }
     }
 }
