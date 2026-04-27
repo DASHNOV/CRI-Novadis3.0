@@ -61,27 +61,11 @@ namespace NovadisApi.Controllers
                     ));
                 }
 
-                // 2️⃣ Vérifier le nombre de tentatives récentes
-                var recentAttempts = await _context.AuthAttempts
-                    .Where(a => a.Email.ToLower() == request.Email.ToLower() 
-                        && a.CreatedAt > DateTime.UtcNow.AddMinutes(-30))
-                    .CountAsync();
-
-                var maxAttempts = _configuration.GetValue<int>("Auth:MaxFailedAttempts", 5);
-
-                if (recentAttempts >= maxAttempts)
-                {
-                    _logger.LogWarning("Too many login attempts for {Email}", request.Email);
-                    return BadRequest(ApiResponse<object>.ErrorResponse(
-                        "Trop de tentatives. Veuillez réessayer dans 30 minutes."
-                    ));
-                }
-
-                // 3️⃣ Générer un code à 6 chiffres
+                // 2️⃣ Générer un code à 6 chiffres
                 var code = _codeGenerator.GenerateCode(6);
                 var codeHash = _codeGenerator.HashCode(code);
 
-                // 4️⃣ Créer une tentative d'authentification
+                // 3️⃣ Créer une tentative d'authentification
                 var codeExpiry = _configuration.GetValue<int>("Auth:CodeExpiryMinutes", 10);
                 var authAttempt = new AuthAttempt
                 {
@@ -100,7 +84,7 @@ namespace NovadisApi.Controllers
                 // 🔍 LOG LE CODE POUR LE DÉVELOPPEMENT LOCAL
                 _logger.LogInformation("🔐 [DEV] Code de connexion pour {Email}: {Code}", request.Email, code);
 
-                // 5️⃣ Envoyer l'email avec le code
+                // 4️⃣ Envoyer l'email avec le code
                 var emailBody = $@"
                     <html>
                     <body style='font-family: Arial, sans-serif;'>
@@ -126,7 +110,7 @@ namespace NovadisApi.Controllers
                     emailBody
                 );
 
-                // 6️⃣ Logger l'action
+                // 5️⃣ Logger l'action
                 var auditLog = new AuditLog
                 {
                     UserId = user.Id,
@@ -210,19 +194,8 @@ namespace NovadisApi.Controllers
                     _logger.LogWarning("Invalid code attempt for {Email} - Attempt {Count}",
                         request.Email, authAttempt.FailedAttempts);
 
-                    var maxAttempts = _configuration.GetValue<int>("Auth:MaxFailedAttempts", 5);
-                    if (authAttempt.FailedAttempts >= maxAttempts)
-                    {
-                        authAttempt.IsUsed = true;
-                        await _context.SaveChangesAsync();
-
-                        return Unauthorized(ApiResponse<AuthResponseDto>.ErrorResponse(
-                            "Trop de tentatives échouées. Veuillez demander un nouveau code."
-                        ));
-                    }
-
                     return Unauthorized(ApiResponse<AuthResponseDto>.ErrorResponse(
-                        $"Code invalide. {maxAttempts - authAttempt.FailedAttempts} tentatives restantes."
+                        "Code invalide."
                     ));
                 }
 
