@@ -388,7 +388,7 @@ class CriProjetModel {
       clientName: '',
       site: '',
       projectName: '',
-      projectNumber: _generateProjectNumber(),
+      projectNumber: '',
       projectPhase: ProjectPhase.etude,
       interventionType: ProjetInterventionType.installationMateriel,
       workDescription: '',
@@ -398,12 +398,7 @@ class CriProjetModel {
     );
   }
 
-  /// Génère un numéro de projet automatique
-  static String _generateProjectNumber() {
-    final now = DateTime.now();
-    final random = now.millisecondsSinceEpoch % 1000;
-    return 'PRJ-${now.year}-${random.toString().padLeft(3, '0')}';
-  }
+
 
   @override
   String toString() {

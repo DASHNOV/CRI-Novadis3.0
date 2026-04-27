@@ -447,7 +447,7 @@ class CriServiceModel {
       interventionDate: now,
       startTime: now,
       endTime: now.add(const Duration(hours: 1)),
-      ticketNumber: _generateTicketNumber(),
+      ticketNumber: '',
       clientName: '',
       site: '',
       requestType: ServiceRequestType.depannage,
@@ -461,12 +461,6 @@ class CriServiceModel {
     );
   }
 
-  /// Génère un numéro de ticket automatique
-  static String _generateTicketNumber() {
-    final now = DateTime.now();
-    final random = now.millisecondsSinceEpoch % 100000;
-    return 'TICK-${now.year}-${random.toString().padLeft(5, '0')}';
-  }
 
   @override
   String toString() {
