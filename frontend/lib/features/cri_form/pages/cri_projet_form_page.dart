@@ -107,7 +107,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
   }
 
   void _onStepContinue() {
-    if (_currentStep < 5) {
+    if (_currentStep < 4) {
       setState(() => _currentStep++);
       _autoSave();
     }
@@ -220,7 +220,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             context,
             details,
             currentStep: _currentStep,
-            lastStep: 5,
+            lastStep: 4,
             isSaving: state.isSaving,
             onSubmit: _submit,
           ),
@@ -229,7 +229,6 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             _buildClientStep(state, theme),
             _buildProjectStep(state, theme),
             _buildInterventionStep(state, theme),
-            _buildFollowUpStep(state, theme),
             _buildValidationStep(state, theme),
           ],
         ),
@@ -1115,119 +1114,12 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
     );
   }
 
-  /// Section 5: Suivi
-  Step _buildFollowUpStep(CriProjetFormState state, ThemeData theme) {
-    return Step(
-      title: const Text('Suivi'),
-      subtitle: const Text('Actions et statut'),
-      isActive: _currentStep >= 4,
-      state: _currentStep > 4 ? StepState.complete : StepState.indexed,
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Actions à faire', style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                )),
-          const SizedBox(height: 8),
-          FormBuilderTextField(
-            name: 'actionsToDo',
-            initialValue: state.currentCri?.actionsToDo ?? '',
-            decoration: const InputDecoration(
-              hintText: 'Actions à faire',
-              prefixIcon: Icon(Icons.checklist),
-              alignLabelWithHint: true,
-            ),
-            maxLines: 3,
-            textCapitalization: TextCapitalization.sentences,
-            onChanged: (value) {
-              ref
-                  .read(criProjetFormProvider.notifier)
-                  .updateFollowUpInfo(actionsToDo: value);
-            },
-          ),
-          const SizedBox(height: 16),
-          LayoutBuilder(builder: (context, constraints) {
-            final field1 = Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Prochaine intervention', style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                )),
-                const SizedBox(height: 8),
-                FormBuilderDateTimePicker(
-                  name: 'nextInterventionDate',
-                  initialValue: state.currentCri?.nextInterventionDate,
-                  decoration: const InputDecoration(
-                    hintText: 'Prochaine intervention',
-                    prefixIcon: Icon(Icons.event),
-                  ),
-                  inputType: InputType.date,
-                  format: DateFormat('dd/MM/yyyy'),
-                  onChanged: (value) {
-                    ref
-                        .read(criProjetFormProvider.notifier)
-                        .updateFollowUpInfo(nextInterventionDate: value);
-                  },
-                ),
-              ],
-            );
-            final field2 = Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Statut du projet *', style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                )),
-                const SizedBox(height: 8),
-                FormBuilderDropdown<ProjectStatus>(
-                  name: 'projectStatus',
-                  initialValue:
-                      state.currentCri?.projectStatus ?? ProjectStatus.enCours,
-                  decoration: const InputDecoration(
-                    hintText: 'Statut du projet',
-                    prefixIcon: Icon(Icons.flag),
-                  ),
-                  items: ProjectStatus.values.map((status) {
-                    return DropdownMenuItem(value: status, child: Text(status.label));
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      ref
-                          .read(criProjetFormProvider.notifier)
-                          .updateFollowUpInfo(projectStatus: value);
-                    }
-                  },
-                ),
-              ],
-            );
-            if (constraints.maxWidth > 600) {
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: field1),
-                  const SizedBox(width: 16),
-                  Expanded(child: field2),
-                ],
-              );
-            }
-            return Column(children: [field1, const SizedBox(height: 16), field2]);
-          }),
-        ],
-      ),
-    );
-  }
-
-  /// Section 6: Validation
+  /// Section 5: Validation
   Step _buildValidationStep(CriProjetFormState state, ThemeData theme) {
     return Step(
       title: const Text('Validation'),
       subtitle: const Text('Signatures et photos'),
-      isActive: _currentStep >= 5,
+      isActive: _currentStep >= 4,
       state: StepState.indexed,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
