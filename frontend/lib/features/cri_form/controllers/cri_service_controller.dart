@@ -232,6 +232,22 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
+  void updateStatutIntervention({
+    bool? devisARealiser,
+    bool? facturable,
+    bool? additionalInterventionRequired,
+  }) {
+    if (state.currentCri == null) return;
+    state = state.copyWith(
+      currentCri: state.currentCri!.copyWith(
+        devisARealiser: devisARealiser,
+        facturable: facturable,
+        additionalInterventionRequired: additionalInterventionRequired,
+      ),
+      isDirty: true,
+    );
+  }
+
   void updatePhotos(List<String> photos) {
     if (state.currentCri == null) return;
     state = state.copyWith(
@@ -266,16 +282,29 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
-  /// Sauvegarde brouillon
+  /// Sauvegarde brouillon (local + distant si possible)
   Future<bool> saveDraft() async {
     if (state.currentCri == null) return false;
     state = state.copyWith(isSaving: true);
     try {
-      final updatedCri = state.currentCri!.copyWith(
+      var updatedCri = state.currentCri!.copyWith(
         updatedAt: DateTime.now(),
         isDraft: true,
       );
+
+      // 1. Sauvegarde locale (toujours)
       await _db.updateCriService(updatedCri.toDb());
+
+      // 2. Tentative de push distant (n'échoue pas si offline)
+      try {
+        await _remoteRepo.saveCriService(updatedCri);
+        updatedCri = updatedCri.copyWith(syncStatus: 'synced');
+        await _db.updateCriService(updatedCri.toDb());
+      } catch (_) {
+        updatedCri = updatedCri.copyWith(syncStatus: 'pending');
+        await _db.updateCriService(updatedCri.toDb());
+      }
+
       state = state.copyWith(
         currentCri: updatedCri,
         isSaving: false,
@@ -289,19 +318,35 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     }
   }
 
-  /// Soumission
+  /// Soumission (local + distant)
   Future<bool> submit() async {
     if (state.currentCri == null) return false;
     state = state.copyWith(isSaving: true);
     try {
-      final submittedCri = state.currentCri!.copyWith(
+      var submittedCri = state.currentCri!.copyWith(
         updatedAt: DateTime.now(),
         isDraft: false,
-        syncStatus: 'synced',
+        syncStatus: 'pending',
       );
 
+      // 1. Sauvegarde locale (toujours, même si distant échoue)
       await _db.updateCriService(submittedCri.toDb());
-      await _remoteRepo.saveCriService(submittedCri);
+
+      // 2. Push distant
+      try {
+        await _remoteRepo.saveCriService(submittedCri);
+        submittedCri = submittedCri.copyWith(syncStatus: 'synced');
+        await _db.updateCriService(submittedCri.toDb());
+      } catch (e) {
+        // Marqué pending → resynchronisable plus tard
+        state = state.copyWith(
+          currentCri: submittedCri,
+          isSaving: false,
+          isDirty: false,
+          errorMessage: 'CRI sauvegardé localement. Synchronisation distante échouée: $e',
+        );
+        return true;
+      }
 
       state = state.copyWith(
         currentCri: submittedCri,

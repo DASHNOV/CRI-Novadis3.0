@@ -36,24 +36,21 @@ class $CriServiceTableTable extends CriServiceTable
       const VerificationMeta('ticketNumber');
   @override
   late final GeneratedColumn<String> ticketNumber = GeneratedColumn<String>(
-      'ticket_number', aliasedName, false,
-      additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 50),
+      'ticket_number', aliasedName, true,
+      additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 50),
       type: DriftSqlType.string,
-      requiredDuringInsert: true);
+      requiredDuringInsert: false);
   static const VerificationMeta _clientNameMeta =
       const VerificationMeta('clientName');
   @override
   late final GeneratedColumn<String> clientName = GeneratedColumn<String>(
       'client_name', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true);
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _siteMeta = const VerificationMeta('site');
   @override
   late final GeneratedColumn<String> site = GeneratedColumn<String>(
       'site', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true);
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _addressMeta =
       const VerificationMeta('address');
   @override
@@ -200,6 +197,26 @@ class $CriServiceTableTable extends CriServiceTable
   late final GeneratedColumn<String> followUpComments = GeneratedColumn<String>(
       'follow_up_comments', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _devisARealiserMeta =
+      const VerificationMeta('devisARealiser');
+  @override
+  late final GeneratedColumn<bool> devisARealiser = GeneratedColumn<bool>(
+      'devis_a_realiser', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("devis_a_realiser" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _facturableMeta =
+      const VerificationMeta('facturable');
+  @override
+  late final GeneratedColumn<bool> facturable = GeneratedColumn<bool>(
+      'facturable', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("facturable" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _photosMeta = const VerificationMeta('photos');
   @override
   late final GeneratedColumn<String> photos = GeneratedColumn<String>(
@@ -288,6 +305,8 @@ class $CriServiceTableTable extends CriServiceTable
         additionalInterventionRequired,
         followUpDate,
         followUpComments,
+        devisARealiser,
+        facturable,
         photos,
         technicianName,
         technicianSignature,
@@ -337,8 +356,6 @@ class $CriServiceTableTable extends CriServiceTable
           _ticketNumberMeta,
           ticketNumber.isAcceptableOrUnknown(
               data['ticket_number']!, _ticketNumberMeta));
-    } else if (isInserting) {
-      context.missing(_ticketNumberMeta);
     }
     if (data.containsKey('client_name')) {
       context.handle(
@@ -501,6 +518,18 @@ class $CriServiceTableTable extends CriServiceTable
           followUpComments.isAcceptableOrUnknown(
               data['follow_up_comments']!, _followUpCommentsMeta));
     }
+    if (data.containsKey('devis_a_realiser')) {
+      context.handle(
+          _devisARealiserMeta,
+          devisARealiser.isAcceptableOrUnknown(
+              data['devis_a_realiser']!, _devisARealiserMeta));
+    }
+    if (data.containsKey('facturable')) {
+      context.handle(
+          _facturableMeta,
+          facturable.isAcceptableOrUnknown(
+              data['facturable']!, _facturableMeta));
+    }
     if (data.containsKey('photos')) {
       context.handle(_photosMeta,
           photos.isAcceptableOrUnknown(data['photos']!, _photosMeta));
@@ -561,7 +590,7 @@ class $CriServiceTableTable extends CriServiceTable
       endTime: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}end_time'])!,
       ticketNumber: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}ticket_number'])!,
+          .read(DriftSqlType.string, data['${effectivePrefix}ticket_number']),
       clientName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}client_name'])!,
       site: attachedDatabase.typeMapping
@@ -617,6 +646,10 @@ class $CriServiceTableTable extends CriServiceTable
           DriftSqlType.dateTime, data['${effectivePrefix}follow_up_date']),
       followUpComments: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}follow_up_comments']),
+      devisARealiser: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}devis_a_realiser'])!,
+      facturable: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}facturable'])!,
       photos: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}photos']),
       technicianName: attachedDatabase.typeMapping.read(
@@ -647,7 +680,7 @@ class CriService extends DataClass implements Insertable<CriService> {
   final DateTime interventionDate;
   final DateTime startTime;
   final DateTime endTime;
-  final String ticketNumber;
+  final String? ticketNumber;
   final String clientName;
   final String site;
   final String? address;
@@ -674,6 +707,8 @@ class CriService extends DataClass implements Insertable<CriService> {
   final bool additionalInterventionRequired;
   final DateTime? followUpDate;
   final String? followUpComments;
+  final bool devisARealiser;
+  final bool facturable;
   final String? photos;
   final String technicianName;
   final String? technicianSignature;
@@ -687,7 +722,7 @@ class CriService extends DataClass implements Insertable<CriService> {
       required this.interventionDate,
       required this.startTime,
       required this.endTime,
-      required this.ticketNumber,
+      this.ticketNumber,
       required this.clientName,
       required this.site,
       this.address,
@@ -714,6 +749,8 @@ class CriService extends DataClass implements Insertable<CriService> {
       required this.additionalInterventionRequired,
       this.followUpDate,
       this.followUpComments,
+      required this.devisARealiser,
+      required this.facturable,
       this.photos,
       required this.technicianName,
       this.technicianSignature,
@@ -729,7 +766,9 @@ class CriService extends DataClass implements Insertable<CriService> {
     map['intervention_date'] = Variable<DateTime>(interventionDate);
     map['start_time'] = Variable<DateTime>(startTime);
     map['end_time'] = Variable<DateTime>(endTime);
-    map['ticket_number'] = Variable<String>(ticketNumber);
+    if (!nullToAbsent || ticketNumber != null) {
+      map['ticket_number'] = Variable<String>(ticketNumber);
+    }
     map['client_name'] = Variable<String>(clientName);
     map['site'] = Variable<String>(site);
     if (!nullToAbsent || address != null) {
@@ -793,6 +832,8 @@ class CriService extends DataClass implements Insertable<CriService> {
     if (!nullToAbsent || followUpComments != null) {
       map['follow_up_comments'] = Variable<String>(followUpComments);
     }
+    map['devis_a_realiser'] = Variable<bool>(devisARealiser);
+    map['facturable'] = Variable<bool>(facturable);
     if (!nullToAbsent || photos != null) {
       map['photos'] = Variable<String>(photos);
     }
@@ -818,7 +859,9 @@ class CriService extends DataClass implements Insertable<CriService> {
       interventionDate: Value(interventionDate),
       startTime: Value(startTime),
       endTime: Value(endTime),
-      ticketNumber: Value(ticketNumber),
+      ticketNumber: ticketNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ticketNumber),
       clientName: Value(clientName),
       site: Value(site),
       address: address == null && nullToAbsent
@@ -875,6 +918,8 @@ class CriService extends DataClass implements Insertable<CriService> {
       followUpComments: followUpComments == null && nullToAbsent
           ? const Value.absent()
           : Value(followUpComments),
+      devisARealiser: Value(devisARealiser),
+      facturable: Value(facturable),
       photos:
           photos == null && nullToAbsent ? const Value.absent() : Value(photos),
       technicianName: Value(technicianName),
@@ -901,7 +946,7 @@ class CriService extends DataClass implements Insertable<CriService> {
       interventionDate: serializer.fromJson<DateTime>(json['interventionDate']),
       startTime: serializer.fromJson<DateTime>(json['startTime']),
       endTime: serializer.fromJson<DateTime>(json['endTime']),
-      ticketNumber: serializer.fromJson<String>(json['ticketNumber']),
+      ticketNumber: serializer.fromJson<String?>(json['ticketNumber']),
       clientName: serializer.fromJson<String>(json['clientName']),
       site: serializer.fromJson<String>(json['site']),
       address: serializer.fromJson<String?>(json['address']),
@@ -933,6 +978,8 @@ class CriService extends DataClass implements Insertable<CriService> {
           serializer.fromJson<bool>(json['additionalInterventionRequired']),
       followUpDate: serializer.fromJson<DateTime?>(json['followUpDate']),
       followUpComments: serializer.fromJson<String?>(json['followUpComments']),
+      devisARealiser: serializer.fromJson<bool>(json['devisARealiser']),
+      facturable: serializer.fromJson<bool>(json['facturable']),
       photos: serializer.fromJson<String?>(json['photos']),
       technicianName: serializer.fromJson<String>(json['technicianName']),
       technicianSignature:
@@ -952,7 +999,7 @@ class CriService extends DataClass implements Insertable<CriService> {
       'interventionDate': serializer.toJson<DateTime>(interventionDate),
       'startTime': serializer.toJson<DateTime>(startTime),
       'endTime': serializer.toJson<DateTime>(endTime),
-      'ticketNumber': serializer.toJson<String>(ticketNumber),
+      'ticketNumber': serializer.toJson<String?>(ticketNumber),
       'clientName': serializer.toJson<String>(clientName),
       'site': serializer.toJson<String>(site),
       'address': serializer.toJson<String?>(address),
@@ -982,6 +1029,8 @@ class CriService extends DataClass implements Insertable<CriService> {
           serializer.toJson<bool>(additionalInterventionRequired),
       'followUpDate': serializer.toJson<DateTime?>(followUpDate),
       'followUpComments': serializer.toJson<String?>(followUpComments),
+      'devisARealiser': serializer.toJson<bool>(devisARealiser),
+      'facturable': serializer.toJson<bool>(facturable),
       'photos': serializer.toJson<String?>(photos),
       'technicianName': serializer.toJson<String>(technicianName),
       'technicianSignature': serializer.toJson<String?>(technicianSignature),
@@ -998,7 +1047,7 @@ class CriService extends DataClass implements Insertable<CriService> {
           DateTime? interventionDate,
           DateTime? startTime,
           DateTime? endTime,
-          String? ticketNumber,
+          Value<String?> ticketNumber = const Value.absent(),
           String? clientName,
           String? site,
           Value<String?> address = const Value.absent(),
@@ -1025,6 +1074,8 @@ class CriService extends DataClass implements Insertable<CriService> {
           bool? additionalInterventionRequired,
           Value<DateTime?> followUpDate = const Value.absent(),
           Value<String?> followUpComments = const Value.absent(),
+          bool? devisARealiser,
+          bool? facturable,
           Value<String?> photos = const Value.absent(),
           String? technicianName,
           Value<String?> technicianSignature = const Value.absent(),
@@ -1038,7 +1089,8 @@ class CriService extends DataClass implements Insertable<CriService> {
         interventionDate: interventionDate ?? this.interventionDate,
         startTime: startTime ?? this.startTime,
         endTime: endTime ?? this.endTime,
-        ticketNumber: ticketNumber ?? this.ticketNumber,
+        ticketNumber:
+            ticketNumber.present ? ticketNumber.value : this.ticketNumber,
         clientName: clientName ?? this.clientName,
         site: site ?? this.site,
         address: address.present ? address.value : this.address,
@@ -1081,6 +1133,8 @@ class CriService extends DataClass implements Insertable<CriService> {
         followUpComments: followUpComments.present
             ? followUpComments.value
             : this.followUpComments,
+        devisARealiser: devisARealiser ?? this.devisARealiser,
+        facturable: facturable ?? this.facturable,
         photos: photos.present ? photos.value : this.photos,
         technicianName: technicianName ?? this.technicianName,
         technicianSignature: technicianSignature.present
@@ -1165,6 +1219,11 @@ class CriService extends DataClass implements Insertable<CriService> {
       followUpComments: data.followUpComments.present
           ? data.followUpComments.value
           : this.followUpComments,
+      devisARealiser: data.devisARealiser.present
+          ? data.devisARealiser.value
+          : this.devisARealiser,
+      facturable:
+          data.facturable.present ? data.facturable.value : this.facturable,
       photos: data.photos.present ? data.photos.value : this.photos,
       technicianName: data.technicianName.present
           ? data.technicianName.value
@@ -1219,6 +1278,8 @@ class CriService extends DataClass implements Insertable<CriService> {
               'additionalInterventionRequired: $additionalInterventionRequired, ')
           ..write('followUpDate: $followUpDate, ')
           ..write('followUpComments: $followUpComments, ')
+          ..write('devisARealiser: $devisARealiser, ')
+          ..write('facturable: $facturable, ')
           ..write('photos: $photos, ')
           ..write('technicianName: $technicianName, ')
           ..write('technicianSignature: $technicianSignature, ')
@@ -1264,6 +1325,8 @@ class CriService extends DataClass implements Insertable<CriService> {
         additionalInterventionRequired,
         followUpDate,
         followUpComments,
+        devisARealiser,
+        facturable,
         photos,
         technicianName,
         technicianSignature,
@@ -1311,6 +1374,8 @@ class CriService extends DataClass implements Insertable<CriService> {
               this.additionalInterventionRequired &&
           other.followUpDate == this.followUpDate &&
           other.followUpComments == this.followUpComments &&
+          other.devisARealiser == this.devisARealiser &&
+          other.facturable == this.facturable &&
           other.photos == this.photos &&
           other.technicianName == this.technicianName &&
           other.technicianSignature == this.technicianSignature &&
@@ -1326,7 +1391,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
   final Value<DateTime> interventionDate;
   final Value<DateTime> startTime;
   final Value<DateTime> endTime;
-  final Value<String> ticketNumber;
+  final Value<String?> ticketNumber;
   final Value<String> clientName;
   final Value<String> site;
   final Value<String?> address;
@@ -1353,6 +1418,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
   final Value<bool> additionalInterventionRequired;
   final Value<DateTime?> followUpDate;
   final Value<String?> followUpComments;
+  final Value<bool> devisARealiser;
+  final Value<bool> facturable;
   final Value<String?> photos;
   final Value<String> technicianName;
   final Value<String?> technicianSignature;
@@ -1394,6 +1461,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     this.additionalInterventionRequired = const Value.absent(),
     this.followUpDate = const Value.absent(),
     this.followUpComments = const Value.absent(),
+    this.devisARealiser = const Value.absent(),
+    this.facturable = const Value.absent(),
     this.photos = const Value.absent(),
     this.technicianName = const Value.absent(),
     this.technicianSignature = const Value.absent(),
@@ -1409,7 +1478,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     required DateTime interventionDate,
     required DateTime startTime,
     required DateTime endTime,
-    required String ticketNumber,
+    this.ticketNumber = const Value.absent(),
     required String clientName,
     required String site,
     this.address = const Value.absent(),
@@ -1436,6 +1505,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     this.additionalInterventionRequired = const Value.absent(),
     this.followUpDate = const Value.absent(),
     this.followUpComments = const Value.absent(),
+    this.devisARealiser = const Value.absent(),
+    this.facturable = const Value.absent(),
     this.photos = const Value.absent(),
     required String technicianName,
     this.technicianSignature = const Value.absent(),
@@ -1449,7 +1520,6 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
         interventionDate = Value(interventionDate),
         startTime = Value(startTime),
         endTime = Value(endTime),
-        ticketNumber = Value(ticketNumber),
         clientName = Value(clientName),
         site = Value(site),
         requestType = Value(requestType),
@@ -1491,6 +1561,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     Expression<bool>? additionalInterventionRequired,
     Expression<DateTime>? followUpDate,
     Expression<String>? followUpComments,
+    Expression<bool>? devisARealiser,
+    Expression<bool>? facturable,
     Expression<String>? photos,
     Expression<String>? technicianName,
     Expression<String>? technicianSignature,
@@ -1537,6 +1609,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
         'additional_intervention_required': additionalInterventionRequired,
       if (followUpDate != null) 'follow_up_date': followUpDate,
       if (followUpComments != null) 'follow_up_comments': followUpComments,
+      if (devisARealiser != null) 'devis_a_realiser': devisARealiser,
+      if (facturable != null) 'facturable': facturable,
       if (photos != null) 'photos': photos,
       if (technicianName != null) 'technician_name': technicianName,
       if (technicianSignature != null)
@@ -1555,7 +1629,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
       Value<DateTime>? interventionDate,
       Value<DateTime>? startTime,
       Value<DateTime>? endTime,
-      Value<String>? ticketNumber,
+      Value<String?>? ticketNumber,
       Value<String>? clientName,
       Value<String>? site,
       Value<String?>? address,
@@ -1582,6 +1656,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
       Value<bool>? additionalInterventionRequired,
       Value<DateTime?>? followUpDate,
       Value<String?>? followUpComments,
+      Value<bool>? devisARealiser,
+      Value<bool>? facturable,
       Value<String?>? photos,
       Value<String>? technicianName,
       Value<String?>? technicianSignature,
@@ -1626,6 +1702,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
           additionalInterventionRequired ?? this.additionalInterventionRequired,
       followUpDate: followUpDate ?? this.followUpDate,
       followUpComments: followUpComments ?? this.followUpComments,
+      devisARealiser: devisARealiser ?? this.devisARealiser,
+      facturable: facturable ?? this.facturable,
       photos: photos ?? this.photos,
       technicianName: technicianName ?? this.technicianName,
       technicianSignature: technicianSignature ?? this.technicianSignature,
@@ -1737,6 +1815,12 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     if (followUpComments.present) {
       map['follow_up_comments'] = Variable<String>(followUpComments.value);
     }
+    if (devisARealiser.present) {
+      map['devis_a_realiser'] = Variable<bool>(devisARealiser.value);
+    }
+    if (facturable.present) {
+      map['facturable'] = Variable<bool>(facturable.value);
+    }
     if (photos.present) {
       map['photos'] = Variable<String>(photos.value);
     }
@@ -1803,6 +1887,8 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
               'additionalInterventionRequired: $additionalInterventionRequired, ')
           ..write('followUpDate: $followUpDate, ')
           ..write('followUpComments: $followUpComments, ')
+          ..write('devisARealiser: $devisARealiser, ')
+          ..write('facturable: $facturable, ')
           ..write('photos: $photos, ')
           ..write('technicianName: $technicianName, ')
           ..write('technicianSignature: $technicianSignature, ')
@@ -1851,14 +1937,12 @@ class $CriProjetTableTable extends CriProjetTable
   @override
   late final GeneratedColumn<String> clientName = GeneratedColumn<String>(
       'client_name', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true);
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _siteMeta = const VerificationMeta('site');
   @override
   late final GeneratedColumn<String> site = GeneratedColumn<String>(
       'site', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true);
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _addressMeta =
       const VerificationMeta('address');
   @override
@@ -1902,8 +1986,7 @@ class $CriProjetTableTable extends CriProjetTable
   @override
   late final GeneratedColumn<String> projectName = GeneratedColumn<String>(
       'project_name', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true);
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _projectNumberMeta =
       const VerificationMeta('projectNumber');
   @override
@@ -3899,7 +3982,7 @@ typedef $$CriServiceTableTableCreateCompanionBuilder = CriServiceTableCompanion
   required DateTime interventionDate,
   required DateTime startTime,
   required DateTime endTime,
-  required String ticketNumber,
+  Value<String?> ticketNumber,
   required String clientName,
   required String site,
   Value<String?> address,
@@ -3926,6 +4009,8 @@ typedef $$CriServiceTableTableCreateCompanionBuilder = CriServiceTableCompanion
   Value<bool> additionalInterventionRequired,
   Value<DateTime?> followUpDate,
   Value<String?> followUpComments,
+  Value<bool> devisARealiser,
+  Value<bool> facturable,
   Value<String?> photos,
   required String technicianName,
   Value<String?> technicianSignature,
@@ -3942,7 +4027,7 @@ typedef $$CriServiceTableTableUpdateCompanionBuilder = CriServiceTableCompanion
   Value<DateTime> interventionDate,
   Value<DateTime> startTime,
   Value<DateTime> endTime,
-  Value<String> ticketNumber,
+  Value<String?> ticketNumber,
   Value<String> clientName,
   Value<String> site,
   Value<String?> address,
@@ -3969,6 +4054,8 @@ typedef $$CriServiceTableTableUpdateCompanionBuilder = CriServiceTableCompanion
   Value<bool> additionalInterventionRequired,
   Value<DateTime?> followUpDate,
   Value<String?> followUpComments,
+  Value<bool> devisARealiser,
+  Value<bool> facturable,
   Value<String?> photos,
   Value<String> technicianName,
   Value<String?> technicianSignature,
@@ -4093,6 +4180,13 @@ class $$CriServiceTableTableFilterComposer
   ColumnFilters<String> get followUpComments => $composableBuilder(
       column: $table.followUpComments,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get devisARealiser => $composableBuilder(
+      column: $table.devisARealiser,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get facturable => $composableBuilder(
+      column: $table.facturable, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get photos => $composableBuilder(
       column: $table.photos, builder: (column) => ColumnFilters(column));
@@ -4242,6 +4336,13 @@ class $$CriServiceTableTableOrderingComposer
       column: $table.followUpComments,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get devisARealiser => $composableBuilder(
+      column: $table.devisARealiser,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get facturable => $composableBuilder(
+      column: $table.facturable, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get photos => $composableBuilder(
       column: $table.photos, builder: (column) => ColumnOrderings(column));
 
@@ -4376,6 +4477,12 @@ class $$CriServiceTableTableAnnotationComposer
   GeneratedColumn<String> get followUpComments => $composableBuilder(
       column: $table.followUpComments, builder: (column) => column);
 
+  GeneratedColumn<bool> get devisARealiser => $composableBuilder(
+      column: $table.devisARealiser, builder: (column) => column);
+
+  GeneratedColumn<bool> get facturable => $composableBuilder(
+      column: $table.facturable, builder: (column) => column);
+
   GeneratedColumn<String> get photos =>
       $composableBuilder(column: $table.photos, builder: (column) => column);
 
@@ -4432,7 +4539,7 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             Value<DateTime> interventionDate = const Value.absent(),
             Value<DateTime> startTime = const Value.absent(),
             Value<DateTime> endTime = const Value.absent(),
-            Value<String> ticketNumber = const Value.absent(),
+            Value<String?> ticketNumber = const Value.absent(),
             Value<String> clientName = const Value.absent(),
             Value<String> site = const Value.absent(),
             Value<String?> address = const Value.absent(),
@@ -4459,6 +4566,8 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             Value<bool> additionalInterventionRequired = const Value.absent(),
             Value<DateTime?> followUpDate = const Value.absent(),
             Value<String?> followUpComments = const Value.absent(),
+            Value<bool> devisARealiser = const Value.absent(),
+            Value<bool> facturable = const Value.absent(),
             Value<String?> photos = const Value.absent(),
             Value<String> technicianName = const Value.absent(),
             Value<String?> technicianSignature = const Value.absent(),
@@ -4501,6 +4610,8 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             additionalInterventionRequired: additionalInterventionRequired,
             followUpDate: followUpDate,
             followUpComments: followUpComments,
+            devisARealiser: devisARealiser,
+            facturable: facturable,
             photos: photos,
             technicianName: technicianName,
             technicianSignature: technicianSignature,
@@ -4516,7 +4627,7 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             required DateTime interventionDate,
             required DateTime startTime,
             required DateTime endTime,
-            required String ticketNumber,
+            Value<String?> ticketNumber = const Value.absent(),
             required String clientName,
             required String site,
             Value<String?> address = const Value.absent(),
@@ -4543,6 +4654,8 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             Value<bool> additionalInterventionRequired = const Value.absent(),
             Value<DateTime?> followUpDate = const Value.absent(),
             Value<String?> followUpComments = const Value.absent(),
+            Value<bool> devisARealiser = const Value.absent(),
+            Value<bool> facturable = const Value.absent(),
             Value<String?> photos = const Value.absent(),
             required String technicianName,
             Value<String?> technicianSignature = const Value.absent(),
@@ -4585,6 +4698,8 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             additionalInterventionRequired: additionalInterventionRequired,
             followUpDate: followUpDate,
             followUpComments: followUpComments,
+            devisARealiser: devisARealiser,
+            facturable: facturable,
             photos: photos,
             technicianName: technicianName,
             technicianSignature: technicianSignature,

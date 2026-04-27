@@ -54,6 +54,8 @@ class CriServiceModel {
   final bool additionalInterventionRequired;
   final DateTime? followUpDate;
   final String? followUpComments;
+  final bool devisARealiser;
+  final bool facturable;
 
   // Section 8: Validation
   final List<String> photos;
@@ -99,6 +101,8 @@ class CriServiceModel {
     this.additionalInterventionRequired = false,
     this.followUpDate,
     this.followUpComments,
+    this.devisARealiser = false,
+    this.facturable = false,
     this.photos = const [],
     required this.technicianName,
     this.technicianSignature,
@@ -109,8 +113,12 @@ class CriServiceModel {
     this.isDraft = true,
   });
 
-  /// Champ obsolète - retourne une chaîne vide
-  String get departement => '';
+  /// Dérivé des 2 premiers chiffres du code postal
+  String get departement {
+    final cp = codePostal?.trim() ?? '';
+    if (cp.length >= 2) return cp.substring(0, 2);
+    return '';
+  }
 
   /// Champ obsolète - retourne une liste vide
   List<String> get fraisSupplementaires => [];
@@ -170,6 +178,8 @@ class CriServiceModel {
     bool? additionalInterventionRequired,
     DateTime? followUpDate,
     String? followUpComments,
+    bool? devisARealiser,
+    bool? facturable,
     List<String>? photos,
     String? technicianName,
     String? technicianSignature,
@@ -214,6 +224,8 @@ class CriServiceModel {
           additionalInterventionRequired ?? this.additionalInterventionRequired,
       followUpDate: followUpDate ?? this.followUpDate,
       followUpComments: followUpComments ?? this.followUpComments,
+      devisARealiser: devisARealiser ?? this.devisARealiser,
+      facturable: facturable ?? this.facturable,
       photos: photos ?? this.photos,
       technicianName: technicianName ?? this.technicianName,
       technicianSignature: technicianSignature ?? this.technicianSignature,
@@ -259,6 +271,8 @@ class CriServiceModel {
       'additionalInterventionRequired': additionalInterventionRequired,
       'followUpDate': followUpDate?.toIso8601String(),
       'followUpComments': followUpComments,
+      'devisARealiser': devisARealiser,
+      'facturable': facturable,
       'photos': jsonEncode(photos),
       'technicianName': technicianName,
       'technicianSignature': technicianSignature,
@@ -277,7 +291,7 @@ class CriServiceModel {
       interventionDate: Value(interventionDate),
       startTime: Value(startTime),
       endTime: Value(endTime),
-      ticketNumber: Value(ticketNumber),
+      ticketNumber: Value(ticketNumber.isEmpty ? null : ticketNumber),
       clientName: Value(clientName),
       site: Value(site),
       address: Value(address),
@@ -308,6 +322,8 @@ class CriServiceModel {
       additionalInterventionRequired: Value(additionalInterventionRequired),
       followUpDate: Value(followUpDate),
       followUpComments: Value(followUpComments),
+      devisARealiser: Value(devisARealiser),
+      facturable: Value(facturable),
       photos: Value(jsonEncode(photos)),
       technicianName: Value(technicianName),
       technicianSignature: Value(technicianSignature),
@@ -325,7 +341,7 @@ class CriServiceModel {
       interventionDate: db.interventionDate,
       startTime: db.startTime,
       endTime: db.endTime,
-      ticketNumber: db.ticketNumber,
+      ticketNumber: db.ticketNumber ?? '',
       clientName: db.clientName,
       site: db.site,
       address: db.address,
@@ -357,6 +373,8 @@ class CriServiceModel {
       additionalInterventionRequired: db.additionalInterventionRequired,
       followUpDate: db.followUpDate,
       followUpComments: db.followUpComments,
+      devisARealiser: db.devisARealiser,
+      facturable: db.facturable,
       photos: db.photos != null
           ? List<String>.from(jsonDecode(db.photos!))
           : [],
@@ -377,7 +395,7 @@ class CriServiceModel {
       interventionDate: DateTime.parse(json['interventionDate'] as String),
       startTime: DateTime.parse(json['startTime'] as String),
       endTime: DateTime.parse(json['endTime'] as String),
-      ticketNumber: json['ticketNumber'] as String,
+      ticketNumber: (json['ticketNumber'] as String?) ?? '',
       clientName: json['clientName'] as String,
       site: json['site'] as String,
       address: json['address'] as String?,
@@ -419,6 +437,12 @@ class CriServiceModel {
           ? DateTime.parse(json['followUpDate'] as String)
           : null,
       followUpComments: json['followUpComments'] as String?,
+      devisARealiser: json['devisARealiser'] is int
+          ? (json['devisARealiser'] as int) == 1
+          : json['devisARealiser'] as bool? ?? false,
+      facturable: json['facturable'] is int
+          ? (json['facturable'] as int) == 1
+          : json['facturable'] as bool? ?? false,
       photos: json['photos'] != null
           ? List<String>.from(jsonDecode(json['photos'] as String))
           : [],
@@ -455,7 +479,7 @@ class CriServiceModel {
       requestDescription: '',
       actionsPerformed: '',
       interventionDurationMinutes: 60,
-      resolutionStatus: ResolutionStatus.nonResolu,
+      resolutionStatus: ResolutionStatus.resolu,
       technicianName: technicianName,
       createdAt: now,
     );

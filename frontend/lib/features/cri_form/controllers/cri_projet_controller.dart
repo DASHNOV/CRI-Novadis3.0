@@ -251,18 +251,29 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     );
   }
 
-  /// Sauvegarde le brouillon
+  /// Sauvegarde le brouillon (local + distant si possible)
   Future<bool> saveDraft() async {
     if (state.currentCri == null) return false;
     state = state.copyWith(isSaving: true);
 
     try {
-      final updatedCri = state.currentCri!.copyWith(
+      var updatedCri = state.currentCri!.copyWith(
         updatedAt: DateTime.now(),
         isDraft: true,
       );
 
+      // 1. Sauvegarde locale
       await _db.updateCriProjet(updatedCri.toDb());
+
+      // 2. Tentative de push distant (sans bloquer si offline)
+      try {
+        await _remoteRepo.saveCriProjet(updatedCri);
+        updatedCri = updatedCri.copyWith(syncStatus: 'synced');
+        await _db.updateCriProjet(updatedCri.toDb());
+      } catch (_) {
+        updatedCri = updatedCri.copyWith(syncStatus: 'pending');
+        await _db.updateCriProjet(updatedCri.toDb());
+      }
 
       state = state.copyWith(
         currentCri: updatedCri,
@@ -277,23 +288,35 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     }
   }
 
-  /// Soumet le formulaire
+  /// Soumet le formulaire (local + distant)
   Future<bool> submit() async {
     if (state.currentCri == null) return false;
     state = state.copyWith(isSaving: true);
 
     try {
-      final submittedCri = state.currentCri!.copyWith(
+      var submittedCri = state.currentCri!.copyWith(
         updatedAt: DateTime.now(),
         isDraft: false,
-        syncStatus: 'synced',
+        syncStatus: 'pending',
       );
 
-      // 1. Sauvegarder localement
+      // 1. Sauvegarde locale (toujours)
       await _db.updateCriProjet(submittedCri.toDb());
 
-      // 2. Envoyer au serveur
-      await _remoteRepo.saveCriProjet(submittedCri);
+      // 2. Push distant
+      try {
+        await _remoteRepo.saveCriProjet(submittedCri);
+        submittedCri = submittedCri.copyWith(syncStatus: 'synced');
+        await _db.updateCriProjet(submittedCri.toDb());
+      } catch (e) {
+        state = state.copyWith(
+          currentCri: submittedCri,
+          isSaving: false,
+          isDirty: false,
+          errorMessage: 'CRI sauvegardé localement. Synchronisation distante échouée: $e',
+        );
+        return true;
+      }
 
       state = state.copyWith(
         currentCri: submittedCri,
