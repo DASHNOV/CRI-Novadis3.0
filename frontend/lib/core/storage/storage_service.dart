@@ -14,6 +14,8 @@ class StorageService {
   static const _userRoleKey = 'user_role';
   static const _userNameKey = 'user_name';
   static const _themeModeKey = 'theme_mode';
+  static const _trustedDeviceTokenKey = 'trusted_device_token';
+  static const _trustedDeviceEmailKey = 'trusted_device_email';
 
   Future<void> saveTokens({
     required String accessToken,
@@ -63,11 +65,34 @@ class StorageService {
     return await _storage.read(key: _themeModeKey);
   }
 
+  Future<void> saveTrustedDevice({
+    required String token,
+    required String email,
+  }) async {
+    await _storage.write(key: _trustedDeviceTokenKey, value: token);
+    await _storage.write(key: _trustedDeviceEmailKey, value: email);
+  }
+
+  Future<String?> getTrustedDeviceToken() async {
+    return await _storage.read(key: _trustedDeviceTokenKey);
+  }
+
+  Future<String?> getTrustedDeviceEmail() async {
+    return await _storage.read(key: _trustedDeviceEmailKey);
+  }
+
+  Future<void> clearTrustedDevice() async {
+    await _storage.delete(key: _trustedDeviceTokenKey);
+    await _storage.delete(key: _trustedDeviceEmailKey);
+  }
+
   Future<void> clearTokens() async {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
     await _storage.delete(key: _userIdKey);
     await _storage.delete(key: _userRoleKey);
     await _storage.delete(key: _userNameKey);
+    // Le trusted device token est volontairement conservé pour permettre
+    // une reconnexion sans OTP pendant 7 jours sur le même appareil.
   }
 }

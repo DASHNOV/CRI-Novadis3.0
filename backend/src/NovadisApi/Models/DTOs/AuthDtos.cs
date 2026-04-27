@@ -55,6 +55,25 @@ namespace NovadisApi.Models.DTOs
     }
 
     /// <summary>
+    /// Requête pour vérifier un appareil de confiance
+    /// </summary>
+    public class VerifyDeviceRequestDto
+    {
+        [Required(ErrorMessage = "L'email est requis")]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Le token appareil est requis")]
+        public string TrustedDeviceToken { get; set; } = string.Empty;
+
+        [MaxLength(255)]
+        public string? DeviceInfo { get; set; }
+
+        [MaxLength(45)]
+        public string? IpAddress { get; set; }
+    }
+
+    /// <summary>
     /// Réponse après authentification réussie
     /// </summary>
     public class AuthResponseDto
@@ -63,6 +82,7 @@ namespace NovadisApi.Models.DTOs
         public string RefreshToken { get; set; } = string.Empty;
         public DateTime ExpiresAt { get; set; }
         public UserDto User { get; set; } = null!;
+        public string? TrustedDeviceToken { get; set; }
     }
 
     /// <summary>

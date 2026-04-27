@@ -8,6 +8,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/features/auth/data/auth_service.dart';
+import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
+import 'package:novadis_cri/features/auth/presentation/providers/permissions_provider.dart';
 import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Ecran de connexion
@@ -38,6 +40,19 @@ class LoginScreen extends HookConsumerWidget {
 
       isLoading.value = true;
       try {
+        // Tenter la connexion automatique via appareil de confiance
+        final autoLogged = await authService.tryLoginWithTrustedDevice(email);
+        if (autoLogged) {
+          ref.invalidate(userNameProvider);
+          ref.invalidate(userRoleProvider);
+          ref.invalidate(userIdProvider);
+          if (context.mounted) {
+            context.go(AppRouter.home);
+          }
+          return;
+        }
+
+        // Sinon, envoyer le code OTP
         await authService.login(email);
         if (context.mounted) {
           context.push('${AppRouter.verifyOtp}?email=$email');

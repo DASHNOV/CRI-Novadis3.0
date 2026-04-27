@@ -7,6 +7,7 @@ using NovadisApi.Models.DTOs;
 using NovadisApi.Services.Auth;
 using NovadisApi.Services.Email;
 using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace NovadisApi.Controllers
 {
@@ -233,15 +234,17 @@ namespace NovadisApi.Controllers
                 var accessToken = _jwtService.GenerateAccessToken(user);
                 var refreshToken = _jwtService.GenerateRefreshToken();
 
-                // 6️⃣ Stocker le refresh token
+                // 6️⃣ Stocker le refresh token + générer le token appareil de confiance
                 var refreshExpiry = _configuration.GetValue<int>("Jwt:RefreshExpiryDays", 7);
+                var trustedDeviceToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
                 var userToken = new UserToken
                 {
                     UserId = user.Id,
                     RefreshToken = refreshToken,
                     ExpiresAt = DateTime.UtcNow.AddDays(refreshExpiry),
                     DeviceInfo = request.DeviceInfo,
-                    IpAddress = request.IpAddress ?? HttpContext.Connection.RemoteIpAddress?.ToString()
+                    IpAddress = request.IpAddress ?? HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    TrustedDeviceToken = trustedDeviceToken
                 };
 
                 _context.UserTokens.Add(userToken);
@@ -271,6 +274,7 @@ namespace NovadisApi.Controllers
                     AccessToken = accessToken,
                     RefreshToken = refreshToken,
                     ExpiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes),
+                    TrustedDeviceToken = trustedDeviceToken,
                     User = new UserDto
                     {
                         Id = user.Id,
@@ -482,6 +486,104 @@ namespace NovadisApi.Controllers
                 _logger.LogError(ex, "Error retrieving current user");
                 return StatusCode(500, ApiResponse<UserDto>.ErrorResponse(
                     "Une erreur est survenue."
+                ));
+            }
+        }
+
+        /// <summary>
+        /// 📱 POST /api/auth/verify-device - Connexion via appareil de confiance (skip OTP)
+        /// </summary>
+        [HttpPost("verify-device")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponse<AuthResponseDto>>> VerifyDevice([FromBody] VerifyDeviceRequestDto request)
+        {
+            try
+            {
+                _logger.LogInformation("Trusted device login attempt for {Email}", request.Email);
+
+                var userToken = await _context.UserTokens
+                    .Include(t => t.User)
+                    .FirstOrDefaultAsync(t =>
+                        t.TrustedDeviceToken == request.TrustedDeviceToken
+                        && t.User!.Email.ToLower() == request.Email.ToLower()
+                        && !t.IsRevoked
+                        && t.ExpiresAt > DateTime.UtcNow);
+
+                if (userToken == null)
+                {
+                    _logger.LogWarning("Trusted device not recognized for {Email}", request.Email);
+                    return Unauthorized(ApiResponse<AuthResponseDto>.ErrorResponse(
+                        "Appareil non reconnu ou session expirée."
+                    ));
+                }
+
+                var user = userToken.User!;
+                if (!user.IsActive)
+                {
+                    return Unauthorized(ApiResponse<AuthResponseDto>.ErrorResponse("Compte désactivé."));
+                }
+
+                // Révoquer l'ancien token, créer un nouveau avec rotation du trusted device token
+                userToken.IsRevoked = true;
+                userToken.RevokedReason = "trusted_device_rotation";
+
+                var accessToken = _jwtService.GenerateAccessToken(user);
+                var refreshToken = _jwtService.GenerateRefreshToken();
+                var newTrustedDeviceToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
+
+                var refreshExpiry = _configuration.GetValue<int>("Jwt:RefreshExpiryDays", 7);
+                var newUserToken = new UserToken
+                {
+                    UserId = user.Id,
+                    RefreshToken = refreshToken,
+                    ExpiresAt = DateTime.UtcNow.AddDays(refreshExpiry),
+                    DeviceInfo = request.DeviceInfo ?? userToken.DeviceInfo,
+                    IpAddress = request.IpAddress ?? HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    TrustedDeviceToken = newTrustedDeviceToken
+                };
+
+                _context.UserTokens.Add(newUserToken);
+                user.LastLoginAt = DateTime.UtcNow;
+
+                _context.AuditLogs.Add(new AuditLog
+                {
+                    UserId = user.Id,
+                    Action = "LOGIN_TRUSTED_DEVICE",
+                    EntityType = "Auth",
+                    Details = $"Connexion via appareil de confiance pour {user.Email}",
+                    IpAddress = request.IpAddress
+                });
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Trusted device login successful for {Email}", user.Email);
+
+                var expiryMinutes = _configuration.GetValue<int>("Jwt:ExpiryMinutes", 60);
+                var response = new AuthResponseDto
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes),
+                    TrustedDeviceToken = newTrustedDeviceToken,
+                    User = new UserDto
+                    {
+                        Id = user.Id,
+                        Email = user.Email,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Role = user.Role,
+                        IsActive = user.IsActive,
+                        LastLoginAt = user.LastLoginAt
+                    }
+                };
+
+                return Ok(ApiResponse<AuthResponseDto>.SuccessResponse(response, "Connexion réussie"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during trusted device verification for {Email}", request.Email);
+                return StatusCode(500, ApiResponse<AuthResponseDto>.ErrorResponse(
+                    "Une erreur est survenue. Veuillez réessayer."
                 ));
             }
         }
