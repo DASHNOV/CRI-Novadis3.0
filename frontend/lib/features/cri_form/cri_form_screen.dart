@@ -39,7 +39,7 @@ class CriFormScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       Text(
-                        'Quel type de CRI souhaitez-vous creer ?',
+                        'Quel type de CRI souhaitez-vous créer ?',
                         style: GoogleFonts.inter(
                           color: AppTheme.textPrimary,
                           fontSize: 24,
@@ -50,7 +50,7 @@ class CriFormScreen extends ConsumerWidget {
                       ),
                       const Gap(AppTheme.space8),
                       Text(
-                        'Selectionnez le formulaire adapte a votre intervention',
+                        'Selectionnez le formulaire adapté a votre intervention',
                         style: GoogleFonts.inter(
                           color: AppTheme.textTertiary,
                           fontSize: 15,
@@ -76,8 +76,7 @@ class CriFormScreen extends ConsumerWidget {
                     ),
                     decoration: BoxDecoration(
                       color: AppTheme.surfaceVariant,
-                      borderRadius:
-                          BorderRadius.circular(AppTheme.radiusFull),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -145,10 +144,9 @@ class CriFormScreen extends ConsumerWidget {
       icon: Icons.folder_outlined,
       title: 'CRI Projet',
       description:
-          'Pour les interventions liees a des projets structures : installations, migrations, deploiements...',
+          'Pour les interventions liées a des projets structures : installations, migrations, déploiements...',
       features: const [
-        'Suivi par phase de projet',
-        'Numero de projet (PRJ-YYYY-NNN)',
+        'Phase du projet',
         'Gestion du statut projet',
       ],
       color: AppTheme.primaryContent,
@@ -160,11 +158,10 @@ class CriFormScreen extends ConsumerWidget {
       icon: Icons.build_outlined,
       title: 'CRI Service',
       description:
-          'Pour les interventions de maintenance, depannage ou support technique avec ticket.',
+          'Pour les interventions de maintenance, dépannage ou support technique avec suivi de ticket.',
       features: const [
-        'Numero de ticket (TICK-YYYY-NNNNN)',
+        'Type de demande',
         'Gestion des priorites',
-        'Satisfaction client',
       ],
       color: AppTheme.accent,
       colorLight: const Color(0xFFEDE9FE),
@@ -318,8 +315,7 @@ class _CriTypeCardState extends State<_CriTypeCard>
                   height: 64,
                   decoration: BoxDecoration(
                     color: widget.colorLight,
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.radiusXl),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
                   ),
                   child: Icon(
                     widget.icon,
@@ -356,8 +352,7 @@ class _CriTypeCardState extends State<_CriTypeCard>
                 // Feature list with checkmarks
                 ...widget.features.map(
                   (feature) => Padding(
-                    padding:
-                        const EdgeInsets.only(bottom: AppTheme.space8),
+                    padding: const EdgeInsets.only(bottom: AppTheme.space8),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
