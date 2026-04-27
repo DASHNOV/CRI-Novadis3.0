@@ -684,7 +684,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
             value: stats.totalResolu.toString(),
             icon: Icons.check_circle,
             iconColor: const Color(0xFF10B981),
-            subtitle: '${stats.tauxResolution.toStringAsFixed(0)}% résolution',
+            subtitle: 'CRI résolus',
           ),
           KpiCard(
             title: 'Durée moy.',
@@ -915,7 +915,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${site.clientNom ?? '-'} · ${site.tauxResolution.toStringAsFixed(0)}% résolu',
+                  '${site.clientNom ?? '-'}',
                   style: TextStyle(fontSize: 12, color: AppTheme.textTertiary),
                 ),
               ],
@@ -1043,26 +1043,6 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
                   color: AppTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                decoration: BoxDecoration(
-                  color: tech.tauxResolution > 80
-                      ? AppTheme.successLight
-                      : AppTheme.warningLight,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                ),
-                child: Text(
-                  '${tech.tauxResolution.toStringAsFixed(0)}% résolu',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: tech.tauxResolution > 80
-                        ? AppTheme.success
-                        : AppTheme.warning,
-                  ),
                 ),
               ),
             ],
@@ -1194,8 +1174,6 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
               spacing: AppTheme.space16,
               runSpacing: AppTheme.space8,
               children: [
-                _buildMetric('Résolution', '${site.tauxResolution.toStringAsFixed(0)}%',
-                    site.tauxResolution > 80 ? AppTheme.success : AppTheme.warning),
                 _buildMetric('Récurrence', '${site.tauxRecurrence.toStringAsFixed(0)}%',
                     site.tauxRecurrence > 20 ? AppTheme.error : AppTheme.textSecondary),
                 _buildMetric('Durée moy.', site.dureeMoyenneFormatee, AppTheme.textSecondary),
@@ -1370,12 +1348,6 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
               spacing: AppTheme.space16,
               runSpacing: AppTheme.space8,
               children: [
-                _buildMetric('Résolution', '${tech.tauxResolution.toStringAsFixed(0)}%',
-                    tech.tauxResolution > 80 ? AppTheme.success : AppTheme.warning),
-                _buildMetric('1er passage', '${tech.tauxResolutionPremierPassage.toStringAsFixed(0)}%',
-                    tech.tauxResolutionPremierPassage > 70
-                        ? AppTheme.success
-                        : AppTheme.warning),
                 _buildMetric('Durée moy.', tech.dureeMoyenneFormatee, AppTheme.textSecondary),
                 _buildMetric('Services', '${tech.totalServices}', AppTheme.textSecondary),
                 _buildMetric('Projets', '${tech.totalProjets}', AppTheme.textSecondary),

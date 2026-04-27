@@ -150,17 +150,6 @@ class AdminTopSitesChartWidget extends StatelessWidget {
                 ),
               ),
             ],
-            if (site.tauxResolution > 0) ...[
-              const SizedBox(width: 12),
-              Icon(Icons.check_circle_outline,
-                  size: 12, color: AppTheme.success),
-              const SizedBox(width: 3),
-              Text(
-                '${site.tauxResolution.toStringAsFixed(0)}%',
-                style:
-                    TextStyle(fontSize: 11, color: AppTheme.textTertiary),
-              ),
-            ],
           ],
         ),
       ],

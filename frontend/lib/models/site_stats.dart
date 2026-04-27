@@ -11,7 +11,6 @@ class SiteStats {
   final int totalResolu;
   final int totalNonResolu;
   final int totalRecurrenceRequise;
-  final double tauxResolution;
   final double tauxRecurrence;
   final String? topCategorie;
   final int topCategorieCount;
@@ -32,7 +31,6 @@ class SiteStats {
     this.totalResolu = 0,
     this.totalNonResolu = 0,
     this.totalRecurrenceRequise = 0,
-    this.tauxResolution = 0,
     this.tauxRecurrence = 0,
     this.topCategorie,
     this.topCategorieCount = 0,
@@ -55,7 +53,6 @@ class SiteStats {
       totalResolu: json['totalResolu'] ?? 0,
       totalNonResolu: json['totalNonResolu'] ?? 0,
       totalRecurrenceRequise: json['totalRecurrenceRequise'] ?? 0,
-      tauxResolution: (json['tauxResolution'] as num?)?.toDouble() ?? 0,
       tauxRecurrence: (json['tauxRecurrence'] as num?)?.toDouble() ?? 0,
       topCategorie: json['topCategorie'] as String?,
       topCategorieCount: json['topCategorieCount'] ?? 0,

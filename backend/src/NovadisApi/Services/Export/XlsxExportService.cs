@@ -286,9 +286,6 @@ namespace NovadisApi.Services.Export
             var dureeMoyenne = total > 0 ? (double)dureeTotale / total / 60.0 : 0.0;
             var sites = cris.Select(c => c.Site?.NomDuSite ?? c.ClientSite ?? "").Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().Count();
             var techniciens = cris.Select(c => c.TechnicianId).Distinct().Count();
-            var resolus = cris.Count(c => c.ResolutionStatus == "resolu" || c.ProjectStatus == "termine");
-            var tauxResolution = total > 0 ? (double)resolus / total * 100.0 : 0.0;
-
             WriteKpi(ws, ref row, "Total CRI", total);
             WriteKpi(ws, ref row, "CRI soumis", soumis);
             WriteKpi(ws, ref row, "Brouillons", brouillons);
@@ -301,7 +298,6 @@ namespace NovadisApi.Services.Export
             {
                 WriteKpi(ws, ref row, "Techniciens actifs", techniciens);
             }
-            WriteKpi(ws, ref row, "Taux résolution (%)", Math.Round(tauxResolution, 1));
 
             ws.Column(1).Width = 26;
             ws.Column(2).Width = 22;

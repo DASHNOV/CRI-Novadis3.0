@@ -69,13 +69,6 @@ class GlobalStats {
     return (totalSignes / total) * 100;
   }
 
-  /// Taux de résolution
-  double get tauxResolution {
-    final total = totalResolu + totalNonResolu;
-    if (total == 0) return 0;
-    return (totalResolu / total) * 100;
-  }
-
   /// Durée moyenne formatée
   String get dureeMoyenneFormatee {
     if (dureeMoyenneMinutes == null) return '-';

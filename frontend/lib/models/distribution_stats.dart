@@ -71,7 +71,6 @@ class PrioriteResolutionEntry {
   final int total;
   final int resolu;
   final int nonResolu;
-  final double tauxResolution;
   final double? dureeMoyenneMinutes;
 
   const PrioriteResolutionEntry({
@@ -79,7 +78,6 @@ class PrioriteResolutionEntry {
     required this.total,
     this.resolu = 0,
     this.nonResolu = 0,
-    this.tauxResolution = 0,
     this.dureeMoyenneMinutes,
   });
 
@@ -89,7 +87,6 @@ class PrioriteResolutionEntry {
       total: json['total'] ?? 0,
       resolu: json['resolu'] ?? 0,
       nonResolu: json['nonResolu'] ?? 0,
-      tauxResolution: (json['tauxResolution'] as num?)?.toDouble() ?? 0,
       dureeMoyenneMinutes: (json['dureeMoyenneMinutes'] as num?)?.toDouble(),
     );
   }

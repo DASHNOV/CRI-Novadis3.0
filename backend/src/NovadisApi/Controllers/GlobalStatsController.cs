@@ -389,7 +389,6 @@ namespace NovadisApi.Controllers
                         TotalResolu = resolu,
                         TotalNonResolu = nonResolu,
                         TotalRecurrenceRequise = recurrence,
-                        TauxResolution = total > 0 ? Math.Round((double)resolu / total * 100, 1) : 0,
                         TauxRecurrence = total > 0 ? Math.Round((double)recurrence / total * 100, 1) : 0,
                         TopCategorie = categories?.Key,
                         TopCategorieCount = categories?.Count() ?? 0,
@@ -450,10 +449,6 @@ namespace NovadisApi.Controllers
                     var nonResolu = g.Count(c => c.ResolutionStatus == "nonResolu" || c.ResolutionStatus == "partiellementResolu");
                     var recurrence = g.Count(c => c.AdditionalInterventionRequired == true);
 
-                    // Résolution premier passage = résolu ET pas de récurrence
-                    var resoluSansRecurrence = g.Count(c =>
-                        c.ResolutionStatus == "resolu" && c.AdditionalInterventionRequired != true);
-
                     // Durées
                     var durees = g.Where(c => c.DureeMinutes > 0).Select(c => c.DureeMinutes ?? 0).ToList();
                     var totalHeures = durees.Sum() / 60.0;
@@ -498,8 +493,6 @@ namespace NovadisApi.Controllers
                         TotalResolu = resolu,
                         TotalNonResolu = nonResolu,
                         TotalRecurrenceRequise = recurrence,
-                        TauxResolution = total > 0 ? Math.Round((double)resolu / total * 100, 1) : 0,
-                        TauxResolutionPremierPassage = total > 0 ? Math.Round((double)resoluSansRecurrence / total * 100, 1) : 0,
                         DerniereIntervention = g.Max(c => c.InterventionDate),
                         TopSites = topSites,
                         RepartitionParType = repartitionType.Count > 0 ? repartitionType : null
@@ -592,7 +585,6 @@ namespace NovadisApi.Controllers
                             Total = total,
                             Resolu = resolu,
                             NonResolu = nonResolu,
-                            TauxResolution = total > 0 ? Math.Round((double)resolu / total * 100, 1) : 0,
                             DureeMoyenneMinutes = g.Where(c => c.DureeMinutes > 0)
                                 .Select(c => (double?)c.DureeMinutes).DefaultIfEmpty().Average()
                         };
