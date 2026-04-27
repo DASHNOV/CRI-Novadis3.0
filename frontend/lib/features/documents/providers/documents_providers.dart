@@ -47,7 +47,7 @@ final availableReportsProvider = FutureProvider<List<CriReportModel>>((
         id: report.id,
         clientName: report.clientName,
         siteName: report.site,
-        nIntervention: report.ticketNumber,
+        nIntervention: report.ticketNumber ?? '',
         date: report.interventionDate,
         isProjet: false,
       ),

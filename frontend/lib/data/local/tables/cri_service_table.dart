@@ -14,7 +14,7 @@ class CriServiceTable extends Table {
   DateTimeColumn get startTime => dateTime()();
   DateTimeColumn get endTime => dateTime()();
   TextColumn get ticketNumber =>
-      text().withLength(min: 1, max: 50)(); // TICK-YYYY-NNNNN
+      text().withLength(max: 50).nullable()();
 
   // Section 2: Client
   TextColumn get clientName => text()();
@@ -59,6 +59,10 @@ class CriServiceTable extends Table {
       boolean().withDefault(const Constant(false))();
   DateTimeColumn get followUpDate => dateTime().nullable()();
   TextColumn get followUpComments => text().nullable()();
+  BoolColumn get devisARealiser =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get facturable =>
+      boolean().withDefault(const Constant(false))();
 
   // Section 8: Validation
   TextColumn get photos => text().nullable()(); // JSON array of paths

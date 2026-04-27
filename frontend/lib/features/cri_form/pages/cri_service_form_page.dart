@@ -1247,6 +1247,66 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            'Statut de l\'intervention',
+            style: TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 16,
+            runSpacing: 4,
+            children: [
+              CheckboxListTile(
+                title: const Text('Terminée'),
+                value: state.currentCri?.resolutionStatus == ResolutionStatus.resolu,
+                onChanged: null,
+                controlAffinity: ListTileControlAffinity.leading,
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              CheckboxListTile(
+                title: const Text('A Suivre'),
+                value: state.currentCri?.additionalInterventionRequired ?? false,
+                onChanged: (val) {
+                  ref.read(criServiceFormProvider.notifier).updateStatutIntervention(
+                    additionalInterventionRequired: val ?? false,
+                  );
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              CheckboxListTile(
+                title: const Text('Devis à réaliser'),
+                value: state.currentCri?.devisARealiser ?? false,
+                onChanged: (val) {
+                  ref.read(criServiceFormProvider.notifier).updateStatutIntervention(
+                    devisARealiser: val ?? false,
+                  );
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              CheckboxListTile(
+                title: const Text('Facturable'),
+                value: state.currentCri?.facturable ?? false,
+                onChanged: (val) {
+                  ref.read(criServiceFormProvider.notifier).updateStatutIntervention(
+                    facturable: val ?? false,
+                  );
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
           PhotoPicker(
             initialPhotos: state.currentCri?.photos ?? [],
             maxPhotos: 5,
