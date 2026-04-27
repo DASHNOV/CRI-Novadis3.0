@@ -16,7 +16,6 @@ namespace NovadisApi.Models.DTOs
         public int TotalResolu { get; set; }
         public int TotalNonResolu { get; set; }
         public int TotalRecurrenceRequise { get; set; }
-        public double TauxResolution { get; set; }
         public double TauxRecurrence { get; set; }
         public string? TopCategorie { get; set; }
         public int TopCategorieCount { get; set; }

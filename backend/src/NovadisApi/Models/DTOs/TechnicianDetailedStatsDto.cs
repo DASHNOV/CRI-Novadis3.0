@@ -19,8 +19,6 @@ namespace NovadisApi.Models.DTOs
         public int TotalResolu { get; set; }
         public int TotalNonResolu { get; set; }
         public int TotalRecurrenceRequise { get; set; }
-        public double TauxResolution { get; set; }
-        public double TauxResolutionPremierPassage { get; set; }
         public DateTime? DerniereIntervention { get; set; }
         public List<string>? TopSites { get; set; }
         public Dictionary<string, int>? RepartitionParType { get; set; }
@@ -52,7 +50,6 @@ namespace NovadisApi.Models.DTOs
         public int Total { get; set; }
         public int Resolu { get; set; }
         public int NonResolu { get; set; }
-        public double TauxResolution { get; set; }
         public double? DureeMoyenneMinutes { get; set; }
     }
 

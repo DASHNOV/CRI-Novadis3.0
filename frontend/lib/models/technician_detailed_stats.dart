@@ -14,8 +14,6 @@ class TechnicianDetailedStats {
   final int totalResolu;
   final int totalNonResolu;
   final int totalRecurrenceRequise;
-  final double tauxResolution;
-  final double tauxResolutionPremierPassage;
   final DateTime? derniereIntervention;
   final List<String>? topSites;
   final Map<String, int>? repartitionParType;
@@ -35,8 +33,6 @@ class TechnicianDetailedStats {
     this.totalResolu = 0,
     this.totalNonResolu = 0,
     this.totalRecurrenceRequise = 0,
-    this.tauxResolution = 0,
-    this.tauxResolutionPremierPassage = 0,
     this.derniereIntervention,
     this.topSites,
     this.repartitionParType,
@@ -58,9 +54,6 @@ class TechnicianDetailedStats {
       totalResolu: json['totalResolu'] ?? 0,
       totalNonResolu: json['totalNonResolu'] ?? 0,
       totalRecurrenceRequise: json['totalRecurrenceRequise'] ?? 0,
-      tauxResolution: (json['tauxResolution'] as num?)?.toDouble() ?? 0,
-      tauxResolutionPremierPassage:
-          (json['tauxResolutionPremierPassage'] as num?)?.toDouble() ?? 0,
       derniereIntervention: json['derniereIntervention'] != null
           ? DateTime.tryParse(json['derniereIntervention'])
           : null,
