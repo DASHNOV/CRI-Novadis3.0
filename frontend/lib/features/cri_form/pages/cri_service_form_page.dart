@@ -486,7 +486,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
               ),
             ),
           const SizedBox(height: 16),
-          Text('Numéro de ticket *', style: TextStyle(
+          Text('Numéro de commande', style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -496,11 +496,11 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             name: 'ticketNumber',
             initialValue: state.currentCri?.ticketNumber ?? '',
             decoration: InputDecoration(
-              hintText: 'Numéro de ticket',
+              hintText: 'CCNNNNN',
               prefixIcon: const Icon(Icons.confirmation_number),
-              helperText: 'Format: TICK-YYYY-NNNNN',
+              helperText: 'Format: CCNNNNN (optionnel)',
               suffixIcon: Tooltip(
-                message: 'Ex: TICK-2024-00001',
+                message: 'Ex: CC09813',
                 child: Icon(
                   Icons.info_outline,
                   color: AppTheme.textTertiary,

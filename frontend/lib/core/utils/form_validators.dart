@@ -3,46 +3,34 @@ import 'package:flutter/material.dart';
 
 /// Validateurs personnalisés pour les formulaires CRI
 class CriFormValidators {
-  /// Validateur pour le numéro de projet (PRJ-YYYY-NNN)
+  /// Validateur pour le numéro de commande (CCNNNNN) — optionnel
   static FormFieldValidator<String> projectNumber({String? errorText}) {
     return (value) {
       if (value == null || value.isEmpty) {
-        return errorText ?? 'Le numéro de projet est requis';
+        return null; // Champ optionnel
       }
 
-      // Pattern: PRJ-2024-001
-      final regex = RegExp(r'^PRJ-\d{4}-\d{3}$');
+      // Pattern: CC09813
+      final regex = RegExp(r'^CC\d{5}$');
       if (!regex.hasMatch(value)) {
-        return errorText ?? 'Format invalide (ex: PRJ-2024-001)';
-      }
-
-      // Vérifier que l'année est valide (entre 2020 et 2099)
-      final year = int.tryParse(value.substring(4, 8));
-      if (year == null || year < 2020 || year > 2099) {
-        return errorText ?? 'Année invalide';
+        return errorText ?? 'Format invalide (ex: CC09813)';
       }
 
       return null;
     };
   }
 
-  /// Validateur pour le numéro de ticket (TICK-YYYY-NNNNN)
+  /// Validateur pour le numéro de commande (CCNNNNN) — optionnel
   static FormFieldValidator<String> ticketNumber({String? errorText}) {
     return (value) {
       if (value == null || value.isEmpty) {
-        return errorText ?? 'Le numéro de ticket est requis';
+        return null; // Champ optionnel
       }
 
-      // Pattern: TICK-2024-00001
-      final regex = RegExp(r'^TICK-\d{4}-\d{5}$');
+      // Pattern: CC09813
+      final regex = RegExp(r'^CC\d{5}$');
       if (!regex.hasMatch(value)) {
-        return errorText ?? 'Format invalide (ex: TICK-2024-00001)';
-      }
-
-      // Vérifier que l'année est valide
-      final year = int.tryParse(value.substring(5, 9));
-      if (year == null || year < 2020 || year > 2099) {
-        return errorText ?? 'Année invalide';
+        return errorText ?? 'Format invalide (ex: CC09813)';
       }
 
       return null;

@@ -722,7 +722,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             final field2 = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Numéro de projet *', style: TextStyle(
+                Text('Numéro de commande', style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -732,11 +732,11 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
                   name: 'projectNumber',
                   initialValue: state.currentCri?.projectNumber ?? '',
                   decoration: InputDecoration(
-                    hintText: 'PRJ-YYYY-NNN',
+                    hintText: 'CCNNNNN',
                     prefixIcon: const Icon(Icons.tag),
-                    helperText: 'Format: PRJ-YYYY-NNN',
+                    helperText: 'Format: CCNNNNN (optionnel)',
                     suffixIcon: Tooltip(
-                      message: 'Ex: PRJ-2024-001',
+                      message: 'Ex: CC09813',
                       child: Icon(
                         Icons.info_outline,
                         color: AppTheme.textTertiary,
