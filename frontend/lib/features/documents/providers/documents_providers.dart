@@ -1,5 +1,9 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/local/local_storage_service.dart';
+import '../../../data/models/cri_service_model.dart';
+import '../../../data/models/cri_projet_model.dart';
+import '../../../data/repositories/cri_remote_repository.dart';
 import '../../export/providers/export_providers.dart';
 import '../../export/models/exported_document_model.dart';
 
@@ -23,13 +27,33 @@ class CriReportModel {
 }
 
 /// Provider pour récupérer tous les rapports d'intervention disponibles (Service, Projet et Mock)
+/// Charge d'abord depuis le serveur (source de vérité), puis complète avec la DB locale.
 final availableReportsProvider = FutureProvider<List<CriReportModel>>((
   ref,
 ) async {
   final database = ref.watch(databaseProvider);
   final localStorage = LocalStorageService();
+  final remoteRepo = ref.watch(criRemoteRepositoryProvider);
 
-  // On ne récupère que les rapports qui ne sont plus des brouillons (validés/soumis)
+  // 1. Synchroniser depuis le serveur (non-bloquant si erreur)
+  try {
+    final serverCris = await remoteRepo.getAllCris();
+    for (final cri in serverCris) {
+      try {
+        if (cri is CriServiceModel) {
+          await database.updateCriService(cri.toDb());
+        } else if (cri is CriProjetModel) {
+          await database.updateCriProjet(cri.toDb());
+        }
+      } catch (e) {
+        debugPrint('[Sync] Erreur upsert CRI ${(cri as dynamic).id}: $e');
+      }
+    }
+  } catch (e) {
+    debugPrint('[Sync] Impossible de charger les CRI depuis le serveur: $e');
+  }
+
+  // 2. Lire depuis la DB locale (maintenant à jour avec les données serveur)
   final serviceReports = await (database.select(
     database.criServiceTable,
   )..where((tbl) => tbl.isDraft.equals(false))).get();
@@ -40,7 +64,6 @@ final availableReportsProvider = FutureProvider<List<CriReportModel>>((
 
   final List<CriReportModel> allReports = [];
 
-  // Convertir les rapports Service
   for (final report in serviceReports) {
     allReports.add(
       CriReportModel(
@@ -54,7 +77,6 @@ final availableReportsProvider = FutureProvider<List<CriReportModel>>((
     );
   }
 
-  // Convertir les rapports Projet
   for (final report in projetReports) {
     allReports.add(
       CriReportModel(
@@ -68,7 +90,6 @@ final availableReportsProvider = FutureProvider<List<CriReportModel>>((
     );
   }
 
-  // Convertir les rapports "Legacy" (Mock)
   for (final report in legacyReports) {
     allReports.add(
       CriReportModel(
@@ -82,9 +103,7 @@ final availableReportsProvider = FutureProvider<List<CriReportModel>>((
     );
   }
 
-  // Trier par date la plus récente
   allReports.sort((a, b) => b.date.compareTo(a.date));
-
   return allReports;
 });
 
