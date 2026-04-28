@@ -101,6 +101,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_personal_home',
         onPressed: () {
           Navigator.push(
             context,

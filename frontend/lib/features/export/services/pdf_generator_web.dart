@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import '../../../data/local/app_database.dart';
 import '../../../data/models/cri_projet_model.dart';
 import '../../../data/models/cri_service_model.dart';
-import 'base_service_interfaces.dart';
+import 'base_service_interfaces.dart' show BasePdfGeneratorService, PdfWebResult;
 import 'pdf_builder_common.dart';
 
 /// Service de génération de PDF pour les CRI (Version Web)
@@ -31,7 +31,7 @@ class PdfGeneratorService
 
     _triggerBrowserDownload(bytes, filename);
     debugPrint('[PDF Web] Téléchargement déclenché: $filename (${bytes.length} bytes)');
-    return filename;
+    return PdfWebResult(bytes: bytes, filename: filename);
   }
 
   @override
@@ -47,7 +47,7 @@ class PdfGeneratorService
 
     _triggerBrowserDownload(bytes, filename);
     debugPrint('[PDF Web] Téléchargement déclenché: $filename (${bytes.length} bytes)');
-    return filename;
+    return PdfWebResult(bytes: bytes, filename: filename);
   }
 
   void _triggerBrowserDownload(Uint8List bytes, String filename) {

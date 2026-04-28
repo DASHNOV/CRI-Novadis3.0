@@ -229,6 +229,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
       ),
 
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_documents',
         onPressed: _showExportOptions,
         backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,

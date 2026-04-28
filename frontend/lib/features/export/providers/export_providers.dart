@@ -6,7 +6,7 @@ import '../../../core/network/dio_provider.dart';
 import '../../../data/local/app_database.dart';
 import '../models/exported_document_model.dart';
 import '../models/server_exported_document.dart';
-import '../services/base_service_interfaces.dart';
+import '../services/base_service_interfaces.dart' show BasePdfGeneratorService, BaseDashboardCsvService, BaseTechnicianStatsCsvService, BaseFileManagementService, PdfWebResult;
 import '../services/service_factory.dart' as serviceFactory;
 import '../services/xlsx_export_api_service.dart';
 import '../services/exported_documents_api_service.dart';
@@ -18,9 +18,9 @@ export '../models/server_exported_document.dart';
 // Providers de services
 // ============================================
 
-/// Provider pour la base de données
+/// Provider pour la base de données — délègue au singleton appDatabaseProvider
 final databaseProvider = Provider<AppDatabase>((ref) {
-  return AppDatabase();
+  return ref.watch(appDatabaseProvider);
 });
 
 /// Provider pour le service PDF
@@ -283,9 +283,22 @@ final generateCriPdfProvider = FutureProvider.family<dynamic, String>((
       throw Exception('Rapport non trouvé (ID: $criId)');
     }
 
-    // Enregistrer dans la base de données (natif uniquement)
-    // Sur le web, le PDF est téléchargé directement par le navigateur
-    if (!kIsWeb) {
+    if (kIsWeb) {
+      // Sur web : le PDF a été téléchargé par le navigateur, on l'uploade aussi sur le serveur
+      try {
+        final result = file as PdfWebResult;
+        final api = ref.read(exportedDocumentsApiServiceProvider);
+        await api.upload(
+          bytes: result.bytes,
+          filename: result.filename,
+          criId: criId,
+          exportType: 'cri',
+        );
+        ref.invalidate(serverDocumentsProvider);
+      } catch (e) {
+        debugPrint('[PDF] Upload serveur échoué (non bloquant): $e');
+      }
+    } else {
       final fileService = ref.watch(fileManagementServiceProvider);
       await fileService.registerExportedDocument(
         file: file,
