@@ -32,6 +32,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
   List<Map<String, dynamic>> _cris = [];
   List<Map<String, dynamic>> _technicians = [];
   bool _isLoading = true;
+  int _draftCount = 0;
 
   final List<_FilterOption> _statusFilters = [
     _FilterOption(label: 'Tous', value: 'all'),
@@ -59,8 +60,10 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
           statsService.getTechnicians(),
         ]);
         if (mounted) {
+          final drafts = List<Map<String, dynamic>>.from(results[0] as List);
           setState(() {
-            _cris = List<Map<String, dynamic>>.from(results[0] as List);
+            _cris = drafts;
+            _draftCount = drafts.length;
             _technicians = List<Map<String, dynamic>>.from(results[1] as List);
             _isLoading = false;
           });
@@ -68,19 +71,21 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
         return;
       }
 
-      // Charger techniciens et CRI en parallèle
+      // Charger techniciens, CRI et nombre de brouillons locaux en parallèle
       final results = await Future.wait([
         statsService.getAllCRIsWithTechnician(
           technicienId: _selectedTechnicienId,
           filter: _selectedFilter,
         ),
         statsService.getTechnicians(),
+        _loadLocalDrafts(),
       ]);
 
       if (mounted) {
         setState(() {
           _cris = List<Map<String, dynamic>>.from(results[0] as List);
           _technicians = List<Map<String, dynamic>>.from(results[1] as List);
+          _draftCount = (results[2] as List).length;
           _isLoading = false;
         });
       }
@@ -348,7 +353,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                           count = signed;
                           break;
                         case 'drafts':
-                          count = _selectedFilter == 'drafts' ? total : 0;
+                          count = _draftCount;
                           break;
                         default:
                           count = pending;

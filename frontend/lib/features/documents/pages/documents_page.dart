@@ -197,23 +197,41 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
                     );
                   }
 
+                  if (isMobile) {
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        ref.invalidate(serverDocumentsProvider);
+                      },
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: sorted.length,
+                        itemBuilder: (context, i) => _ServerDocumentCard(
+                          doc: sorted[i],
+                          isAdmin: isAdmin,
+                          isSelected: selected.contains(sorted[i].id),
+                          onTap: () => _openDocument(sorted[i]),
+                          onLongPress: () => _toggleSelection(sorted[i].id),
+                          onDownload: () => _downloadDocument(sorted[i]),
+                          onRename: () => _renameDocument(sorted[i]),
+                          onDelete: () => _deleteDocument(sorted[i]),
+                        ),
+                      ),
+                    );
+                  }
+
                   return RefreshIndicator(
                     onRefresh: () async {
                       ref.invalidate(serverDocumentsProvider);
                     },
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: sorted.length,
-                      itemBuilder: (context, i) => _ServerDocumentCard(
-                        doc: sorted[i],
-                        isAdmin: isAdmin,
-                        isSelected: selected.contains(sorted[i].id),
-                        onTap: () => _openDocument(sorted[i]),
-                        onLongPress: () => _toggleSelection(sorted[i].id),
-                        onDownload: () => _downloadDocument(sorted[i]),
-                        onRename: () => _renameDocument(sorted[i]),
-                        onDelete: () => _deleteDocument(sorted[i]),
-                      ),
+                    child: _DesktopDocumentTable(
+                      docs: sorted,
+                      isAdmin: isAdmin,
+                      selected: selected,
+                      onTap: _openDocument,
+                      onLongPress: (doc) => _toggleSelection(doc.id),
+                      onDownload: _downloadDocument,
+                      onRename: _renameDocument,
+                      onDelete: _deleteDocument,
                     ),
                   );
                 },
@@ -508,6 +526,160 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
   }
 }
 
+// ─── Tableau desktop ───
+class _DesktopDocumentTable extends StatelessWidget {
+  final List<ServerExportedDocument> docs;
+  final bool isAdmin;
+  final Set<String> selected;
+  final void Function(ServerExportedDocument) onTap;
+  final void Function(ServerExportedDocument) onLongPress;
+  final void Function(ServerExportedDocument) onDownload;
+  final void Function(ServerExportedDocument) onRename;
+  final void Function(ServerExportedDocument) onDelete;
+
+  const _DesktopDocumentTable({
+    required this.docs,
+    required this.isAdmin,
+    required this.selected,
+    required this.onTap,
+    required this.onLongPress,
+    required this.onDownload,
+    required this.onRename,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: docs.length + 1,
+      itemBuilder: (context, i) {
+        if (i == 0) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+            child: Row(
+              children: [
+                const SizedBox(width: 36),
+                Expanded(
+                  flex: 5,
+                  child: Text('Nom', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textTertiary)),
+                ),
+                SizedBox(
+                  width: 90,
+                  child: Text('Type', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textTertiary)),
+                ),
+                SizedBox(
+                  width: 140,
+                  child: Text('Date', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textTertiary)),
+                ),
+                SizedBox(
+                  width: 70,
+                  child: Text('Taille', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textTertiary)),
+                ),
+                if (isAdmin)
+                  Expanded(
+                    flex: 3,
+                    child: Text('Utilisateur', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textTertiary)),
+                  ),
+                const SizedBox(width: 40),
+              ],
+            ),
+          );
+        }
+
+        final doc = docs[i - 1];
+        final isSelected = selected.contains(doc.id);
+        final iconData = doc.fileType == 'pdf' ? Icons.picture_as_pdf_rounded : Icons.grid_on_rounded;
+        final iconColor = doc.fileType == 'pdf' ? AppTheme.error : AppTheme.success;
+
+        return Material(
+          color: isSelected ? AppTheme.primaryLight.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          child: InkWell(
+            onTap: () => onTap(doc),
+            onLongPress: () => onLongPress(doc),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                border: isSelected
+                    ? Border.all(color: AppTheme.primaryContent.withValues(alpha: 0.3))
+                    : null,
+              ),
+              child: Row(
+                children: [
+                  Icon(iconData, color: iconColor, size: 20),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 5,
+                    child: Text(
+                      doc.filename,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 90,
+                    child: Text(
+                      doc.exportType,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, color: AppTheme.textTertiary),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 140,
+                    child: Text(
+                      dateFmt.format(doc.createdAt.toLocal()),
+                      style: TextStyle(fontSize: 12, color: AppTheme.textTertiary),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 70,
+                    child: Text(
+                      doc.formattedSize,
+                      style: TextStyle(fontSize: 12, color: AppTheme.textTertiary),
+                    ),
+                  ),
+                  if (isAdmin)
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        doc.userName ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                      ),
+                    ),
+                  PopupMenuButton<String>(
+                    icon: Icon(Icons.more_vert, color: AppTheme.textTertiary, size: 18),
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'download': onDownload(doc); break;
+                        case 'rename': onRename(doc); break;
+                        case 'delete': onDelete(doc); break;
+                      }
+                    },
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(value: 'download', child: Row(children: [Icon(Icons.download_rounded, size: 18), SizedBox(width: 8), Text('Télécharger')])),
+                      PopupMenuItem(value: 'rename', child: Row(children: [Icon(Icons.edit_rounded, size: 18), SizedBox(width: 8), Text('Renommer')])),
+                      PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete_outline_rounded, size: 18), SizedBox(width: 8), Text('Supprimer')])),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 // ─── Card pour un document serveur ───
 class _ServerDocumentCard extends StatelessWidget {
   final ServerExportedDocument doc;
@@ -615,21 +787,29 @@ class _ServerDocumentCard extends StatelessWidget {
                             Icon(Icons.person_outline,
                                 size: 14, color: AppTheme.textTertiary),
                             const SizedBox(width: 4),
-                            Text(
-                              doc.userName!,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppTheme.textSecondary,
-                                fontWeight: FontWeight.w500,
+                            Flexible(
+                              child: Text(
+                                doc.userName!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                             if (doc.userEmail != null) ...[
                               const SizedBox(width: 6),
-                              Text(
-                                '· ${doc.userEmail}',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppTheme.textTertiary,
+                              Flexible(
+                                child: Text(
+                                  '· ${doc.userEmail}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppTheme.textTertiary,
+                                  ),
                                 ),
                               ),
                             ],

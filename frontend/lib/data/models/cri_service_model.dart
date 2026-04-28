@@ -449,9 +449,9 @@ class CriServiceModel {
       technicianName: json['technicianName'] as String,
       technicianSignature: json['technicianSignature'] as String?,
       clientSignature: json['clientSignature'] as String?,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
       updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'] as String)
+          ? DateTime.parse(json['updatedAt'] as String).toLocal()
           : null,
       syncStatus: json['syncStatus'] as String? ?? 'pending',
       isDraft: json['isDraft'] is int

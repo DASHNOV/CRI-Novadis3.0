@@ -311,11 +311,6 @@ mixin PdfBuilderCommon {
               // ─── Type + Commande + Logiciel ───
               _buildTableSection([
                 _buildRow([
-                  _buildCheckboxGroup([
-                    _checkbox('Projet', true),
-                    _checkbox('Hors Contrat', false),
-                    _checkbox('Gpa', false),
-                  ], flex: 2),
                   _buildCell('Commande n°', cri.projectNumber, flex: 2),
                   pw.Expanded(
                     flex: 2,
@@ -354,26 +349,71 @@ mixin PdfBuilderCommon {
               // ─── Checkboxes bas + Fin d'intervention ───
               _buildTableSection([
                 _buildRow([
-                  _buildCheckboxGroup(
-                    [
-                      _checkbox(
-                        'Mise en service',
-                        cri.interventionType ==
-                            ProjetInterventionType.installationMateriel,
-                      ),
-                      _checkbox(
-                        'Formation',
-                        cri.interventionType ==
-                            ProjetInterventionType.formation,
-                      ),
-                      _checkbox('Visite de site', false),
-                      _checkbox(
-                        'Audit',
-                        cri.interventionType == ProjetInterventionType.audit,
-                      ),
-                    ],
+                  pw.Expanded(
                     flex: 4,
-                    horizontal: true,
+                    child: pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 4,
+                      ),
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        mainAxisSize: pw.MainAxisSize.min,
+                        children: [
+                          pw.Row(
+                            children: [
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.only(right: 12),
+                                child: _checkbox(
+                                  'Mise en service',
+                                  cri.interventionType == ProjetInterventionType.installationMateriel,
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.only(right: 12),
+                                child: _checkbox(
+                                  'Formation',
+                                  cri.interventionType == ProjetInterventionType.formation,
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.only(right: 12),
+                                child: _checkbox(
+                                  'Visite de site',
+                                  cri.interventionType == ProjetInterventionType.visiteeDeSite,
+                                ),
+                              ),
+                            ],
+                          ),
+                          pw.SizedBox(height: 4),
+                          pw.Row(
+                            children: [
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.only(right: 12),
+                                child: _checkbox(
+                                  'Audit',
+                                  cri.interventionType == ProjetInterventionType.audit,
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.only(right: 12),
+                                child: _checkbox(
+                                  'Mise à jour',
+                                  cri.interventionType == ProjetInterventionType.miseAJour,
+                                ),
+                              ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.only(right: 12),
+                                child: _checkbox(
+                                  'Autre',
+                                  cri.interventionType == ProjetInterventionType.autre,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   _buildCell(
                     'Fin d\'intervention :',

@@ -43,15 +43,15 @@ class ServerExportedDocument {
       fileType: (json['fileType'] as String).toLowerCase(),
       exportType: json['exportType'] as String,
       sizeBytes: (json['sizeBytes'] as num).toInt(),
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
       sharedAt: json['sharedAt'] != null
-          ? DateTime.parse(json['sharedAt'] as String)
+          ? DateTime.parse(json['sharedAt'] as String).toLocal()
           : null,
       periodStart: json['periodStart'] != null
-          ? DateTime.parse(json['periodStart'] as String)
+          ? DateTime.parse(json['periodStart'] as String).toLocal()
           : null,
       periodEnd: json['periodEnd'] != null
-          ? DateTime.parse(json['periodEnd'] as String)
+          ? DateTime.parse(json['periodEnd'] as String).toLocal()
           : null,
       metadata: json['metadata'] as String?,
     );

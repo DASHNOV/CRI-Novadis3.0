@@ -83,6 +83,40 @@ namespace NovadisApi.Controllers
                 return Unauthorized(ApiResponse<CRIForm>.ErrorResponse("Utilisateur non identifié"));
 
             cri.Id = cri.Id == Guid.Empty ? Guid.NewGuid() : cri.Id;
+
+            var existing = await _context.CRIForms.FindAsync(cri.Id);
+            if (existing != null)
+            {
+                // CRI already exists on server (e.g. draft saved before) — update it
+                if (existing.TechnicianId != userId.Value && !User.IsInRole("Admin"))
+                    return Forbid();
+
+                existing.InterventionType = cri.InterventionType;
+                existing.Category = cri.Category;
+                existing.InterventionDate = cri.InterventionDate;
+                existing.ClientName = cri.ClientName;
+                existing.ClientAddress = cri.ClientAddress;
+                existing.ClientPhone = cri.ClientPhone;
+                existing.ClientEmail = cri.ClientEmail;
+                existing.WorkDescription = cri.WorkDescription;
+                existing.MaterialsUsed = cri.MaterialsUsed;
+                existing.Duration = cri.Duration;
+                existing.Status = cri.Status;
+                existing.Data = cri.Data;
+                existing.TechnicianSignature = cri.TechnicianSignature;
+                existing.ClientSignature = cri.ClientSignature;
+                existing.UpdatedAt = DateTime.UtcNow;
+
+                ExtractDataFields(existing);
+                await ResolveRelations(existing);
+
+                if (existing.Status == "Submitted" && existing.SubmittedAt == null)
+                    existing.SubmittedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+                return Ok(ApiResponse<CRIForm>.SuccessResponse(existing));
+            }
+
             cri.TechnicianId = userId.Value;
             cri.CreatedAt = DateTime.UtcNow;
 

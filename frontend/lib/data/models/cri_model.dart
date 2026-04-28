@@ -27,7 +27,7 @@ class CriModel {
       typeIntervention: json['typeIntervention'] as String,
       description: json['description'] as String,
       date: DateTime.parse(json['date'] as String),
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
     );
   }
 

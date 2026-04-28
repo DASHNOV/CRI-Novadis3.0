@@ -84,9 +84,9 @@ class ExportedDocumentModel {
                 ? jsonDecode(json['metadata'] as String) as Map<String, dynamic>
                 : json['metadata'] as Map<String, dynamic>)
           : null,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
       sharedAt: json['sharedAt'] != null
-          ? DateTime.parse(json['sharedAt'] as String)
+          ? DateTime.parse(json['sharedAt'] as String).toLocal()
           : null,
     );
   }

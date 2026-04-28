@@ -89,11 +89,11 @@ enum ProjectPhase {
 
 /// Types d'intervention projet
 enum ProjetInterventionType {
-  installationMateriel('Installation matériel'),
-  configuration('Configuration'),
-  miseAJour('Mise à jour'),
+  installationMateriel('Mise en service'),
   formation('Formation'),
+  visiteeDeSite('Visite de site'),
   audit('Audit'),
+  miseAJour('Mise à jour'),
   autre('Autre');
 
   final String label;

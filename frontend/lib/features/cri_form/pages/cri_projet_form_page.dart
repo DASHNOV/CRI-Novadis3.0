@@ -800,31 +800,6 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             }
             return Column(children: [field1, const SizedBox(height: 16), field2]);
           }),
-          const SizedBox(height: 16),
-          Text('Phase du projet *', style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                )),
-          const SizedBox(height: 8),
-          FormBuilderDropdown<ProjectPhase>(
-            name: 'projectPhase',
-            initialValue: state.currentCri?.projectPhase ?? ProjectPhase.etude,
-            decoration: const InputDecoration(
-              hintText: 'Phase du projet',
-              prefixIcon: Icon(Icons.timeline),
-            ),
-            items: ProjectPhase.values.map((phase) {
-              return DropdownMenuItem(value: phase, child: Text(phase.label));
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                ref
-                    .read(criProjetFormProvider.notifier)
-                    .updateProjectInfo(projectPhase: value);
-              }
-            },
-          ),
           const SizedBox(height: 24),
           _buildSoftwaresSection(state),
         ],
