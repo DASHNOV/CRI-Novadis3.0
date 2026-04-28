@@ -26,7 +26,7 @@ class CriProjetTable extends Table {
   // Section 3: Projet
   TextColumn get projectName => text()();
   TextColumn get projectNumber =>
-      text().withLength(min: 1, max: 50)(); // PRJ-YYYY-NNN
+      text().withLength(max: 50)(); // PRJ-YYYY-NNN (optional)
   TextColumn get projectPhase => text()(); // Enum value
 
   // Section 4: Intervention

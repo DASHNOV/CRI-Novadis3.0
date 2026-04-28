@@ -57,7 +57,63 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(criServiceTable, criServiceTable.facturable);
         }
       },
+      beforeOpen: (details) async {
+        // Auto-repair: ensure all expected columns exist in the tables.
+        // This handles cases where a prior migration failed halfway through
+        // or the database was created with an older schema.
+        await _ensureColumnsExist(customStatement);
+      },
     );
+  }
+
+  /// Checks for missing columns and adds them via raw SQL.
+  /// This is a safety net for failed migrations.
+  Future<void> _ensureColumnsExist(Future<void> Function(String) exec) async {
+    // CRI Service table columns that may be missing
+    final serviceColumns = <String, String>{
+      'cybersecurity_recommendations': 'TEXT',
+      'ville': 'TEXT',
+      'code_postal': 'TEXT',
+      'pays': 'TEXT',
+      'contrat_type': 'TEXT',
+      'system_types': 'TEXT',
+      'devis_a_realiser': 'INTEGER NOT NULL DEFAULT 0',
+      'facturable': 'INTEGER NOT NULL DEFAULT 0',
+    };
+
+    // CRI Projet table columns that may be missing
+    final projetColumns = <String, String>{
+      'ville': 'TEXT',
+      'code_postal': 'TEXT',
+      'pays': 'TEXT',
+      'softwares': 'TEXT',
+    };
+
+    for (final entry in serviceColumns.entries) {
+      await _addColumnIfMissing('cri_service', entry.key, entry.value, exec);
+    }
+    for (final entry in projetColumns.entries) {
+      await _addColumnIfMissing('cri_projet', entry.key, entry.value, exec);
+    }
+  }
+
+  Future<void> _addColumnIfMissing(
+    String table,
+    String column,
+    String type,
+    Future<void> Function(String) exec,
+  ) async {
+    try {
+      // Try selecting the column – if it doesn't exist, this will throw.
+      await customSelect('SELECT "$column" FROM "$table" LIMIT 1').get();
+    } catch (_) {
+      // Column does not exist – add it.
+      try {
+        await exec('ALTER TABLE "$table" ADD COLUMN "$column" $type');
+      } catch (_) {
+        // Column may already exist in some edge cases – ignore.
+      }
+    }
   }
 
   // CRI Service Methods

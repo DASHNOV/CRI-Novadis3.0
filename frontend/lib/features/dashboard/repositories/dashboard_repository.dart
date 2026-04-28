@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:novadis_cri/data/models/cri_service_model.dart';
 import 'package:novadis_cri/data/models/cri_projet_model.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
@@ -261,9 +262,14 @@ class DashboardRepository {
 
     try {
       final localServices = await _db.getAllCriService();
-      final List<CriServiceModel> localModels = localServices
-          .map((s) => CriServiceModel.fromDb(s))
-          .toList();
+      final List<CriServiceModel> localModels = [];
+      for (final s in localServices) {
+        try {
+          localModels.add(CriServiceModel.fromDb(s));
+        } catch (e) {
+          debugPrint('[Dashboard] Erreur conversion CRI Service ${s.id}: $e');
+        }
+      }
 
       final remoteData = await _remoteRepository.getAllCris();
       final remoteServices = remoteData.whereType<CriServiceModel>().toList();
@@ -278,8 +284,21 @@ class DashboardRepository {
       _cachedServices = merged.values.toList();
       return _cachedServices!;
     } catch (e) {
-      final localServices = await _db.getAllCriService();
-      return localServices.map((s) => CriServiceModel.fromDb(s)).toList();
+      debugPrint('[Dashboard] Erreur chargement services: $e');
+      try {
+        final localServices = await _db.getAllCriService();
+        final List<CriServiceModel> models = [];
+        for (final s in localServices) {
+          try {
+            models.add(CriServiceModel.fromDb(s));
+          } catch (_) {
+            // Skip corrupted records
+          }
+        }
+        return models;
+      } catch (_) {
+        return [];
+      }
     }
   }
 
@@ -289,9 +308,14 @@ class DashboardRepository {
 
     try {
       final localProjets = await _db.getAllCriProjet();
-      final List<CriProjetModel> localModels = localProjets
-          .map((p) => CriProjetModel.fromDb(p))
-          .toList();
+      final List<CriProjetModel> localModels = [];
+      for (final p in localProjets) {
+        try {
+          localModels.add(CriProjetModel.fromDb(p));
+        } catch (e) {
+          debugPrint('[Dashboard] Erreur conversion CRI Projet ${p.id}: $e');
+        }
+      }
 
       final remoteData = await _remoteRepository.getAllCris();
       final remoteProjets = remoteData.whereType<CriProjetModel>().toList();
@@ -306,8 +330,21 @@ class DashboardRepository {
       _cachedProjets = merged.values.toList();
       return _cachedProjets!;
     } catch (e) {
-      final localProjets = await _db.getAllCriProjet();
-      return localProjets.map((p) => CriProjetModel.fromDb(p)).toList();
+      debugPrint('[Dashboard] Erreur chargement projets: $e');
+      try {
+        final localProjets = await _db.getAllCriProjet();
+        final List<CriProjetModel> models = [];
+        for (final p in localProjets) {
+          try {
+            models.add(CriProjetModel.fromDb(p));
+          } catch (_) {
+            // Skip corrupted records
+          }
+        }
+        return models;
+      } catch (_) {
+        return [];
+      }
     }
   }
 

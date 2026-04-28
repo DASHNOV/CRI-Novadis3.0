@@ -142,50 +142,87 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
   }
 
   Future<void> _submit() async {
+    debugPrint('[CRI Projet] _submit() appelé');
+
     // D'abord valider les champs FormBuilder
-    if (!(_formKey.currentState?.saveAndValidate() ?? false)) {
+    final formValid = _formKey.currentState?.saveAndValidate() ?? false;
+    debugPrint('[CRI Projet] FormBuilder validation: $formValid');
+
+    if (!formValid) {
       final fields = _formKey.currentState?.fields ?? {};
-      final errors = fields.entries
+      final errorEntries = fields.entries
           .where((e) => e.value.hasError)
-          .map((e) => '• ${e.value.errorText ?? ''}')
-          .where((e) => e.isNotEmpty)
+          .toList();
+      
+      debugPrint('[CRI Projet] Champs en erreur: ${errorEntries.map((e) => '${e.key}: ${e.value.errorText}').join(', ')}');
+
+      final errors = errorEntries
+          .map((e) => '• ${e.key}: ${e.value.errorText ?? 'invalide'}')
           .toList();
       final message = errors.isEmpty
           ? 'Veuillez corriger les erreurs dans le formulaire'
-          : errors.join('\n');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: AppTheme.warning,
-          duration: const Duration(seconds: 5),
-        ),
-      );
+          : 'Erreurs de validation:\n${errors.join('\n')}';
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppTheme.warning,
+            duration: const Duration(seconds: 6),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
       return;
     }
 
     // Ensuite valider les champs personnalisés (signatures)
     final customValidationError = _validateCompleteForm();
+    debugPrint('[CRI Projet] Custom validation: ${customValidationError ?? 'OK'}');
+
     if (customValidationError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(customValidationError),
-          backgroundColor: AppTheme.warning,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(customValidationError),
+            backgroundColor: AppTheme.warning,
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
       return;
     }
 
     // Tout est valide, soumettre
+    debugPrint('[CRI Projet] Soumission en cours...');
     final success = await ref.read(criProjetFormProvider.notifier).submit();
+    debugPrint('[CRI Projet] Résultat soumission: $success');
+
     if (success && mounted) {
+      // Afficher message d'erreur distant éventuel
+      final errorMsg = ref.read(criProjetFormProvider).errorMessage;
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('CRI Projet enregistré avec succès'),
-          backgroundColor: AppTheme.success,
+        SnackBar(
+          content: Text(errorMsg ?? 'CRI Projet enregistré avec succès'),
+          backgroundColor: errorMsg != null ? AppTheme.warning : AppTheme.success,
         ),
       );
       context.pop();
+    } else if (mounted) {
+      final errorMsg = ref.read(criProjetFormProvider).errorMessage;
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg ?? 'Erreur lors de la soumission'),
+          backgroundColor: AppTheme.error,
+          duration: const Duration(seconds: 5),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 

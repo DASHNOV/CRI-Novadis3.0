@@ -172,25 +172,38 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
   }
 
   Future<void> _submit() async {
-    // D'abord valider les champs FormBuilder
-    if (!(_formKey.currentState?.saveAndValidate() ?? false)) {
-      // Identifier quel champ pose problème
-      String errorMessage = 'Veuillez corriger les erreurs';
-      final fields = _formKey.currentState!.fields;
-      for (var entry in fields.entries) {
-        if (entry.value.hasError) {
-          errorMessage = 'Erreur: ${entry.value.errorText ?? entry.key}';
-          break;
-        }
-      }
+    debugPrint('[CRI Service] _submit() appelé');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: AppTheme.warning,
-          duration: const Duration(seconds: 5),
-        ),
-      );
+    // D'abord valider les champs FormBuilder
+    final formValid = _formKey.currentState?.saveAndValidate() ?? false;
+    debugPrint('[CRI Service] FormBuilder validation: $formValid');
+
+    if (!formValid) {
+      final fields = _formKey.currentState?.fields ?? {};
+      final errorEntries = fields.entries
+          .where((e) => e.value.hasError)
+          .toList();
+      
+      debugPrint('[CRI Service] Champs en erreur: ${errorEntries.map((e) => '${e.key}: ${e.value.errorText}').join(', ')}');
+
+      final errors = errorEntries
+          .map((e) => '• ${e.key}: ${e.value.errorText ?? 'invalide'}')
+          .toList();
+      final message = errors.isEmpty
+          ? 'Veuillez corriger les erreurs dans le formulaire'
+          : 'Erreurs de validation:\n${errors.join('\n')}';
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppTheme.warning,
+            duration: const Duration(seconds: 6),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
       return;
     }
 
