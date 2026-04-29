@@ -12,19 +12,16 @@ namespace NovadisApi.Services.Auth
     public class CodeGeneratorService : ICodeGeneratorService
     {
         /// <summary>
-        /// Génère un code numérique aléatoire
+        /// Génère un code numérique aléatoire (cryptographiquement sûr)
         /// </summary>
         public string GenerateCode(int length = 6)
         {
-            var random = new Random();
-            var code = string.Empty;
-
+            var code = new char[length];
             for (int i = 0; i < length; i++)
             {
-                code += random.Next(0, 10).ToString();
+                code[i] = (char)('0' + RandomNumberGenerator.GetInt32(0, 10));
             }
-
-            return code;
+            return new string(code);
         }
 
         /// <summary>

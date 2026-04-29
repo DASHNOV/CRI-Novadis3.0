@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,20 +14,29 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 🔇 En release, neutralise tous les debugPrint (perf + RGPD :
+  //    pas de fuite d'infos dans la console navigateur ou logcat).
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
+
   // Chargement des variables d'environnement
   await dotenv.load(fileName: ".env");
 
   // Préchargement de la police Inter
   GoogleFonts.config.allowRuntimeFetching = true;
 
-  SchedulerBinding.instance.addTimingsCallback((timings) {
-    for (final timing in timings) {
-      final duration = timing.totalSpan.inMilliseconds;
-      if (duration > 16) {
-        debugPrint('Slow frame: ${duration}ms');
+  // Détection des frames lentes uniquement en debug
+  if (!kReleaseMode) {
+    SchedulerBinding.instance.addTimingsCallback((timings) {
+      for (final timing in timings) {
+        final duration = timing.totalSpan.inMilliseconds;
+        if (duration > 16) {
+          debugPrint('Slow frame: ${duration}ms');
+        }
       }
-    }
-  });
+    });
+  }
 
   runApp(const ProviderScope(child: NovadisApp()));
 }
