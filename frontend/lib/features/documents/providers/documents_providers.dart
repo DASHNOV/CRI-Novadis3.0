@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/local/app_database.dart';
 import '../../../data/local/local_storage_service.dart';
 import '../../../data/models/cri_service_model.dart';
 import '../../../data/models/cri_projet_model.dart';
@@ -35,10 +36,37 @@ final availableReportsProvider = FutureProvider<List<CriReportModel>>((
   final localStorage = LocalStorageService();
   final remoteRepo = ref.watch(criRemoteRepositoryProvider);
 
+  // CRI récupérés directement depuis le serveur (fallback si DB locale indisponible)
+  final List<CriReportModel> serverReports = [];
+
   // 1. Synchroniser depuis le serveur (non-bloquant si erreur)
   try {
     final serverCris = await remoteRepo.getAllCris();
     for (final cri in serverCris) {
+      // Collecter directement pour le fallback
+      try {
+        if (cri is CriServiceModel && !cri.isDraft) {
+          serverReports.add(CriReportModel(
+            id: cri.id,
+            clientName: cri.clientName,
+            siteName: cri.site,
+            nIntervention: cri.ticketNumber,
+            date: cri.interventionDate,
+            isProjet: false,
+          ));
+        } else if (cri is CriProjetModel && !cri.isDraft) {
+          serverReports.add(CriReportModel(
+            id: cri.id,
+            clientName: cri.clientName,
+            siteName: cri.site,
+            nIntervention: cri.projectNumber,
+            date: cri.interventionDate,
+            isProjet: true,
+          ));
+        }
+      } catch (_) {}
+
+      // Persister en DB locale
       try {
         if (cri is CriServiceModel) {
           await database.updateCriService(cri.toDb());
@@ -54,53 +82,71 @@ final availableReportsProvider = FutureProvider<List<CriReportModel>>((
   }
 
   // 2. Lire depuis la DB locale (maintenant à jour avec les données serveur)
-  final serviceReports = await (database.select(
-    database.criServiceTable,
-  )..where((tbl) => tbl.isDraft.equals(false))).get();
-  final projetReports = await (database.select(
-    database.criProjetTable,
-  )..where((tbl) => tbl.isDraft.equals(false))).get();
+  // Si la DB WASM échoue en production, on utilise les données serveur directement.
+  List<CriService> serviceReports = [];
+  List<CriProjet> projetReports = [];
+  try {
+    serviceReports = await (database.select(
+      database.criServiceTable,
+    )..where((tbl) => tbl.isDraft.equals(false))).get();
+    projetReports = await (database.select(
+      database.criProjetTable,
+    )..where((tbl) => tbl.isDraft.equals(false))).get();
+  } catch (e) {
+    debugPrint('[DB] Erreur lecture DB locale, utilisation des données serveur: $e');
+    // Fallback : utiliser directement les données serveur
+    final allReports = List<CriReportModel>.from(serverReports);
+    allReports.sort((a, b) => b.date.compareTo(a.date));
+    return allReports;
+  }
   final legacyReports = await localStorage.getAllCri();
 
   final List<CriReportModel> allReports = [];
+  final Set<String> seenIds = {};
 
   for (final report in serviceReports) {
-    allReports.add(
-      CriReportModel(
-        id: report.id,
-        clientName: report.clientName,
-        siteName: report.site,
-        nIntervention: report.ticketNumber ?? '',
-        date: report.interventionDate,
-        isProjet: false,
-      ),
-    );
+    if (seenIds.add(report.id)) {
+      allReports.add(
+        CriReportModel(
+          id: report.id,
+          clientName: report.clientName,
+          siteName: report.site,
+          nIntervention: report.ticketNumber ?? '',
+          date: report.interventionDate,
+          isProjet: false,
+        ),
+      );
+    }
   }
 
   for (final report in projetReports) {
-    allReports.add(
-      CriReportModel(
-        id: report.id,
-        clientName: report.clientName,
-        siteName: report.site,
-        nIntervention: report.projectNumber,
-        date: report.interventionDate,
-        isProjet: true,
-      ),
-    );
+    if (seenIds.add(report.id)) {
+      allReports.add(
+        CriReportModel(
+          id: report.id,
+          clientName: report.clientName,
+          siteName: report.site,
+          nIntervention: report.projectNumber,
+          date: report.interventionDate,
+          isProjet: true,
+        ),
+      );
+    }
   }
 
   for (final report in legacyReports) {
-    allReports.add(
-      CriReportModel(
-        id: report.id,
-        clientName: report.client,
-        siteName: report.site,
-        nIntervention: 'CRI-${report.id}',
-        date: report.date,
-        isProjet: false,
-      ),
-    );
+    if (seenIds.add(report.id)) {
+      allReports.add(
+        CriReportModel(
+          id: report.id,
+          clientName: report.client,
+          siteName: report.site,
+          nIntervention: 'CRI-${report.id}',
+          date: report.date,
+          isProjet: false,
+        ),
+      );
+    }
   }
 
   allReports.sort((a, b) => b.date.compareTo(a.date));
