@@ -214,7 +214,7 @@ class _SiteHeaderCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [AppTheme.primary, AppTheme.accent],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -444,7 +444,7 @@ class _TechniciansList extends StatelessWidget {
                       Container(
                         width: 40,
                         height: 40,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
                             colors: [AppTheme.primary, AppTheme.accent],

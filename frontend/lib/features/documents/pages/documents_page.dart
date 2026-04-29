@@ -432,7 +432,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
     );
     controller.dispose();
     if (newName == null || newName.trim().isEmpty) return;
-
+    if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     try {
       await ref.read(exportedDocumentsApiServiceProvider).rename(doc.id, newName.trim());
@@ -467,7 +467,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
       ),
     );
     if (confirmed != true) return;
-
+    if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     try {
       await ref.read(exportedDocumentsApiServiceProvider).delete(doc.id);
@@ -505,7 +505,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
       ),
     );
     if (confirmed != true) return;
-
+    if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     final api = ref.read(exportedDocumentsApiServiceProvider);
     var ok = 0, fail = 0;

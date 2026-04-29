@@ -7,7 +7,7 @@ import '../../../data/local/app_database.dart';
 import '../models/exported_document_model.dart';
 import '../models/server_exported_document.dart';
 import '../services/base_service_interfaces.dart' show BasePdfGeneratorService, BaseDashboardCsvService, BaseTechnicianStatsCsvService, BaseFileManagementService, PdfWebResult;
-import '../services/service_factory.dart' as serviceFactory;
+import '../services/service_factory.dart' as service_factory;
 import '../services/xlsx_export_api_service.dart';
 import '../services/exported_documents_api_service.dart';
 
@@ -26,13 +26,13 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 /// Provider pour le service PDF
 final pdfGeneratorServiceProvider = Provider<BasePdfGeneratorService>((ref) {
   final database = ref.watch(databaseProvider);
-  return serviceFactory.getPdfService(database);
+  return service_factory.getPdfService(database);
 });
 
 /// Provider pour le service CSV Dashboard
 final dashboardCsvServiceProvider = Provider<BaseDashboardCsvService>((ref) {
   final database = ref.watch(databaseProvider);
-  return serviceFactory.getDashboardCsvService(database);
+  return service_factory.getDashboardCsvService(database);
 });
 
 /// Provider pour le service CSV Technicien
@@ -40,13 +40,13 @@ final technicianStatsCsvServiceProvider = Provider<BaseTechnicianStatsCsvService
   ref,
 ) {
   final database = ref.watch(databaseProvider);
-  return serviceFactory.getTechnicianStatsService(database);
+  return service_factory.getTechnicianStatsService(database);
 });
 
 /// Provider pour le service de gestion de fichiers
 final fileManagementServiceProvider = Provider<BaseFileManagementService>((ref) {
   final database = ref.watch(databaseProvider);
-  return serviceFactory.getFileService(database);
+  return service_factory.getFileService(database);
 });
 
 /// Provider pour le service XLSX (backend via Dio)
@@ -214,18 +214,7 @@ final selectedDocumentsProvider = StateProvider<Set<int>>((ref) => {});
 final exportProgressProvider = StateProvider<ExportProgress?>((ref) => null);
 
 /// Recherche active - Synchronisé avec le filtre
-final searchQueryProvider = StateProvider<String>((ref) {
-  // Écouter les changements et mettre à jour le filtre
-  ref.listenSelf((previous, next) {
-    if (previous != next) {
-      final currentFilter = ref.read(documentFilterProvider);
-      ref.read(documentFilterProvider.notifier).state = currentFilter.copyWith(
-        searchQuery: next,
-      );
-    }
-  });
-  return '';
-});
+final searchQueryProvider = StateProvider<String>((ref) => '');
 
 // ============================================================
 // Providers d'actions

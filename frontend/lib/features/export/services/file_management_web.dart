@@ -3,6 +3,7 @@ import '../models/exported_document_model.dart';
 import 'base_service_interfaces.dart';
 
 class FileManagementService implements BaseFileManagementService {
+  // ignore: unused_field
   final AppDatabase _database;
   FileManagementService(this._database);
 

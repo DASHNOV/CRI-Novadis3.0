@@ -117,7 +117,7 @@ class _SparePartsWidgetState extends State<SparePartsWidget> {
                           ),
                           const SizedBox(width: 8),
                           IconButton(
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.delete_outline,
                               color: AppTheme.error,
                             ),

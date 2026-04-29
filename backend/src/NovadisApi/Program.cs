@@ -106,6 +106,9 @@ var allowedOrigins = builder.Configuration
     .Get<string[]>() ?? Array.Empty<string>();
 var isDev = builder.Environment.IsDevelopment();
 
+// Domaines Vercel preview autorisés en CORS
+var vercelPattern = ".vercel.app";
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowMobileApp", policy =>
@@ -126,6 +129,11 @@ builder.Services.AddCors(options =>
                 if (host.StartsWith("192.168.") || host.StartsWith("10.")) return true;
             }
 
+            // Previews Vercel (toutes les URLs *.vercel.app)
+            if (Uri.TryCreate(origin, UriKind.Absolute, out var vercelUri)
+                && vercelUri.Host.EndsWith(vercelPattern, StringComparison.OrdinalIgnoreCase))
+                return true;
+
             return false;
         })
         .AllowAnyMethod()
@@ -143,13 +151,14 @@ builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    // 5 requêtes / minute / IP sur les endpoints d'auth
+    // Requêtes / minute / IP sur les endpoints d'auth (20 en dev, 5 en prod)
+    var authPermitLimit = isDev ? 20 : 5;
     options.AddPolicy("AuthPolicy", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 5,
+                PermitLimit = authPermitLimit,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));

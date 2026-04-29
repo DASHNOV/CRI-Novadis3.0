@@ -30,13 +30,13 @@ class ProtectedRoute extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.lock_outline, size: 64, color: AppTheme.textTertiary),
-                SizedBox(height: 16),
-                Text(
+                const SizedBox(height: 16),
+                const Text(
                   'Accès refusé',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 8),
-                Text('Vous n\'avez pas les permissions nécessaires.'),
+                const SizedBox(height: 8),
+                const Text('Vous n\'avez pas les permissions nécessaires.'),
               ],
             ),
           ),

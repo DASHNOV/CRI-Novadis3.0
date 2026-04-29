@@ -159,7 +159,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     colors: [AppTheme.primary, AppTheme.accent],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -562,7 +562,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
             Container(
               width: 8,
               height: 8,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppTheme.warning,
                 shape: BoxShape.circle,
               ),
@@ -632,7 +632,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
                         color: AppTheme.warningLight,
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                       ),
-                      child: Icon(Icons.edit_note_rounded, size: 18, color: AppTheme.warning),
+                      child: const Icon(Icons.edit_note_rounded, size: 18, color: AppTheme.warning),
                     ),
                     const Gap(AppTheme.space12),
                     Expanded(

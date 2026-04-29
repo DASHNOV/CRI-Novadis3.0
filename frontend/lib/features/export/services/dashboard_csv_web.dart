@@ -2,6 +2,7 @@ import '../../../data/local/app_database.dart';
 import 'base_service_interfaces.dart';
 
 class DashboardCsvService implements BaseDashboardCsvService {
+  // ignore: unused_field
   final AppDatabase _database;
   DashboardCsvService(this._database);
 

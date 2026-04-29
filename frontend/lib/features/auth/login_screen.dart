@@ -359,7 +359,7 @@ class _FormPanel extends StatelessWidget {
                         focusedBorder: OutlineInputBorder(
                           borderRadius:
                               BorderRadius.circular(AppTheme.radiusMd),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                               color: AppTheme.accent, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(

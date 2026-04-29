@@ -35,10 +35,10 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
   int _draftCount = 0;
 
   final List<_FilterOption> _statusFilters = [
-    _FilterOption(label: 'Tous', value: 'all'),
-    _FilterOption(label: 'Brouillons', value: 'drafts'),
-    _FilterOption(label: 'En attente', value: 'pending'),
-    _FilterOption(label: 'Signés', value: 'signed'),
+    const _FilterOption(label: 'Tous', value: 'all'),
+    const _FilterOption(label: 'Brouillons', value: 'drafts'),
+    const _FilterOption(label: 'En attente', value: 'pending'),
+    const _FilterOption(label: 'Signés', value: 'signed'),
   ];
 
   @override
@@ -667,7 +667,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
 
             // Sort dropdown
             DropdownButtonFormField<String>(
-              value: _sortBy,
+              initialValue: _sortBy,
               decoration: InputDecoration(
                 labelText: 'Trier par',
                 labelStyle: TextStyle(
@@ -972,7 +972,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                         height: 30,
                         child: IconButton(
                           padding: EdgeInsets.zero,
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.delete_outline_rounded,
                             size: 18,
                             color: AppTheme.error,

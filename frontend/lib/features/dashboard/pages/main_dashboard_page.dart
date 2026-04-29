@@ -13,7 +13,6 @@ import 'package:novadis_cri/features/dashboard/widgets/time_evolution_chart_widg
 import 'package:novadis_cri/features/dashboard/widgets/admin_top_sites_chart_widget.dart';
 import 'package:novadis_cri/features/dashboard/widgets/admin_request_types_pie_widget.dart';
 import 'package:novadis_cri/features/dashboard/widgets/admin_technician_site_heatmap_widget.dart';
-import 'package:novadis_cri/core/providers/main_nav_provider.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/core/theme/responsive.dart';
 import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
@@ -315,7 +314,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           final top3 = data.topSites.take(3).toList();
           if (top3.isEmpty) {
             return Padding(
-              padding: EdgeInsets.all(AppTheme.space16),
+              padding: const EdgeInsets.all(AppTheme.space16),
               child: Text('Aucune donnée de site',
                   style: TextStyle(color: AppTheme.textTertiary)),
             );
@@ -326,7 +325,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           );
         },
         loading: () => Padding(
-          padding: EdgeInsets.all(AppTheme.space16),
+          padding: const EdgeInsets.all(AppTheme.space16),
           child: LinearProgressIndicator(
             backgroundColor: AppTheme.surfaceVariant,
             valueColor: AlwaysStoppedAnimation(AppTheme.primaryContent),
@@ -348,7 +347,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           final top3Tech = data.technicianWorkload.take(3).toList();
           if (top3Tech.isEmpty) {
             return Padding(
-              padding: EdgeInsets.all(AppTheme.space16),
+              padding: const EdgeInsets.all(AppTheme.space16),
               child: Text('Aucun technicien actif',
                   style: TextStyle(color: AppTheme.textTertiary)),
             );
@@ -360,7 +359,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           );
         },
         loading: () => Padding(
-          padding: EdgeInsets.all(AppTheme.space16),
+          padding: const EdgeInsets.all(AppTheme.space16),
           child: LinearProgressIndicator(
             backgroundColor: AppTheme.surfaceVariant,
             valueColor: AlwaysStoppedAnimation(AppTheme.primaryContent),
@@ -798,7 +797,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
         child: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, s) => Text('Erreur: $e',
-          style: TextStyle(color: AppTheme.error)),
+          style: const TextStyle(color: AppTheme.error)),
     );
   }
 
@@ -819,7 +818,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
         child: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, s) => Text('Erreur: $e',
-          style: TextStyle(color: AppTheme.error)),
+          style: const TextStyle(color: AppTheme.error)),
     );
   }
 
@@ -839,7 +838,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
         child: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, s) => Text('Erreur: $e',
-          style: TextStyle(color: AppTheme.error)),
+          style: const TextStyle(color: AppTheme.error)),
     );
   }
 
@@ -875,7 +874,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
         error: (e, s) => Padding(
           padding: const EdgeInsets.all(AppTheme.space16),
           child: Text('Erreur: $e',
-              style: TextStyle(color: AppTheme.error, fontSize: 13)),
+              style: const TextStyle(color: AppTheme.error, fontSize: 13)),
         ),
       ),
     );
@@ -915,7 +914,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${site.clientNom ?? '-'}',
+                  site.clientNom ?? '-',
                   style: TextStyle(fontSize: 12, color: AppTheme.textTertiary),
                 ),
               ],
@@ -987,7 +986,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
         error: (e, s) => Padding(
           padding: const EdgeInsets.all(AppTheme.space16),
           child: Text('Erreur: $e',
-              style: TextStyle(color: AppTheme.error, fontSize: 13)),
+              style: const TextStyle(color: AppTheme.error, fontSize: 13)),
         ),
       ),
     );

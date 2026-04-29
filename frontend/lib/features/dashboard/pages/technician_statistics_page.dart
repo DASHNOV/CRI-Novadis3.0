@@ -234,7 +234,7 @@ class TechnicianStatisticsPage extends ConsumerWidget {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            Icon(Icons.error_outline, color: AppTheme.error, size: 48),
+            const Icon(Icons.error_outline, color: AppTheme.error, size: 48),
             const SizedBox(height: 12),
             Text(
               title,

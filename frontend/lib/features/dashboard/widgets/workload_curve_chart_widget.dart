@@ -216,7 +216,7 @@ class _WorkloadCurveChartWidgetState extends State<WorkloadCurveChartWidget>
               show: true,
               labelResolver: (line) =>
                   '${widget.thresholdHours.toInt()}h standard',
-              style: TextStyle(
+              style: const TextStyle(
                 color: ChartConfig.thresholdLineColor,
                 fontSize: 10,
                 fontWeight: FontWeight.w500,

@@ -35,16 +35,16 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   final List<_FilterOption> _filters = [
-    _FilterOption(label: 'Tous', value: 'all', icon: Icons.list_rounded),
-    _FilterOption(
+    const _FilterOption(label: 'Tous', value: 'all', icon: Icons.list_rounded),
+    const _FilterOption(
         label: 'Brouillons',
         value: 'drafts',
         icon: Icons.edit_note_rounded),
-    _FilterOption(
+    const _FilterOption(
         label: 'En attente', value: 'pending', icon: Icons.schedule_rounded),
-    _FilterOption(
+    const _FilterOption(
         label: 'Signes', value: 'signed', icon: Icons.check_circle_rounded),
-    _FilterOption(
+    const _FilterOption(
         label: 'En cours',
         value: 'in_progress',
         icon: Icons.play_circle_rounded),

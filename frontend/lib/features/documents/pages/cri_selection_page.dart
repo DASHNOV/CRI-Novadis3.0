@@ -193,7 +193,7 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircularProgressIndicator(color: AppTheme.primaryContent),
-              SizedBox(height: AppTheme.space16),
+              const SizedBox(height: AppTheme.space16),
               Text(
                 'Chargement des rapports...',
                 style: TextStyle(

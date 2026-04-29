@@ -194,12 +194,12 @@ class _DocumentListItemState extends State<DocumentListItem> {
                             ],
                           ),
                         ),
-                        PopupMenuItem(
+                        const PopupMenuItem(
                           value: 'delete',
                           child: Row(
                             children: [
                               Icon(Icons.delete, color: AppTheme.error),
-                              const SizedBox(width: 12),
+                              SizedBox(width: 12),
                               Text(
                                 'Supprimer',
                                 style: TextStyle(color: AppTheme.error),

@@ -198,7 +198,7 @@ class AppTheme {
     required Color txtT,
   }) {
     final isDark = themeBrightness == Brightness.dark;
-    final accentColor = accent;
+    const accentColor = accent;
 
     final textTheme = GoogleFonts.interTextTheme(
       isDark
@@ -346,7 +346,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
-          borderSide: BorderSide(color: accentColor, width: 2),
+          borderSide: const BorderSide(color: accentColor, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),

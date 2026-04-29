@@ -74,8 +74,12 @@ class DashboardCsvService implements BaseDashboardCsvService {
     final sites = <String>{...filteredServices.map((e) => e.site), ...filteredProjets.map((e) => e.site)};
     
     int totalDur = 0;
-    for (var c in filteredServices) totalDur += c.interventionDurationMinutes;
-    for (var c in filteredProjets) totalDur += c.interventionDurationMinutes;
+    for (var c in filteredServices) {
+      totalDur += c.interventionDurationMinutes;
+    }
+    for (var c in filteredProjets) {
+      totalDur += c.interventionDurationMinutes;
+    }
     
     final completed = filteredServices.where((c) => !c.isDraft).length + filteredProjets.where((c) => !c.isDraft).length;
 

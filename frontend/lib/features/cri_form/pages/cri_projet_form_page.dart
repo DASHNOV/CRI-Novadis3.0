@@ -876,7 +876,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
               const SizedBox(height: 6),
               Text(
                 field.errorText ?? '',
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppTheme.error,
                   fontSize: 12,
                 ),

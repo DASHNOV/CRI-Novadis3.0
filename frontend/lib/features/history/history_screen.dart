@@ -129,15 +129,15 @@ class HistoryScreen extends HookConsumerWidget {
         if (context.mounted) {
           if (deleted > 0) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('CRI supprimé'),
+              const SnackBar(
+                content: Text('CRI supprimé'),
                 backgroundColor: AppTheme.success,
               ),
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text(
+              const SnackBar(
+                content: Text(
                   'Erreur lors de la suppression ou CRI introuvable',
                 ),
                 backgroundColor: AppTheme.error,

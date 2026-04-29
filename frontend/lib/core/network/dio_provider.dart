@@ -101,7 +101,7 @@ final dioProvider = Provider<Dio>((ref) {
               await storage.clearTokens();
               // Redirect to login via the global navigator key
               final context = AppRouter.navigatorKey.currentContext;
-              if (context != null) {
+              if (context != null && context.mounted) {
                 GoRouter.of(context).go(AppRouter.login);
               }
             }
@@ -109,7 +109,7 @@ final dioProvider = Provider<Dio>((ref) {
             // No refresh token available, clear any stale data
             await storage.clearTokens();
             final context = AppRouter.navigatorKey.currentContext;
-            if (context != null) {
+            if (context != null && context.mounted) {
               GoRouter.of(context).go(AppRouter.login);
             }
           }

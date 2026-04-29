@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import '../../../data/local/app_database.dart';
 import '../models/exported_document_model.dart';
 
 /// Résultat d'un export PDF sur le web (bytes + filename pour upload serveur).

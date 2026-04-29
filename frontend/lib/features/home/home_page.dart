@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
-import 'package:novadis_cri/core/storage/storage_service.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 
 import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
 import 'package:novadis_cri/core/theme/theme_provider.dart';
@@ -105,7 +103,7 @@ class HomePage extends HookConsumerWidget {
         child: Container(
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               colors: [
                 AppTheme.primary,
                 AppTheme.accent,

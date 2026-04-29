@@ -37,13 +37,13 @@ class SiteSummaryCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: AppTheme.primaryLight,
-              borderRadius: BorderRadius.vertical(
+              borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(AppTheme.radiusLg),
               ),
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.analytics_outlined,
                   color: AppTheme.textOnPrimary,
                 ),
@@ -76,7 +76,7 @@ class SiteSummaryCard extends StatelessWidget {
               color: AppTheme.warning.withValues(alpha: 0.1),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.warning_amber_rounded,
                     color: AppTheme.warning,
                   ),

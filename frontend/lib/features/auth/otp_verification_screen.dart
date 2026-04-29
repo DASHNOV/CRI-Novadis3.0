@@ -166,7 +166,7 @@ class _OtpBrandingPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -344,7 +344,7 @@ class _OtpFormPanel extends StatelessWidget {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
+                          gradient: const LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [AppTheme.primary, AppTheme.accent],
@@ -517,7 +517,7 @@ class _OtpFormPanel extends StatelessWidget {
                               BorderRadius.circular(AppTheme.radiusMd),
                           gradient: loading
                               ? null
-                              : LinearGradient(
+                              : const LinearGradient(
                                   colors: [
                                     AppTheme.primary,
                                     AppTheme.accent

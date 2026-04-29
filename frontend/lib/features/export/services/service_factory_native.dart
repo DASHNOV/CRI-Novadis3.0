@@ -3,11 +3,6 @@ import 'base_service_interfaces.dart';
 
 // On utilise des imports conditionnels même dans le fichier "native" pour que le compilateur Web
 // ne tente pas de résoudre les dépendances (path_provider, etc.) si elles sont supprimées du pubspec.yaml
-import 'service_factory_stub.dart'
-  if (dart.library.io) 'pdf_generator_native.dart'
-  if (dart.library.io) 'dashboard_csv_native.dart'
-  if (dart.library.io) 'technician_stats_csv_native.dart'
-  if (dart.library.io) 'file_management_native.dart';
 
 // Note: Cette syntaxe d'import multiple conditionnel n'est pas standard pour l'instanciation.
 // On va plutôt utiliser une approche plus directe en gardant les imports mais en s'assurant 

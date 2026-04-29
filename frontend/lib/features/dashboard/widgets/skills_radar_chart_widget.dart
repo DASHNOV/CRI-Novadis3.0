@@ -162,7 +162,7 @@ class _SkillsRadarChartWidgetState extends State<SkillsRadarChartWidget>
       ),
       child: Row(
         children: [
-          Icon(Icons.insights, color: ChartConfig.primaryLineColor, size: 20),
+          const Icon(Icons.insights, color: ChartConfig.primaryLineColor, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

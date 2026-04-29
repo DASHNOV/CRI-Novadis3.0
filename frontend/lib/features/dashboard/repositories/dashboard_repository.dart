@@ -179,8 +179,12 @@ class DashboardRepository {
     final projets = await _getAllProjets();
 
     final technicianSet = <String>{};
-    for (final s in services) technicianSet.add(s.technicianName);
-    for (final p in projets) technicianSet.add(p.technicianName);
+    for (final s in services) {
+      technicianSet.add(s.technicianName);
+    }
+    for (final p in projets) {
+      technicianSet.add(p.technicianName);
+    }
 
     return technicianSet
         .map(
