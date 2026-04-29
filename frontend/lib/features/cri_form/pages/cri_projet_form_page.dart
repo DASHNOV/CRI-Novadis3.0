@@ -986,7 +986,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
           ),
           const SizedBox(height: 16),
-          Text('Description des travaux *', style: TextStyle(
+          Text('Travail Effectué *', style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -1013,112 +1013,6 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
               ref
                   .read(criProjetFormProvider.notifier)
                   .updateInterventionInfo(workDescription: value);
-            },
-          ),
-          const SizedBox(height: 16),
-          Text('Matériels utilisés', style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                )),
-          const SizedBox(height: 8),
-          FormBuilderTextField(
-            name: 'materialsUsed',
-            initialValue: state.currentCri?.materialsUsed ?? '',
-            decoration: const InputDecoration(
-              hintText: 'Matériels utilisés',
-              prefixIcon: Icon(Icons.inventory),
-              alignLabelWithHint: true,
-            ),
-            maxLines: 3,
-            textCapitalization: TextCapitalization.sentences,
-            onChanged: (value) {
-              ref
-                  .read(criProjetFormProvider.notifier)
-                  .updateInterventionInfo(materialsUsed: value);
-            },
-          ),
-          const SizedBox(height: 16),
-          Text('Problèmes rencontrés', style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                )),
-          const SizedBox(height: 8),
-          FormBuilderTextField(
-            name: 'problemsEncountered',
-            initialValue: state.currentCri?.problemsEncountered ?? '',
-            decoration: const InputDecoration(
-              hintText: 'Problèmes rencontrés',
-              prefixIcon: Icon(Icons.warning_amber),
-              alignLabelWithHint: true,
-            ),
-            maxLines: 3,
-            textCapitalization: TextCapitalization.sentences,
-            onChanged: (value) {
-              ref
-                  .read(criProjetFormProvider.notifier)
-                  .updateInterventionInfo(problemsEncountered: value);
-            },
-          ),
-          const SizedBox(height: 16),
-          Text('Solutions apportées', style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                )),
-          const SizedBox(height: 8),
-          FormBuilderTextField(
-            name: 'solutionsProvided',
-            initialValue: state.currentCri?.solutionsProvided ?? '',
-            decoration: const InputDecoration(
-              hintText: 'Solutions apportées',
-              prefixIcon: Icon(Icons.lightbulb_outline),
-              alignLabelWithHint: true,
-            ),
-            maxLines: 3,
-            textCapitalization: TextCapitalization.sentences,
-            onChanged: (value) {
-              ref
-                  .read(criProjetFormProvider.notifier)
-                  .updateInterventionInfo(solutionsProvided: value);
-            },
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Durée intervention (minutes)',
-            style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(height: 8),
-          FormBuilderTextField(
-            name: 'interventionDurationMinutes',
-            initialValue:
-                state.currentCri?.interventionDurationMinutes.toString() ??
-                '60',
-            decoration: InputDecoration(
-              hintText: '60',
-              prefixIcon: const Icon(Icons.timer),
-              suffixText: 'min',
-              helperText: 'Calculé automatiquement, modifiable',
-              helperStyle: TextStyle(color: AppTheme.textTertiary),
-            ),
-            keyboardType: TextInputType.number,
-            validator: FormBuilderValidators.numeric(
-              errorText: 'Nombre invalide',
-            ),
-            onChanged: (value) {
-              final duration = int.tryParse(value ?? '');
-              if (duration != null) {
-                ref
-                    .read(criProjetFormProvider.notifier)
-                    .updateInterventionInfo(
-                      interventionDurationMinutes: duration,
-                    );
-              }
             },
           ),
         ],

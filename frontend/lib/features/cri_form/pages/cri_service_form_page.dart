@@ -925,7 +925,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
           }),
           const SizedBox(height: 16),
           Text(
-            'Description de la demande *',
+            'Motif de l\'intervention *',
             style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 14,
@@ -1107,13 +1107,13 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
   Step _buildInterventionStep(CriServiceFormState state, ThemeData theme) {
     return Step(
       title: const Text('Intervention'),
-      subtitle: const Text('Actions réalisées'),
+      subtitle: const Text('Travail effectué'),
       isActive: _currentStep >= 3,
       state: _currentStep > 3 ? StepState.complete : StepState.indexed,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Actions réalisées *', style: TextStyle(
+          Text('Travail Effectué *', style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -1134,67 +1134,6 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
               ref
                   .read(criServiceFormProvider.notifier)
                   .updateInterventionInfo(actionsPerformed: value);
-            },
-          ),
-          const SizedBox(height: 16),
-          Text('Pièces remplacées', style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                )),
-          const SizedBox(height: 8),
-          FormBuilderTextField(
-            name: 'replacedParts',
-            initialValue: state.currentCri?.replacedParts ?? '',
-            decoration: const InputDecoration(
-              hintText: 'Résumé des pièces remplacées',
-              prefixIcon: Icon(Icons.settings_input_component),
-              alignLabelWithHint: true,
-            ),
-            maxLines: 2,
-            textCapitalization: TextCapitalization.sentences,
-            onChanged: (value) {
-              ref
-                  .read(criServiceFormProvider.notifier)
-                  .updateInterventionInfo(replacedParts: value);
-            },
-          ),
-          const SizedBox(height: 16),
-          const SizedBox(height: 16),
-          Text(
-            'Durée intervention (minutes)',
-            style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(height: 8),
-          FormBuilderTextField(
-            name: 'interventionDurationMinutes',
-            initialValue:
-                state.currentCri?.interventionDurationMinutes.toString() ??
-                '60',
-            decoration: InputDecoration(
-              hintText: '60',
-              prefixIcon: const Icon(Icons.timer),
-              suffixText: 'min',
-              helperText: 'Calculé automatiquement, modifiable',
-              helperStyle: TextStyle(color: AppTheme.textTertiary),
-            ),
-            keyboardType: TextInputType.number,
-            validator: FormBuilderValidators.numeric(
-              errorText: 'Nombre invalide',
-            ),
-            onChanged: (value) {
-              final duration = int.tryParse(value ?? '');
-              if (duration != null) {
-                ref
-                    .read(criServiceFormProvider.notifier)
-                    .updateInterventionInfo(
-                      interventionDurationMinutes: duration,
-                    );
-              }
             },
           ),
         ],

@@ -90,9 +90,7 @@ enum ServiceRequestType {
   maintenancePreventive('Maintenance préventive'),
   maintenanceCorrective('Maintenance corrective'),
   depannage('Dépannage'),
-  supportTechnique('Support technique'),
-  assistanceUtilisateur('Assistance utilisateur'),
-  autre('Autre');
+  supportTechnique('Support technique');
 
   final String label;
   const ServiceRequestType(this.label);
@@ -100,7 +98,7 @@ enum ServiceRequestType {
   static ServiceRequestType fromString(String value) {
     return ServiceRequestType.values.firstWhere(
       (e) => e.name == value || e.label == value,
-      orElse: () => ServiceRequestType.autre,
+      orElse: () => ServiceRequestType.depannage,
     );
   }
 }

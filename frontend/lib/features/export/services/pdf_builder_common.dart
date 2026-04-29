@@ -143,6 +143,14 @@ mixin PdfBuilderCommon {
                       cri.requestType ==
                           ServiceRequestType.maintenanceCorrective,
                     ),
+                    _checkbox(
+                      'Dépannage',
+                      cri.requestType == ServiceRequestType.depannage,
+                    ),
+                    _checkbox(
+                      'Support technique',
+                      cri.requestType == ServiceRequestType.supportTechnique,
+                    ),
                   ], flex: 2),
                   _buildCheckboxGroup([
                     _checkbox(
@@ -571,12 +579,17 @@ mixin PdfBuilderCommon {
     );
   }
 
-  /// Bloc avec label + texte + lignes horizontales (style formulaire papier)
+  /// Bloc avec label + texte + lignes horizontales (style formulaire papier).
+  /// La hauteur est fixe (lineCount × 18 px) — le texte est superposé sur les
+  /// lignes et tronqué s'il dépasse l'espace disponible.
   pw.Widget _buildLinedTextBlock(
     String label,
     String value, {
     int lineCount = 15,
   }) {
+    const lineHeight = 18.0;
+    final totalHeight = lineCount * lineHeight;
+
     return pw.Container(
       width: double.infinity,
       padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -585,19 +598,35 @@ mixin PdfBuilderCommon {
         children: [
           pw.Text(label, style: _labelStyle),
           pw.SizedBox(height: 4),
-          if (value.isNotEmpty)
-            pw.Text(value, style: _valueStyle),
-          pw.SizedBox(height: 4),
-          // Lignes horizontales
-          for (var i = 0; i < lineCount; i++)
-            pw.Container(
-              height: 18,
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(
-                  bottom: pw.BorderSide(color: _lightGray, width: 0.5),
+          pw.SizedBox(
+            height: totalHeight,
+            child: pw.Stack(
+              children: [
+                // Lignes horizontales en fond (taille fixe)
+                pw.Column(
+                  children: [
+                    for (var i = 0; i < lineCount; i++)
+                      pw.Container(
+                        height: lineHeight,
+                        decoration: const pw.BoxDecoration(
+                          border: pw.Border(
+                            bottom: pw.BorderSide(color: _lightGray, width: 0.5),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
+                // Texte superposé, tronqué si trop long
+                if (value.isNotEmpty)
+                  pw.Text(
+                    value,
+                    style: _valueStyle,
+                    maxLines: lineCount,
+                    overflow: pw.TextOverflow.clip,
+                  ),
+              ],
             ),
+          ),
         ],
       ),
     );

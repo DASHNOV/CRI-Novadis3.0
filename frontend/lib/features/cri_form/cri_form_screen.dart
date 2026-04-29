@@ -146,8 +146,10 @@ class CriFormScreen extends ConsumerWidget {
       description:
           'Pour les interventions liées a des projets structures : installations, migrations, déploiements...',
       features: const [
-        'Phase du projet',
-        'Gestion du statut projet',
+        'Mise en service',
+        'Formation',
+        'Visite de site',
+        'Audit',
       ],
       color: AppTheme.primaryContent,
       colorLight: AppTheme.infoLight,
@@ -160,8 +162,10 @@ class CriFormScreen extends ConsumerWidget {
       description:
           'Pour les interventions de maintenance, dépannage ou support technique avec suivi de ticket.',
       features: const [
-        'Type de demande',
-        'Gestion des priorites',
+        'Maintenance préventive',
+        'Maintenance curative',
+        'Dépannage',
+        'Support technique',
       ],
       color: AppTheme.accent,
       colorLight: const Color(0xFFEDE9FE),
