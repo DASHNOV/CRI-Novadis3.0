@@ -24,66 +24,92 @@ namespace NovadisApi.Controllers
         }
 
         /// <summary>
-        /// Vérification basique de l'état de l'API
+        /// Liveness probe : l'API tourne (pas de check DB).
         /// </summary>
-        /// <returns>Informations sur l'état de l'API et de la base de données</returns>
+        [HttpGet("live")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult Live() => Ok(new { status = "alive", timestamp = DateTime.UtcNow });
+
+        /// <summary>
+        /// Readiness probe enrichie : DB, latence, espace disque, mémoire.
+        /// </summary>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
         public async Task<IActionResult> Get()
         {
+            var checks = new Dictionary<string, object>();
+            var allHealthy = true;
+
+            // 1️⃣ DB connectivité + latence
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            bool dbOk;
+            int? userCount = null;
             try
             {
-                _logger.LogInformation("Health check requested");
-
-                // Tester la connexion à la base de données
-                var canConnect = await _context.Database.CanConnectAsync();
-                
-                // Compter les utilisateurs (pour vérifier que les données existent)
-                var userCount = 0;
-                if (canConnect)
-                {
-                    userCount = await _context.Users.CountAsync();
-                }
-
-                var response = new
-                {
-                    status = canConnect ? "healthy" : "degraded",
-                    database = new
-                    {
-                        connected = canConnect,
-                        provider = "SQL Server",
-                        usersCount = userCount
-                    },
-                    api = new
-                    {
-                        version = "1.0.0",
-                        environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"
-                    },
-                    server = new
-                    {
-                        machineName = Environment.MachineName,
-                        osVersion = Environment.OSVersion.ToString(),
-                        dotnetVersion = Environment.Version.ToString()
-                    },
-                    timestamp = DateTime.UtcNow
-                };
-
-                _logger.LogInformation("Health check passed: Database {Status}", canConnect ? "Connected" : "Disconnected");
-
-                return Ok(response);
+                dbOk = await _context.Database.CanConnectAsync();
+                if (dbOk) userCount = await _context.Users.CountAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Health check failed");
-
-                return StatusCode(500, new
-                {
-                    status = "unhealthy",
-                    error = ex.Message,
-                    timestamp = DateTime.UtcNow
-                });
+                dbOk = false;
+                _logger.LogWarning(ex, "Health: DB unreachable");
             }
+            sw.Stop();
+            allHealthy &= dbOk;
+            checks["database"] = new
+            {
+                status = dbOk ? "healthy" : "unhealthy",
+                latencyMs = sw.ElapsedMilliseconds,
+                degraded = sw.ElapsedMilliseconds > 500,
+                usersCount = userCount
+            };
+
+            // 2️⃣ Espace disque (drive courant)
+            try
+            {
+                var drive = new DriveInfo(Path.GetPathRoot(Directory.GetCurrentDirectory()) ?? "C:\\");
+                var freeGb = drive.AvailableFreeSpace / 1024.0 / 1024.0 / 1024.0;
+                var totalGb = drive.TotalSize / 1024.0 / 1024.0 / 1024.0;
+                var diskOk = freeGb > 1.0;  // Seuil : 1 Go libre minimum
+                allHealthy &= diskOk;
+                checks["disk"] = new
+                {
+                    status = diskOk ? "healthy" : "critical",
+                    freeGb = Math.Round(freeGb, 2),
+                    totalGb = Math.Round(totalGb, 2),
+                    usedPct = Math.Round(100 - (freeGb / totalGb * 100), 1)
+                };
+            }
+            catch (Exception ex)
+            {
+                checks["disk"] = new { status = "unknown", error = ex.Message };
+            }
+
+            // 3️⃣ Mémoire process
+            var proc = System.Diagnostics.Process.GetCurrentProcess();
+            checks["memory"] = new
+            {
+                workingSetMb = Math.Round(proc.WorkingSet64 / 1024.0 / 1024.0, 1),
+                privateMb = Math.Round(proc.PrivateMemorySize64 / 1024.0 / 1024.0, 1),
+                threads = proc.Threads.Count,
+                uptimeMinutes = Math.Round((DateTime.Now - proc.StartTime).TotalMinutes, 1)
+            };
+
+            var response = new
+            {
+                status = allHealthy ? "healthy" : "degraded",
+                checks,
+                api = new
+                {
+                    version = "1.0.0",
+                    environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production",
+                    machine = Environment.MachineName
+                },
+                timestamp = DateTime.UtcNow
+            };
+
+            return allHealthy ? Ok(response) : StatusCode(StatusCodes.Status503ServiceUnavailable, response);
         }
 
         /// <summary>

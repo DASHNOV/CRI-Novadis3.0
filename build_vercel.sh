@@ -34,4 +34,12 @@ dart compile js -O2 -o web/drift_worker.js web/drift_worker.dart
 
 # 7. Build de l'application Web
 echo "Lancement du build Flutter Web..."
-flutter build web --release --dart-define=API_URL=https://api.cri-novadis.tech/api
+# --tree-shake-icons : retire les icônes Material/Cupertino non utilisées
+# --no-source-maps   : pas de source maps en prod (évite la fuite de code source)
+# --base-href "/"    : déploiement à la racine
+flutter build web \
+  --release \
+  --tree-shake-icons \
+  --no-source-maps \
+  --base-href "/" \
+  --dart-define=API_URL=https://api.cri-novadis.tech/api

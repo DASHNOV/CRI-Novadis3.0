@@ -1,16 +1,23 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NovadisApi.Data;
+using NovadisApi.Middleware;
 using NovadisApi.Models;
 using NovadisApi.Services;
 using NovadisApi.Services.Auth;
 using NovadisApi.Services.Email;
 using NovadisApi.Services.Export;
+using NovadisApi.Services.Maintenance;
 using NovadisApi.Services.Storage;
+using Serilog;
+using Serilog.Events;
 using System.Globalization;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,30 +101,69 @@ builder.Services.AddAuthorization(options =>
 // ========================================
 // 3️⃣ CONFIGURATION CORS
 // ========================================
-builder.Services.AddCors(options => {
-    // Politique pour le développement local
-    options.AddPolicy("DevCorsPolicy", policy => {
-        policy
-            .WithOrigins(
-                "http://localhost:50900",      // Expo Web
-                "http://localhost:8081",       // Expo Metro Bundler
-                "http://localhost:19006",      // Expo Web (autre port)
-                "http://10.0.2.2:50900",       // Android Emulator
-                "http://192.168.1.10:50900"    // Device Physique (IP à adapter)
-            )
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
-    });
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+var isDev = builder.Environment.IsDevelopment();
 
-    // ✅ Politique restreinte pour l'application mobile et web Vercel
+builder.Services.AddCors(options =>
+{
     options.AddPolicy("AllowMobileApp", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .WithExposedHeaders("Token-Expired", "Content-Disposition", "ngrok-skip-browser-warning");
+        policy.SetIsOriginAllowed(origin =>
+        {
+            if (string.IsNullOrEmpty(origin)) return false;
+
+            // Origines configurées (prod + dev fixes)
+            if (allowedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase))
+                return true;
+
+            // En développement : autoriser tout localhost/127.0.0.1/IP locale (port aléatoire de Flutter)
+            if (isDev && Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+            {
+                var host = uri.Host;
+                if (host == "localhost" || host == "127.0.0.1") return true;
+                if (host.StartsWith("192.168.") || host.StartsWith("10.")) return true;
+            }
+
+            return false;
+        })
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials()
+        .WithExposedHeaders("Token-Expired", "Content-Disposition",
+            "X-Total-Count", "X-Page", "X-Page-Size", "X-Total-Pages");
     });
+});
+
+// ========================================
+// 3️⃣b RATE LIMITING (anti brute-force OTP)
+// ========================================
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // 5 requêtes / minute / IP sur les endpoints d'auth
+    options.AddPolicy("AuthPolicy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    // Limite globale de protection (100 req/min/IP)
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 });
 
 // ========================================
@@ -126,12 +172,21 @@ builder.Services.AddCors(options => {
 // Services d'authentification
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICodeGeneratorService, CodeGeneratorService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISiteSummaryService, SiteSummaryService>();
+builder.Services.AddScoped<NovadisApi.Services.Stats.IGlobalStatsService, NovadisApi.Services.Stats.GlobalStatsService>();
 builder.Services.AddScoped<IXlsxExportService, XlsxExportService>();
 
 // Stockage des exports (filesystem local, MinIO-ready)
 builder.Services.AddSingleton<IObjectStorageService, LocalFileObjectStorage>();
+
+// Gestionnaire d'exceptions global
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+// Purge RGPD automatique (BackgroundService quotidien)
+builder.Services.AddHostedService<DataRetentionService>();
 
 // Services métier (à ajouter plus tard)
 // builder.Services.AddScoped<ICRIService, CRIService>();
@@ -187,17 +242,38 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // ========================================
-// 6️⃣ CONFIGURATION DES LOGS
+// 6️⃣ CONFIGURATION DES LOGS (Serilog : console + fichier rotatif)
 // ========================================
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
+var logsDir = Path.Combine(Directory.GetCurrentDirectory(), "logs");
+Directory.CreateDirectory(logsDir);
 
-if (builder.Environment.IsProduction())
-{
-    // En production, ajouter Application Insights ou autre
-    // builder.Services.AddApplicationInsightsTelemetry();
-}
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "NovadisApi")
+    .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    .WriteTo.File(
+        path: Path.Combine(logsDir, "novadis-.log"),
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,                  // Rétention RGPD : 30 jours
+        fileSizeLimitBytes: 50 * 1024 * 1024,        // 50 Mo / fichier
+        rollOnFileSizeLimit: true,
+        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(e => e.Level >= LogEventLevel.Error)
+        .WriteTo.File(
+            path: Path.Combine(logsDir, "errors-.log"),
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 90,
+            outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"))
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // ========================================
 // 7️⃣ CONFIGURATION RÉSEAU & HEALTH CHECKS
@@ -210,35 +286,73 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-// ✅ Middleware de configuration Ngrok et logging
+// Gestionnaire d'exceptions global (DOIT être en premier)
+app.UseExceptionHandler();
+
+// Forwarded headers (Cloudflare/IIS) pour récupérer la vraie IP cliente
+var forwardedOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardedOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedOptions);
+
+// Headers de sécurité standards
 app.Use(async (context, next) =>
 {
-    // Skip ngrok browser warning
-    context.Response.Headers.Append("ngrok-skip-browser-warning", "true");
-    
-    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation($"Requête entrante: {context.Request.Method} {context.Request.Path} depuis {context.Connection.RemoteIpAddress}");
+    var headers = context.Response.Headers;
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["X-Frame-Options"] = "DENY";
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    if (app.Environment.IsProduction())
+    {
+        headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+    }
     await next.Invoke();
-    logger.LogInformation($"Réponse: {context.Response.StatusCode}");
+});
+
+// Request logging Serilog (compact, log seulement les requêtes >400ms ou en erreur)
+app.UseSerilogRequestLogging(opts =>
+{
+    opts.MessageTemplate = "HTTP {RequestMethod} {RequestPath} → {StatusCode} en {Elapsed:0}ms";
+    opts.GetLevel = (ctx, elapsed, ex) =>
+        ex != null ? LogEventLevel.Error :
+        ctx.Response.StatusCode >= 500 ? LogEventLevel.Error :
+        ctx.Response.StatusCode >= 400 ? LogEventLevel.Warning :
+        elapsed > 1000 ? LogEventLevel.Warning :
+        LogEventLevel.Debug;  // Debug = filtré par MinimumLevel.Information
+    opts.EnrichDiagnosticContext = (diagCtx, httpCtx) =>
+    {
+        diagCtx.Set("UserId", httpCtx.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "anon");
+    };
 });
 
 // ========================================
 // 8️⃣ MIDDLEWARE PIPELINE
 // ========================================
 
-// Swagger (toujours actif pour faciliter les tests)
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+// Swagger : seulement en développement
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Novadis CRI API v1");
-    c.RoutePrefix = string.Empty; // Swagger à la racine (/)
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Novadis CRI API v1");
+        c.RoutePrefix = string.Empty;
+    });
+}
 
-// HTTPS Redirection désactivée : Cloudflare gère le HTTPS (SSL Flexible)
-// app.UseHttpsRedirection();
+// HTTPS Redirection (Cloudflare termine TLS mais on force le scheme)
+if (app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 
 // ✅ Activer CORS (AVANT UseAuthorization)
 app.UseCors("AllowMobileApp");
+
+// Rate limiting (après CORS, avant Auth)
+app.UseRateLimiter();
 
 // Authentication & Authorization
 app.UseAuthentication();
@@ -360,8 +474,18 @@ if (app.Environment.IsDevelopment())
 // ========================================
 // 🔟 DÉMARRAGE
 // ========================================
-app.Logger.LogInformation("Novadis CRI API starting...");
-app.Logger.LogInformation("Environment: {Environment}", app.Environment.EnvironmentName);
-app.Logger.LogInformation("Swagger UI: {Url}", app.Environment.IsDevelopment() ? "http://localhost:5200" : "");
-
-app.Run();
+try
+{
+    app.Logger.LogInformation("Novadis CRI API starting...");
+    app.Logger.LogInformation("Environment: {Environment}", app.Environment.EnvironmentName);
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "API a planté au démarrage");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}

@@ -1,0 +1,65 @@
+name: CI Tests
+
+on:
+  pull_request:
+    branches: [master, dev]
+  push:
+    branches: [master, dev]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - '.github/workflows/ci-tests.yml'
+
+jobs:
+  backend-tests:
+    name: Backend (.NET) tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        working-directory: backend
+        run: dotnet restore NovadisApi.slnx
+
+      - name: Build
+        working-directory: backend
+        run: dotnet build NovadisApi.slnx --no-restore --configuration Release
+
+      - name: Test
+        working-directory: backend
+        run: dotnet test src/NovadisApi.Tests/NovadisApi.Tests.csproj --no-build --configuration Release --logger "trx" --results-directory TestResults --collect:"XPlat Code Coverage"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: backend/TestResults/
+
+  frontend-tests:
+    name: Frontend (Flutter) tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Pub get
+        working-directory: frontend
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: frontend
+        run: flutter analyze --no-fatal-infos
+
+      - name: Test
+        working-directory: frontend
+        run: flutter test

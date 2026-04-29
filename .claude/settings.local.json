@@ -90,7 +90,9 @@
       "Bash(rtk git *)",
       "Bash(rtk gain *)",
       "Bash(rtk flutter *)",
-      "Bash(rtk dotnet *)"
+      "Bash(rtk dotnet *)",
+      "Bash(dotnet test *)",
+      "Bash(dotnet restore *)"
     ]
   }
 }

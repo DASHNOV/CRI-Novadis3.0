@@ -33,23 +33,45 @@ namespace NovadisApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<CRIForm>>>> GetMyCRIs()
+        public async Task<ActionResult<ApiResponse<IEnumerable<CRIForm>>>> GetMyCRIs(
+            [FromQuery] int? page = null,
+            [FromQuery] int? pageSize = null)
         {
             var userId = GetCurrentUserId();
             if (userId == null)
                 return Unauthorized(ApiResponse<IEnumerable<CRIForm>>.ErrorResponse("Utilisateur non identifié"));
 
-            IQueryable<CRIForm> query = _context.CRIForms;
-            
-            // Si ce n'est pas un admin, on ne montre que ses propres CRIs
+            IQueryable<CRIForm> query = _context.CRIForms.AsNoTracking();
+
             if (!User.IsInRole("Admin"))
             {
                 query = query.Where(c => c.TechnicianId == userId.Value);
             }
 
-            var cris = await query
-                .OrderByDescending(c => c.CreatedAt)
-                .ToListAsync();
+            query = query.OrderByDescending(c => c.CreatedAt);
+
+            // Pagination optionnelle (rétrocompatible : sans ?page= → tout retourné comme avant)
+            List<CRIForm> cris;
+            if (page.HasValue || pageSize.HasValue)
+            {
+                var pagination = new PaginationQuery
+                {
+                    Page = page ?? 1,
+                    PageSize = pageSize ?? 50
+                };
+                var total = await query.CountAsync();
+                cris = await query.Skip(pagination.Skip).Take(pagination.PageSize).ToListAsync();
+
+                Response.Headers["X-Total-Count"] = total.ToString();
+                Response.Headers["X-Page"] = pagination.Page.ToString();
+                Response.Headers["X-Page-Size"] = pagination.PageSize.ToString();
+                Response.Headers["X-Total-Pages"] =
+                    ((int)Math.Ceiling((double)total / pagination.PageSize)).ToString();
+            }
+            else
+            {
+                cris = await query.ToListAsync();
+            }
 
             return Ok(ApiResponse<IEnumerable<CRIForm>>.SuccessResponse(cris));
         }
