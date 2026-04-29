@@ -5,6 +5,7 @@ import 'package:novadis_cri/models/personal_stats.dart';
 import 'package:novadis_cri/models/global_stats.dart';
 import 'package:novadis_cri/models/technician_activity.dart';
 import 'package:novadis_cri/models/daily_activity.dart';
+import 'package:novadis_cri/models/monthly_activity.dart';
 import 'package:novadis_cri/models/site_stats.dart';
 import 'package:novadis_cri/models/technician_detailed_stats.dart';
 import 'package:novadis_cri/models/distribution_stats.dart';
@@ -47,6 +48,19 @@ class StatsApiService {
       );
       final data = response.data['data'] as List;
       return data.cast<Map<String, dynamic>>();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Récupère l'activité mensuelle personnelle (6 derniers mois) pour sparkline
+  Future<List<MonthlyActivity>> getPersonalMonthlyStats() async {
+    try {
+      final response = await _dio.get('/personal/monthly-stats');
+      final data = response.data['data'] as List;
+      return data
+          .map((item) => MonthlyActivity.fromJson(item as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }

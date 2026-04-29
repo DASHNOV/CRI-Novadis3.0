@@ -156,5 +156,45 @@ namespace NovadisApi.Controllers
                     "Erreur lors de la récupération des CRI récents."));
             }
         }
+
+        /// <summary>
+        /// 📈 GET /api/personal/monthly-stats - Activité mensuelle sur les 6 derniers mois
+        /// </summary>
+        [HttpGet("monthly-stats")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<object>>>> GetMonthlyStats()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<IEnumerable<object>>.ErrorResponse("Utilisateur non identifié"));
+
+            try
+            {
+                var now = DateTime.UtcNow;
+                var sixMonthsAgo = new DateTime(now.Year, now.Month, 1).AddMonths(-5);
+
+                var monthlyCounts = await _context.CRIForms
+                    .Where(c => c.TechnicianId == userId && c.CreatedAt >= sixMonthsAgo)
+                    .GroupBy(c => new { c.CreatedAt.Year, c.CreatedAt.Month })
+                    .Select(g => new { annee = g.Key.Year, mois = g.Key.Month, nb = g.Count() })
+                    .ToListAsync();
+
+                // Garantir les 6 mois même si nb = 0
+                var result = Enumerable.Range(0, 6)
+                    .Select(i => {
+                        var d = new DateTime(now.Year, now.Month, 1).AddMonths(-5 + i);
+                        var found = monthlyCounts.FirstOrDefault(m => m.annee == d.Year && m.mois == d.Month);
+                        return new { annee = d.Year, mois = d.Month, nb = found?.nb ?? 0 };
+                    })
+                    .ToList();
+
+                return Ok(ApiResponse<IEnumerable<object>>.SuccessResponse(result.Cast<object>()));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving monthly stats for user {UserId}", userId);
+                return StatusCode(500, ApiResponse<IEnumerable<object>>.ErrorResponse(
+                    "Erreur lors de la récupération des statistiques mensuelles."));
+            }
+        }
     }
 }
