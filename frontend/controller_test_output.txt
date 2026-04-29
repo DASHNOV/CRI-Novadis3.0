@@ -1,0 +1,172 @@
+﻿00:00 +0: loading C:/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0/frontend/test/controllers/cri_controllers_test.dart
+00:00 +0: CriProjetFormNotifier initial state has no current CRI
+00:00 +1: CriProjetFormNotifier initNewForm creates a new CRI with default values
+00:00 +1 -1: CriProjetFormNotifier initNewForm creates a new CRI with default values [E]
+  NoSuchMethodError: Class 'FakeCriRemoteRepository' has no instance method 'getTechnicians' with matching arguments.
+  Receiver: Instance of 'FakeCriRemoteRepository'
+  Tried calling: getTechnicians()
+  Found: getTechnicians() => Future<List<String>>
+  dart:core                                                                           Object.noSuchMethod
+  test\controllers\cri_controllers_test.dart 29:56                                    FakeCriRemoteRepository.noSuchMethod
+  test\controllers\cri_controllers_test.dart 22:7                                     FakeCriRemoteRepository.getTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 68:43  CriProjetFormNotifier.loadTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 60:16                                    main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                                          Future._asyncCompleteError
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 60:16                                    main.<fn>.<fn>
+  
+00:00 +1 -1: CriProjetFormNotifier updateGeneralInfo updates the state and marks as dirty
+00:00 +1 -2: CriProjetFormNotifier updateGeneralInfo updates the state and marks as dirty [E]
+  NoSuchMethodError: Class 'FakeCriRemoteRepository' has no instance method 'getTechnicians' with matching arguments.
+  Receiver: Instance of 'FakeCriRemoteRepository'
+  Tried calling: getTechnicians()
+  Found: getTechnicians() => Future<List<String>>
+  dart:core                                                                           Object.noSuchMethod
+  test\controllers\cri_controllers_test.dart 29:56                                    FakeCriRemoteRepository.noSuchMethod
+  test\controllers\cri_controllers_test.dart 22:7                                     FakeCriRemoteRepository.getTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 68:43  CriProjetFormNotifier.loadTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 70:16                                    main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                                          Future._asyncCompleteError
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 70:16                                    main.<fn>.<fn>
+  
+00:00 +1 -2: CriProjetFormNotifier updateClientInfo updates client fields
+00:00 +1 -3: CriProjetFormNotifier updateClientInfo updates client fields [E]
+  NoSuchMethodError: Class 'FakeCriRemoteRepository' has no instance method 'getTechnicians' with matching arguments.
+  Receiver: Instance of 'FakeCriRemoteRepository'
+  Tried calling: getTechnicians()
+  Found: getTechnicians() => Future<List<String>>
+  dart:core                                                                           Object.noSuchMethod
+  test\controllers\cri_controllers_test.dart 29:56                                    FakeCriRemoteRepository.noSuchMethod
+  test\controllers\cri_controllers_test.dart 22:7                                     FakeCriRemoteRepository.getTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 68:43  CriProjetFormNotifier.loadTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 81:16                                    main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                                          Future._asyncCompleteError
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 81:16                                    main.<fn>.<fn>
+  
+00:00 +1 -3: CriProjetFormNotifier updateProjectInfo updates project fields
+00:00 +1 -4: CriProjetFormNotifier updateProjectInfo updates project fields [E]
+  NoSuchMethodError: Class 'FakeCriRemoteRepository' has no instance method 'getTechnicians' with matching arguments.
+  Receiver: Instance of 'FakeCriRemoteRepository'
+  Tried calling: getTechnicians()
+  Found: getTechnicians() => Future<List<String>>
+  dart:core                                                                           Object.noSuchMethod
+  test\controllers\cri_controllers_test.dart 29:56                                    FakeCriRemoteRepository.noSuchMethod
+  test\controllers\cri_controllers_test.dart 22:7                                     FakeCriRemoteRepository.getTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 68:43  CriProjetFormNotifier.loadTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 96:16                                    main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                                          Future._asyncCompleteError
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 96:16                                    main.<fn>.<fn>
+  
+00:00 +1 -4: CriProjetFormNotifier updatePhotos updates photo list
+00:00 +1 -5: CriProjetFormNotifier updatePhotos updates photo list [E]
+  NoSuchMethodError: Class 'FakeCriRemoteRepository' has no instance method 'getTechnicians' with matching arguments.
+  Receiver: Instance of 'FakeCriRemoteRepository'
+  Tried calling: getTechnicians()
+  Found: getTechnicians() => Future<List<String>>
+  dart:core                                                                           Object.noSuchMethod
+  test\controllers\cri_controllers_test.dart 29:56                                    FakeCriRemoteRepository.noSuchMethod
+  test\controllers\cri_controllers_test.dart 22:7                                     FakeCriRemoteRepository.getTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 68:43  CriProjetFormNotifier.loadTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 114:16                                   main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                                          Future._asyncCompleteError
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 114:16                                   main.<fn>.<fn>
+  
+00:00 +1 -5: CriProjetFormNotifier updateTechnicianSignature updates signature path
+00:00 +1 -6: CriProjetFormNotifier updateTechnicianSignature updates signature path [E]
+  NoSuchMethodError: Class 'FakeCriRemoteRepository' has no instance method 'getTechnicians' with matching arguments.
+  Receiver: Instance of 'FakeCriRemoteRepository'
+  Tried calling: getTechnicians()
+  Found: getTechnicians() => Future<List<String>>
+  dart:core                                                                           Object.noSuchMethod
+  test\controllers\cri_controllers_test.dart 29:56                                    FakeCriRemoteRepository.noSuchMethod
+  test\controllers\cri_controllers_test.dart 22:7                                     FakeCriRemoteRepository.getTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 68:43  CriProjetFormNotifier.loadTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 123:16                                   main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                                          Future._asyncCompleteError
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 123:16                                   main.<fn>.<fn>
+  
+00:00 +1 -6: CriProjetFormNotifier reset clears all state
+00:00 +1 -7: CriProjetFormNotifier reset clears all state [E]
+  NoSuchMethodError: Class 'FakeCriRemoteRepository' has no instance method 'getTechnicians' with matching arguments.
+  Receiver: Instance of 'FakeCriRemoteRepository'
+  Tried calling: getTechnicians()
+  Found: getTechnicians() => Future<List<String>>
+  dart:core                                                                           Object.noSuchMethod
+  test\controllers\cri_controllers_test.dart 29:56                                    FakeCriRemoteRepository.noSuchMethod
+  test\controllers\cri_controllers_test.dart 22:7                                     FakeCriRemoteRepository.getTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 68:43  CriProjetFormNotifier.loadTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 135:16                                   main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                                          Future._asyncCompleteError
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 135:16                                   main.<fn>.<fn>
+  
+00:00 +1 -7: CriProjetFormNotifier saveDraft sets lastAutoSave and clears isDirty
+00:00 +1 -8: CriProjetFormNotifier saveDraft sets lastAutoSave and clears isDirty [E]
+  NoSuchMethodError: Class 'FakeCriRemoteRepository' has no instance method 'getTechnicians' with matching arguments.
+  Receiver: Instance of 'FakeCriRemoteRepository'
+  Tried calling: getTechnicians()
+  Found: getTechnicians() => Future<List<String>>
+  dart:core                                                                           Object.noSuchMethod
+  test\controllers\cri_controllers_test.dart 29:56                                    FakeCriRemoteRepository.noSuchMethod
+  test\controllers\cri_controllers_test.dart 22:7                                     FakeCriRemoteRepository.getTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 68:43  CriProjetFormNotifier.loadTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 146:16                                   main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                                          Future._asyncCompleteError
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 146:16                                   main.<fn>.<fn>
+  
+00:00 +1 -8: CriProjetFormNotifier submit marks CRI as not draft
+00:00 +1 -9: CriProjetFormNotifier submit marks CRI as not draft [E]
+  NoSuchMethodError: Class 'FakeCriRemoteRepository' has no instance method 'getTechnicians' with matching arguments.
+  Receiver: Instance of 'FakeCriRemoteRepository'
+  Tried calling: getTechnicians()
+  Found: getTechnicians() => Future<List<String>>
+  dart:core                                                                           Object.noSuchMethod
+  test\controllers\cri_controllers_test.dart 29:56                                    FakeCriRemoteRepository.noSuchMethod
+  test\controllers\cri_controllers_test.dart 22:7                                     FakeCriRemoteRepository.getTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 68:43  CriProjetFormNotifier.loadTechnicians
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 160:16                                   main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                                          Future._asyncCompleteError
+  package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart 64:5   CriProjetFormNotifier.initNewForm
+  test\controllers\cri_controllers_test.dart 160:16                                   main.<fn>.<fn>
+  
+  Expected: 'pending'
+    Actual: 'synced'
+     Which: is different.
+            Expected: pending
+              Actual: synced
+                      ^
+             Differ at offset 0
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\controllers\cri_controllers_test.dart 166:7    main.<fn>.<fn>
+  
+00:00 +1 -9: CriServiceFormNotifier initNewForm creates a new CRI Service with default values
+00:00 +2 -9: CriServiceFormNotifier updateGeneralInfo auto-calculates duration
+00:00 +3 -9: CriServiceFormNotifier updateRequestInfo updates priority
+00:00 +4 -9: CriServiceFormNotifier updateFollowUpInfo handles conditional fields
+00:00 +5 -9: Some tests failed.

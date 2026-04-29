@@ -1,14 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:novadis_cri/main.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const NovadisApp());
+    // Inject mock environment variables for tests
+    dotenv.testLoad(fileInput: '''
+API_URL=http://test-api.example.com/api
+''');
+
+    // Build our app wrapped in ProviderScope and trigger a frame.
+    await tester.pumpWidget(const ProviderScope(child: NovadisApp()));
+    await tester.pumpAndSettle();
 
     // Vérifie que l'application démarre sans erreur
-    // On devrait voir l'écran de login par défaut ou au moins le titre de l'app si on cherchait dans le MaterialApp
-    // Pour l'instant, on vérifie juste que le widget se construit.
     expect(find.byType(NovadisApp), findsOneWidget);
   });
 }

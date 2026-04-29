@@ -3,34 +3,39 @@ import 'package:flutter/material.dart';
 
 /// Validateurs personnalisés pour les formulaires CRI
 class CriFormValidators {
-  /// Validateur pour le numéro de commande (CCNNNNN) — optionnel
+  /// Validateur pour le numéro de projet (PRJ-YYYY-NNN)
   static FormFieldValidator<String> projectNumber({String? errorText}) {
     return (value) {
       if (value == null || value.isEmpty) {
-        return null; // Champ optionnel
+        return errorText ?? 'Numéro de projet requis';
       }
 
-      // Pattern: CC09813
-      final regex = RegExp(r'^CC\d{5}$');
+      // Pattern: PRJ-2024-001
+      final regex = RegExp(r'^PRJ-\d{4}-\d{3}$');
       if (!regex.hasMatch(value)) {
-        return errorText ?? 'Format invalide (ex: CC09813)';
+        return errorText ?? 'Format invalide (ex: PRJ-2024-001)';
+      }
+
+      final year = int.tryParse(value.split('-')[1]);
+      if (year == null || year < 2020 || year > 2099) {
+        return errorText ?? 'Année invalide';
       }
 
       return null;
     };
   }
 
-  /// Validateur pour le numéro de commande (CCNNNNN) — optionnel
+  /// Validateur pour le numéro de ticket (TICK-YYYY-NNNNN)
   static FormFieldValidator<String> ticketNumber({String? errorText}) {
     return (value) {
       if (value == null || value.isEmpty) {
-        return null; // Champ optionnel
+        return errorText ?? 'Numéro de ticket requis';
       }
 
-      // Pattern: CC09813
-      final regex = RegExp(r'^CC\d{5}$');
+      // Pattern: TICK-2024-00001
+      final regex = RegExp(r'^TICK-\d{4}-\d{5}$');
       if (!regex.hasMatch(value)) {
-        return errorText ?? 'Format invalide (ex: CC09813)';
+        return errorText ?? 'Format invalide (ex: TICK-2024-00001)';
       }
 
       return null;

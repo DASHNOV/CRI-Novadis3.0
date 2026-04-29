@@ -1,9 +1,39 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart';
 import 'package:novadis_cri/features/cri_form/controllers/cri_service_controller.dart';
 import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
 import 'package:novadis_cri/data/local/tables/cri_service_table.dart';
+import 'package:novadis_cri/data/local/app_database.dart';
+import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
+import 'package:novadis_cri/core/network/dio_provider.dart';
+
+class FakeAppDatabase implements AppDatabase {
+  @override
+  Future<bool> updateCriProjet(dynamic entity) async => true;
+  @override
+  Future<bool> updateCriService(dynamic entity) async => true;
+  
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class FakeCriRemoteRepository implements CriRemoteRepository {
+  @override
+  Future<void> saveCriProjet(dynamic cri) async {
+    throw Exception('Simulated network error');
+  }
+  @override
+  Future<void> saveCriService(dynamic cri) async {
+    throw Exception('Simulated network error');
+  }
+  @override
+  Future<List<String>> getTechnicians() async => [];
+  
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   group('CriProjetFormNotifier', () {
@@ -11,7 +41,13 @@ void main() {
     late CriProjetFormNotifier notifier;
 
     setUp(() {
-      container = ProviderContainer();
+      container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(FakeAppDatabase()),
+          criRemoteRepositoryProvider.overrideWithValue(FakeCriRemoteRepository()),
+          dioProvider.overrideWithValue(Dio()),
+        ],
+      );
       notifier = container.read(criProjetFormProvider.notifier);
     });
 
@@ -142,7 +178,13 @@ void main() {
     late CriServiceFormNotifier notifier;
 
     setUp(() {
-      container = ProviderContainer();
+      container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(FakeAppDatabase()),
+          criRemoteRepositoryProvider.overrideWithValue(FakeCriRemoteRepository()),
+          dioProvider.overrideWithValue(Dio()),
+        ],
+      );
       notifier = container.read(criServiceFormProvider.notifier);
     });
 

@@ -90,12 +90,18 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     String? ticketNumber,
   }) {
     if (state.currentCri == null) return;
+
+    final newStart = startTime ?? state.currentCri!.startTime;
+    final newEnd = endTime ?? state.currentCri!.endTime;
+    final duration = CriServiceModel.calculateDuration(newStart, newEnd);
+
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         interventionDate: interventionDate,
         startTime: startTime,
         endTime: endTime,
         ticketNumber: ticketNumber,
+        interventionDurationMinutes: duration,
       ),
       isDirty: true,
     );
