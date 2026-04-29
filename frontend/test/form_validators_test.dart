@@ -33,6 +33,31 @@ void main() {
       });
     });
 
+    group('commandeNumber', () {
+      test('returns null for valid commande numbers', () {
+        final validator = CriFormValidators.commandeNumber();
+        expect(validator('CC09813'), isNull);
+        expect(validator('CC1234'), isNull);
+        expect(validator('CC123456'), isNull);
+      });
+
+      test('returns null for empty value (optional field)', () {
+        final validator = CriFormValidators.commandeNumber();
+        expect(validator(''), isNull);
+        expect(validator(null), isNull);
+      });
+
+      test('returns error for invalid format', () {
+        final validator = CriFormValidators.commandeNumber();
+        expect(validator('cc09813'), isNotNull);
+        expect(validator('CC'), isNotNull);
+        expect(validator('CC123'), isNotNull);
+        expect(validator('CC1234567'), isNotNull);
+        expect(validator('09813'), isNotNull);
+        expect(validator('CC-09813'), isNotNull);
+      });
+    });
+
     group('ticketNumber', () {
       test('returns null for valid ticket number', () {
         final validator = CriFormValidators.ticketNumber();

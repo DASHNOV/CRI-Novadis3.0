@@ -779,7 +779,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
                       ),
                     ),
                   ),
-                  validator: CriFormValidators.projectNumber(),
+                  validator: CriFormValidators.commandeNumber(),
                   onChanged: (value) {
                     ref
                         .read(criProjetFormProvider.notifier)

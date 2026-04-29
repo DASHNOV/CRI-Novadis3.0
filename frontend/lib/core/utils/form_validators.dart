@@ -25,6 +25,23 @@ class CriFormValidators {
     };
   }
 
+  /// Validateur pour le numéro de commande (CCNNNN)
+  static FormFieldValidator<String> commandeNumber({String? errorText}) {
+    return (value) {
+      if (value == null || value.isEmpty) {
+        return null; // Optionnel
+      }
+
+      // Pattern: CC suivi de 4 à 6 chiffres (ex: CC09813)
+      final regex = RegExp(r'^CC\d{4,6}$');
+      if (!regex.hasMatch(value)) {
+        return errorText ?? 'Format invalide (ex: CC09813)';
+      }
+
+      return null;
+    };
+  }
+
   /// Validateur pour le numéro de ticket (TICK-YYYY-NNNNN)
   static FormFieldValidator<String> ticketNumber({String? errorText}) {
     return (value) {

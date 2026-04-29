@@ -316,10 +316,14 @@ mixin PdfBuilderCommon {
               ]),
               pw.SizedBox(height: 6),
 
-              // ─── Type + Commande + Logiciel ───
+              // ─── Commande + Logiciel ───
               _buildTableSection([
                 _buildRow([
-                  _buildCell('Commande n°', cri.projectNumber, flex: 2),
+                  _buildCell(
+                    'Commande n°',
+                    cri.projectNumber.startsWith('CC') ? cri.projectNumber : '',
+                    flex: 2,
+                  ),
                   pw.Expanded(
                     flex: 2,
                     child: pw.Container(
@@ -331,15 +335,6 @@ mixin PdfBuilderCommon {
                     ),
                   ),
                 ]),
-              ]),
-              pw.SizedBox(height: 6),
-
-              // ─── Motif Intervention ───
-              _buildTableSection([
-                _buildLabelValueBlock(
-                  'Motif Intervention :',
-                  cri.projectName.isNotEmpty ? cri.projectName : 'Intervention projet',
-                ),
               ]),
               pw.SizedBox(height: 6),
 

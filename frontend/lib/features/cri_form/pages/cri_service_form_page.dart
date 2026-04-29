@@ -512,7 +512,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                 ),
               ),
             ),
-            validator: CriFormValidators.ticketNumber(),
+            validator: CriFormValidators.commandeNumber(),
             onChanged: (value) {
               ref
                   .read(criServiceFormProvider.notifier)
