@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -71,9 +72,30 @@ class HistoryScreen extends HookConsumerWidget {
     final db = ref.watch(appDatabaseProvider);
     final criList = ref.watch(historyListProvider);
     final remoteRepo = ref.watch(criRemoteRepositoryProvider);
+    final servicesAsync = ref.watch(criServicesStreamProvider);
+    final projectsAsync = ref.watch(criProjectsStreamProvider);
     final isLoading =
-        ref.watch(criServicesStreamProvider).isLoading &&
-        ref.watch(criProjectsStreamProvider).isLoading;
+        servicesAsync.isLoading && projectsAsync.isLoading;
+    final hasData = servicesAsync.hasValue || projectsAsync.hasValue;
+
+    // Auto-sync depuis l'API au premier chargement si la BDD locale est vide
+    useEffect(() {
+      if (hasData && criList.isEmpty) {
+        Future.microtask(() async {
+          try {
+            final remoteCris = await remoteRepo.getAllCris();
+            for (var cri in remoteCris) {
+              if (cri is CriServiceModel) {
+                await db.updateCriService(cri.toDb());
+              } else if (cri is CriProjetModel) {
+                await db.updateCriProjet(cri.toDb());
+              }
+            }
+          } catch (_) {}
+        });
+      }
+      return null;
+    }, [hasData]);
 
     Future<void> handleRefresh() async {
       try {
