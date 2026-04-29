@@ -89,7 +89,8 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
           _isLoading = false;
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Error loading global history: $e\n$stackTrace');
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -111,8 +112,20 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
   /// créés sur cette installation.
   Future<List<Map<String, dynamic>>> _loadLocalDrafts() async {
     final db = ref.read(appDatabaseProvider);
-    final services = await db.getAllCriService();
-    final projets = await db.getAllCriProjet();
+    
+    List<CriService> services = [];
+    try {
+      services = await db.getAllCriService();
+    } catch (e) {
+      debugPrint('Error loading local service drafts: $e');
+    }
+
+    List<CriProjet> projets = [];
+    try {
+      projets = await db.getAllCriProjet();
+    } catch (e) {
+      debugPrint('Error loading local projet drafts: $e');
+    }
 
     final drafts = <Map<String, dynamic>>[];
 
