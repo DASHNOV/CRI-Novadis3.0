@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import 'package:novadis_cri/models/personal_stats.dart';
-import 'package:novadis_cri/models/monthly_activity.dart';
+import 'package:novadis_cri/models/daily_activity.dart';
 import 'package:novadis_cri/services/stats_api_service.dart';
 import 'package:novadis_cri/features/cri_form/pages/cri_projet_form_page.dart';
 import 'package:novadis_cri/features/cri_form/pages/cri_service_form_page.dart';
@@ -20,7 +20,6 @@ import 'package:shimmer/shimmer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:novadis_cri/core/theme/theme_provider.dart';
-import 'package:fl_chart/fl_chart.dart';
 
 class PersonalHomeScreen extends ConsumerStatefulWidget {
   const PersonalHomeScreen({super.key});
@@ -33,7 +32,8 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
   PersonalStats _stats = PersonalStats.empty();
   List<Map<String, dynamic>> _recentCris = [];
   List<Map<String, dynamic>> _draftCris = [];
-  List<MonthlyActivity> _monthlyActivity = [];
+  List<DailyActivity> _dailyActivity = [];
+  int _selectedYear = DateTime.now().year;
   bool _isLoading = true;
   bool _isOnline = true;
 
@@ -70,8 +70,12 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
         statsService.getPersonalStats(),
         statsService.getRecentPersonalCRIs(),
         statsService.getPersonalCRIs(filter: 'in_progress'),
-        statsService.getPersonalMonthlyStats(),
       ]);
+
+      List<DailyActivity> daily = [];
+      try {
+        daily = await statsService.getPersonalDailyStats(year: _selectedYear);
+      } catch (_) {}
 
       if (mounted) {
         setState(() {
@@ -79,12 +83,22 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
           _recentCris = results[1] as List<Map<String, dynamic>>;
           final allDrafts = results[2] as List<Map<String, dynamic>>;
           _draftCris = allDrafts.take(3).toList();
-          _monthlyActivity = results[3] as List<MonthlyActivity>;
+          _dailyActivity = daily;
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadDailyStats(int year) async {
+    final statsService = ref.read(statsApiServiceProvider);
+    try {
+      final daily = await statsService.getPersonalDailyStats(year: year);
+      if (mounted) setState(() { _dailyActivity = daily; _selectedYear = year; });
+    } catch (_) {
+      if (mounted) setState(() => _selectedYear = year);
     }
   }
 
@@ -116,9 +130,9 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
                   _isLoading ? _buildStatsShimmer() : _buildStatsRow(),
                   const Gap(AppTheme.space24),
 
-                  // Sparkline activité mensuelle
-                  if (!_isLoading && _monthlyActivity.isNotEmpty) ...[
-                    _buildSparklineSection(),
+                  // Heatmap activité annuelle (style GitHub)
+                  if (!_isLoading) ...[
+                    _buildHeatmapSection(),
                     const Gap(AppTheme.space24),
                   ],
 
@@ -444,11 +458,57 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
     );
   }
 
-  // ─── Sparkline ───
+  // ─── Heatmap annuelle (style GitHub) ───
 
-  Widget _buildSparklineSection() {
-    final maxNb = _monthlyActivity.map((m) => m.nb).fold(0, (a, b) => a > b ? a : b);
-    final hasData = maxNb > 0;
+  static const _cellSize = 11.0;
+  static const _cellGap = 3.0;
+  static const _cellStep = _cellSize + _cellGap;
+
+  Color _heatColor(int nb) {
+    if (nb == 0) return AppTheme.border.withValues(alpha: 0.6);
+    if (nb == 1) return AppTheme.primaryContent.withValues(alpha: 0.25);
+    if (nb == 2) return AppTheme.primaryContent.withValues(alpha: 0.50);
+    if (nb == 3) return AppTheme.primaryContent.withValues(alpha: 0.75);
+    return AppTheme.primaryContent;
+  }
+
+  Widget _buildHeatmapSection() {
+    final lookup = <String, int>{};
+    for (final d in _dailyActivity) {
+      lookup[DateFormat('yyyy-MM-dd').format(d.jour)] = d.nb;
+    }
+
+    final today = DateTime.now();
+    final isCurrentYear = _selectedYear == today.year;
+    final lastDay = isCurrentYear ? today : DateTime(_selectedYear, 12, 31);
+    final yearStart = isCurrentYear
+        ? today.subtract(const Duration(days: 364))
+        : DateTime(_selectedYear, 1, 1);
+    final startDay = yearStart.subtract(Duration(days: (yearStart.weekday - 1) % 7));
+
+    final numWeeks = ((lastDay.difference(startDay).inDays + 1) / 7).ceil();
+
+    final weeks = <List<DateTime>>[];
+    for (var w = 0; w < numWeeks; w++) {
+      final week = <DateTime>[];
+      for (var d = 0; d < 7; d++) {
+        week.add(startDay.add(Duration(days: w * 7 + d)));
+      }
+      weeks.add(week);
+    }
+
+    final monthLabels = <MapEntry<int, String>>[];
+    for (var w = 0; w < weeks.length; w++) {
+      for (final day in weeks[w]) {
+        if (day.day == 1 && !day.isAfter(lastDay)) {
+          monthLabels.add(MapEntry(w, DateFormat('MMM', 'fr_FR').format(day)));
+          break;
+        }
+      }
+    }
+
+    final gridWidth = numWeeks * _cellStep + 18;
+    final availableYears = List.generate(3, (i) => today.year - i);
 
     return Container(
       padding: const EdgeInsets.all(AppTheme.space20),
@@ -461,90 +521,187 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Activité (6 derniers mois)',
-                style: GoogleFonts.inter(
-                  color: AppTheme.textPrimary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                'CRI créés',
-                style: GoogleFonts.inter(
-                  color: AppTheme.textTertiary,
-                  fontSize: 12,
-                ),
-              ),
-            ],
+          Text(
+            'Activité $_selectedYear',
+            style: GoogleFonts.inter(
+              color: AppTheme.textPrimary,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          const Gap(AppTheme.space16),
-          SizedBox(
-            height: 80,
-            child: hasData
-                ? LineChart(
-                    LineChartData(
-                      gridData: const FlGridData(show: false),
-                      titlesData: FlTitlesData(
-                        leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 22,
-                            getTitlesWidget: (value, meta) {
-                              final idx = value.toInt();
-                              if (idx < 0 || idx >= _monthlyActivity.length) {
-                                return const SizedBox.shrink();
-                              }
-                              final m = _monthlyActivity[idx];
-                              return Text(
-                                DateFormat('MMM', 'fr_FR')
-                                    .format(DateTime(m.annee, m.mois))
-                                    .substring(0, 3),
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  color: AppTheme.textTertiary,
+          const Gap(AppTheme.space12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Heatmap ──
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Labels de mois
+                      SizedBox(
+                        height: 16,
+                        width: gridWidth,
+                        child: Stack(
+                          children: [
+                            for (final entry in monthLabels)
+                              Positioned(
+                                left: 18 + entry.key * _cellStep,
+                                child: Text(
+                                  entry.value,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: AppTheme.textTertiary,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const Gap(4),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Labels jours
+                          Column(
+                            children: List.generate(7, (i) {
+                              const labels = ['L', '', 'M', '', 'J', '', 'S'];
+                              return SizedBox(
+                                height: _cellStep,
+                                width: 14,
+                                child: Text(
+                                  labels[i],
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    color: AppTheme.textTertiary,
+                                  ),
                                 ),
                               );
-                            },
+                            }),
                           ),
-                        ),
-                      ),
-                      borderData: FlBorderData(show: false),
-                      lineBarsData: [
-                        LineChartBarData(
-                          spots: _monthlyActivity
-                              .asMap()
-                              .entries
-                              .map((e) => FlSpot(e.key.toDouble(), e.value.nb.toDouble()))
-                              .toList(),
-                          isCurved: true,
-                          color: AppTheme.primaryContent,
-                          barWidth: 2.5,
-                          dotData: const FlDotData(show: false),
-                          belowBarData: BarAreaData(
-                            show: true,
-                            color: AppTheme.primaryContent.withValues(alpha: 0.08),
+                          const Gap(4),
+                          // Cellules
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: weeks.map((week) {
+                              return Padding(
+                                padding: const EdgeInsets.only(right: _cellGap),
+                                child: Column(
+                                  children: week.map((day) {
+                                    final key = DateFormat('yyyy-MM-dd').format(day);
+                                    final nb = lookup[key] ?? 0;
+                                    final isFuture = day.isAfter(lastDay);
+                                    final isOutOfRange = day.isBefore(yearStart);
+                                    if (isFuture || isOutOfRange) {
+                                      return const SizedBox(
+                                        width: _cellSize,
+                                        height: _cellSize + _cellGap,
+                                      );
+                                    }
+                                    final tooltipMsg = nb == 0
+                                        ? 'Aucun CRI — ${DateFormat('d MMM yyyy', 'fr_FR').format(day)}'
+                                        : '$nb CRI — ${DateFormat('d MMM yyyy', 'fr_FR').format(day)}';
+                                    return Tooltip(
+                                      message: tooltipMsg,
+                                      preferBelow: false,
+                                      waitDuration: Duration.zero,
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.textPrimary.withValues(alpha: 0.92),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      textStyle: GoogleFonts.inter(
+                                        color: AppTheme.surface,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      child: Container(
+                                        width: _cellSize,
+                                        height: _cellSize,
+                                        margin: const EdgeInsets.only(bottom: _cellGap),
+                                        decoration: BoxDecoration(
+                                          color: _heatColor(nb),
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              );
+                            }).toList(),
                           ),
-                        ),
-                      ],
-                      minY: 0,
-                    ),
-                  )
-                : Center(
-                    child: Text(
-                      'Aucune activité sur cette période',
-                      style: GoogleFonts.inter(
-                        color: AppTheme.textTertiary,
-                        fontSize: 13,
+                        ],
                       ),
-                    ),
+                      const Gap(AppTheme.space8),
+                      // Légende
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text('Moins',
+                              style: GoogleFonts.inter(
+                                  fontSize: 10, color: AppTheme.textTertiary)),
+                          const Gap(4),
+                          for (final level in [0, 1, 2, 3, 4])
+                            Container(
+                              width: _cellSize,
+                              height: _cellSize,
+                              margin: const EdgeInsets.only(left: 3),
+                              decoration: BoxDecoration(
+                                color: _heatColor(level),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          const Gap(4),
+                          Text('Plus',
+                              style: GoogleFonts.inter(
+                                  fontSize: 10, color: AppTheme.textTertiary)),
+                        ],
+                      ),
+                    ],
                   ),
+                ),
+              ),
+              const Gap(AppTheme.space12),
+              // ── Sélecteur d'année ──
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: availableYears.map((year) {
+                  final isSelected = year == _selectedYear;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: GestureDetector(
+                      onTap: isSelected ? null : () => _loadDailyStats(year),
+                      child: AnimatedContainer(
+                        duration: AppTheme.animFast,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppTheme.primaryContent
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppTheme.primaryContent
+                                : AppTheme.border,
+                          ),
+                        ),
+                        child: Text(
+                          '$year',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isSelected
+                                ? AppTheme.surface
+                                : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
         ],
       ),

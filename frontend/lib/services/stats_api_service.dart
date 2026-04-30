@@ -53,6 +53,21 @@ class StatsApiService {
     }
   }
 
+  /// Récupère l'activité journalière personnelle pour heatmap
+  /// [year] : année spécifique (Jan→Déc), ou null pour les 365 derniers jours
+  Future<List<DailyActivity>> getPersonalDailyStats({int? year}) async {
+    try {
+      final params = year != null ? {'year': year} : <String, dynamic>{};
+      final response = await _dio.get('/personal/daily-stats', queryParameters: params);
+      final data = response.data['data'] as List;
+      return data
+          .map((item) => DailyActivity.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// Récupère l'activité mensuelle personnelle (6 derniers mois) pour sparkline
   Future<List<MonthlyActivity>> getPersonalMonthlyStats() async {
     try {

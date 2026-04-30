@@ -158,6 +158,59 @@ namespace NovadisApi.Controllers
         }
 
         /// <summary>
+        /// 📅 GET /api/personal/daily-stats - Activité journalière sur les 365 derniers jours
+        /// </summary>
+        [HttpGet("daily-stats")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<object>>>> GetDailyStats([FromQuery] int? year = null)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<IEnumerable<object>>.ErrorResponse("Utilisateur non identifié"));
+
+            try
+            {
+                var today = DateTime.UtcNow.Date;
+                DateTime startDate;
+                DateTime endDate;
+
+                if (year.HasValue && year.Value != today.Year)
+                {
+                    startDate = new DateTime(year.Value, 1, 1);
+                    endDate = new DateTime(year.Value, 12, 31);
+                }
+                else
+                {
+                    endDate = today;
+                    startDate = today.AddDays(-364);
+                }
+
+                var dailyCounts = await _context.CRIForms
+                    .Where(c => c.TechnicianId == userId && c.CreatedAt >= startDate && c.CreatedAt <= endDate.AddDays(1))
+                    .GroupBy(c => c.CreatedAt.Date)
+                    .Select(g => new { jour = g.Key, nb = g.Count() })
+                    .ToListAsync();
+
+                var lookup = dailyCounts.ToDictionary(d => d.jour, d => d.nb);
+                var totalDays = (endDate - startDate).Days + 1;
+
+                var result = Enumerable.Range(0, totalDays)
+                    .Select(i => {
+                        var d = startDate.AddDays(i);
+                        return new { jour = d.ToString("yyyy-MM-dd"), nb = lookup.TryGetValue(d, out var nb) ? nb : 0 };
+                    })
+                    .ToList();
+
+                return Ok(ApiResponse<IEnumerable<object>>.SuccessResponse(result.Cast<object>()));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving daily stats for user {UserId}", userId);
+                return StatusCode(500, ApiResponse<IEnumerable<object>>.ErrorResponse(
+                    "Erreur lors de la récupération des statistiques journalières."));
+            }
+        }
+
+        /// <summary>
         /// 📈 GET /api/personal/monthly-stats - Activité mensuelle sur les 6 derniers mois
         /// </summary>
         [HttpGet("monthly-stats")]
