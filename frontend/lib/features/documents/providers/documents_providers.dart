@@ -32,9 +32,10 @@ class CriReportModel {
 final availableReportsProvider = FutureProvider<List<CriReportModel>>((
   ref,
 ) async {
-  final database = ref.watch(databaseProvider);
-  final localStorage = LocalStorageService();
-  final remoteRepo = ref.watch(criRemoteRepositoryProvider);
+  try {
+    final database = ref.watch(databaseProvider);
+    final localStorage = LocalStorageService();
+    final remoteRepo = ref.watch(criRemoteRepositoryProvider);
 
   // CRI récupérés directement depuis le serveur (fallback si DB locale indisponible)
   final List<CriReportModel> serverReports = [];
@@ -151,6 +152,10 @@ final availableReportsProvider = FutureProvider<List<CriReportModel>>((
 
   allReports.sort((a, b) => b.date.compareTo(a.date));
   return allReports;
+  } catch (e, stack) {
+    debugPrint('[availableReportsProvider] Erreur inattendue: $e\n$stack');
+    return [];
+  }
 });
 
 /// Provider pour les documents groupés par date
