@@ -1,13 +1,15 @@
+import 'dart:convert';
+import 'dart:io' show File;
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novadis_cri/core/network/dio_provider.dart';
+import 'package:novadis_cri/data/models/cri_photo_model.dart';
 import 'package:novadis_cri/data/models/cri_projet_model.dart';
 import 'package:novadis_cri/data/models/cri_service_model.dart';
 import 'package:novadis_cri/data/models/site_model.dart';
 import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
 import 'package:novadis_cri/data/local/tables/cri_service_table.dart';
-import 'dart:convert';
 
 final criRemoteRepositoryProvider = Provider<CriRemoteRepository>((ref) {
   return CriRemoteRepository(ref.read(dioProvider));
@@ -192,6 +194,57 @@ class CriRemoteRepository {
       }
     }
     return 'Erreur de communication avec le serveur';
+  }
+
+  /// Upload des photos vers le serveur après soumission d'un CRI (mobile uniquement).
+  Future<void> uploadPhotos(String criId, List<String> localPaths) async {
+    if (kIsWeb) return;
+
+    final formData = FormData();
+    for (final path in localPaths) {
+      if (path.isEmpty) continue;
+      final file = File(path);
+      if (!await file.exists()) continue;
+      final mime = _getMimeType(path);
+      formData.files.add(MapEntry(
+        'files',
+        await MultipartFile.fromFile(path,
+            filename: path.split('/').last,
+            contentType: DioMediaType.parse(mime)),
+      ));
+    }
+    if (formData.files.isEmpty) return;
+
+    await _dio.post(
+      '/CRI/$criId/photos',
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+  }
+
+  String _getMimeType(String path) {
+    final ext = path.split('.').last.toLowerCase();
+    return switch (ext) {
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      _ => 'image/jpeg',
+    };
+  }
+
+  /// Récupère les photos serveur d'un CRI.
+  Future<List<CriPhotoModel>> fetchCriPhotos(String criId) async {
+    try {
+      final response = await _dio.get('/CRI/$criId');
+      final data = response.data['data'] as Map<String, dynamic>?;
+      if (data == null) return [];
+      final List<dynamic> photos = data['photos'] ?? [];
+      return photos
+          .map((p) => CriPhotoModel.fromJson(p as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint('Erreur récupération photos CRI: $e');
+      return [];
+    }
   }
 
   Future<List<String>> searchClients(String query) async {

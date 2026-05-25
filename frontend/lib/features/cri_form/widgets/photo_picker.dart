@@ -361,12 +361,20 @@ class _AddPhotoButton extends StatelessWidget {
   }
 }
 
-/// Écran de visualisation d'une photo
+/// Écran de visualisation d'une photo (locale ou réseau)
 class PhotoViewScreen extends StatelessWidget {
   final String photoPath;
   final VoidCallback? onDelete;
+  final bool isNetworkImage;
+  final String? authToken;
 
-  const PhotoViewScreen({super.key, required this.photoPath, this.onDelete});
+  const PhotoViewScreen({
+    super.key,
+    required this.photoPath,
+    this.onDelete,
+    this.isNetworkImage = false,
+    this.authToken,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -411,10 +419,13 @@ class PhotoViewScreen extends StatelessWidget {
         child: InteractiveViewer(
           minScale: 0.5,
           maxScale: 4.0,
-          child: kIsWeb
+          child: kIsWeb || isNetworkImage
             ? Image.network(
                 photoPath,
                 fit: BoxFit.contain,
+                headers: isNetworkImage && authToken != null
+                    ? {'Authorization': 'Bearer $authToken'}
+                    : const {},
                 errorBuilder: (context, error, stackTrace) => const Center(
                   child: Icon(Icons.broken_image, size: 64, color: Colors.white54),
                 ),

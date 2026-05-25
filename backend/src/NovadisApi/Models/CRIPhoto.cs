@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace NovadisApi.Models
 {
@@ -14,6 +15,7 @@ namespace NovadisApi.Models
 
         [Required]
         [MaxLength(500)]
+        [JsonIgnore]
         public string StoragePath { get; set; } = string.Empty;
 
         [MaxLength(255)]

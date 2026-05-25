@@ -255,6 +255,7 @@ builder.Services.AddSwaggerGen(c =>
 // ========================================
 var logsDir = Path.Combine(Directory.GetCurrentDirectory(), "logs");
 Directory.CreateDirectory(logsDir);
+Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "uploads", "cri-photos"));
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -360,8 +361,9 @@ if (app.Environment.IsProduction())
 // ✅ Activer CORS (AVANT UseAuthorization)
 app.UseCors("AllowMobileApp");
 
-// Rate limiting (après CORS, avant Auth)
-app.UseRateLimiter();
+// Rate limiting (après CORS, avant Auth) — désactivé en Test pour ne pas bloquer les tests
+if (!app.Environment.IsEnvironment("Test"))
+    app.UseRateLimiter();
 
 // Authentication & Authorization
 app.UseAuthentication();
@@ -400,6 +402,7 @@ if (app.Environment.IsDevelopment())
 // ========================================
 // 🔟 IMPORT DES SITES CSV (au démarrage)
 // ========================================
+if (!app.Environment.IsEnvironment("Test"))
 {
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<NovadisDbContext>();
@@ -498,3 +501,5 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+public partial class Program {}

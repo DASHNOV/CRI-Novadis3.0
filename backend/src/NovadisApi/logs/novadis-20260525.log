@@ -1,0 +1,11 @@
+[2026-05-25 08:28:58.379 +02:00 INF] Application is shutting down... {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-05-25 08:29:49.081 +02:00 INF] Skipping automatic migrations (already handled manually)... {"SourceContext":"NovadisApi","Application":"NovadisApi","Environment":"Development"}
+[2026-05-25 08:29:50.820 +02:00 INF] Sites table already contains 846 entries, skipping import {"SourceContext":"Program","Application":"NovadisApi","Environment":"Development"}
+[2026-05-25 08:29:50.838 +02:00 INF] Novadis CRI API starting... {"SourceContext":"NovadisApi","Application":"NovadisApi","Environment":"Development"}
+[2026-05-25 08:29:50.842 +02:00 INF] Environment: Development {"SourceContext":"NovadisApi","Application":"NovadisApi"}
+[2026-05-25 08:29:51.097 +02:00 INF] Now listening on: http://0.0.0.0:5200 {"EventId":{"Id":14,"Name":"ListeningOnAddress"},"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-05-25 08:29:51.101 +02:00 INF] Application started. Press Ctrl+C to shut down. {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-05-25 08:29:51.104 +02:00 INF] Hosting environment: Development {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-05-25 08:29:51.106 +02:00 INF] Content root path: C:\Users\rdenimal\Documents\App_Novadis\CRI_Novadis\CRI_Novadis2.0\backend\src\NovadisApi {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-05-25 08:31:51.140 +02:00 INF] Purge RGPD : 0 AuditLogs, 0 AuthAttempts, 24 UserTokens supprimés {"SourceContext":"NovadisApi.Services.Maintenance.DataRetentionService","Application":"NovadisApi","Environment":"Development"}
+[2026-05-25 10:21:38.698 +02:00 INF] Application is shutting down... {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}

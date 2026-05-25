@@ -306,6 +306,11 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
       // 2. Push distant
       try {
         await _remoteRepo.saveCriProjet(submittedCri);
+        if (submittedCri.photos.isNotEmpty) {
+          try {
+            await _remoteRepo.uploadPhotos(submittedCri.id, submittedCri.photos);
+          } catch (_) {}
+        }
         submittedCri = submittedCri.copyWith(syncStatus: 'synced');
         await _db.updateCriProjet(submittedCri.toDb());
       } catch (e) {

@@ -16,11 +16,22 @@ namespace NovadisApi.Controllers
     {
         private readonly NovadisDbContext _context;
         private readonly ILogger<CRIController> _logger;
+        private readonly IWebHostEnvironment _env;
 
-        public CRIController(NovadisDbContext context, ILogger<CRIController> logger)
+        private static readonly string[] AllowedMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+        public CRIController(NovadisDbContext context, ILogger<CRIController> logger, IWebHostEnvironment env)
         {
             _context = context;
             _logger = logger;
+            _env = env;
+        }
+
+        private string GetPhotosDirectory(Guid criId)
+        {
+            var dir = Path.Combine(_env.ContentRootPath, "uploads", "cri-photos", criId.ToString());
+            Directory.CreateDirectory(dir);
+            return dir;
         }
 
         private Guid? GetCurrentUserId()
@@ -288,6 +299,124 @@ namespace NovadisApi.Controllers
                 .ToListAsync();
 
             return Ok(ApiResponse<IEnumerable<string>>.SuccessResponse(sites!));
+        }
+
+        /// <summary>
+        /// POST /api/cri/{id}/photos — Upload de photos (multipart/form-data, champ "files").
+        /// </summary>
+        [HttpPost("{id}/photos")]
+        [Consumes("multipart/form-data")]
+        [RequestSizeLimit(52_428_800)] // 50 MB max
+        public async Task<ActionResult<ApiResponse<List<CRIPhoto>>>> UploadPhotos(Guid id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<List<CRIPhoto>>.ErrorResponse("Utilisateur non identifié"));
+
+            var cri = await _context.CRIForms.FindAsync(id);
+            if (cri == null)
+                return NotFound(ApiResponse<List<CRIPhoto>>.ErrorResponse("CRI introuvable"));
+
+            if (cri.TechnicianId != userId.Value && !User.IsInRole("Admin"))
+                return Forbid();
+
+            var files = Request.Form.Files;
+            if (files.Count == 0)
+                return BadRequest(ApiResponse<List<CRIPhoto>>.ErrorResponse("Aucun fichier fourni"));
+
+            var photosDir = GetPhotosDirectory(id);
+            var created = new List<CRIPhoto>();
+
+            foreach (var file in files)
+            {
+                if (file.Length == 0 || file.Length > 10 * 1024 * 1024) continue;
+
+                var mime = file.ContentType?.ToLower() ?? string.Empty;
+                if (!AllowedMimeTypes.Contains(mime)) continue;
+
+                var ext = mime switch
+                {
+                    "image/png" => ".png",
+                    "image/webp" => ".webp",
+                    _ => ".jpg"
+                };
+
+                var photoId = Guid.NewGuid();
+                var filePath = Path.Combine(photosDir, $"{photoId}{ext}");
+
+                await using (var stream = new FileStream(filePath, FileMode.Create))
+                    await file.CopyToAsync(stream);
+
+                var photo = new CRIPhoto
+                {
+                    Id = photoId,
+                    CRIFormId = id,
+                    StoragePath = filePath,
+                    OriginalFileName = file.FileName,
+                    MimeType = mime,
+                    FileSize = file.Length,
+                    UploadedAt = DateTime.UtcNow
+                };
+
+                _context.CRIPhotos.Add(photo);
+                created.Add(photo);
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(ApiResponse<List<CRIPhoto>>.SuccessResponse(created));
+        }
+
+        /// <summary>
+        /// GET /api/cri/{id}/photos/{photoId} — Sert le fichier image (authentifié).
+        /// </summary>
+        [HttpGet("{id}/photos/{photoId}")]
+        public async Task<IActionResult> GetPhoto(Guid id, Guid photoId)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return Unauthorized();
+
+            var photo = await _context.CRIPhotos
+                .Include(p => p.CRIForm)
+                .FirstOrDefaultAsync(p => p.Id == photoId && p.CRIFormId == id);
+
+            if (photo == null) return NotFound();
+
+            if (photo.CRIForm!.TechnicianId != userId.Value && !User.IsInRole("Admin"))
+                return Forbid();
+
+            if (!System.IO.File.Exists(photo.StoragePath))
+                return NotFound();
+
+            return PhysicalFile(photo.StoragePath, photo.MimeType ?? "image/jpeg");
+        }
+
+        /// <summary>
+        /// DELETE /api/cri/{id}/photos/{photoId} — Supprime une photo (fichier + BDD).
+        /// </summary>
+        [HttpDelete("{id}/photos/{photoId}")]
+        public async Task<ActionResult<ApiResponse<object>>> DeletePhoto(Guid id, Guid photoId)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<object>.ErrorResponse("Utilisateur non identifié"));
+
+            var photo = await _context.CRIPhotos
+                .Include(p => p.CRIForm)
+                .FirstOrDefaultAsync(p => p.Id == photoId && p.CRIFormId == id);
+
+            if (photo == null)
+                return NotFound(ApiResponse<object>.ErrorResponse("Photo introuvable"));
+
+            if (photo.CRIForm!.TechnicianId != userId.Value && !User.IsInRole("Admin"))
+                return Forbid();
+
+            if (System.IO.File.Exists(photo.StoragePath))
+                System.IO.File.Delete(photo.StoragePath);
+
+            _context.CRIPhotos.Remove(photo);
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse<object>.SuccessResponse(null, "Photo supprimée"));
         }
 
         /// <summary>

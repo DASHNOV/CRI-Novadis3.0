@@ -1,0 +1,1 @@
+[2026-05-15 15:18:41.421 +02:00 INF] Purge RGPD : 0 AuditLogs, 0 AuthAttempts, 3 UserTokens supprimés {"SourceContext":"NovadisApi.Services.Maintenance.DataRetentionService","Application":"NovadisApi","Environment":"Development"}

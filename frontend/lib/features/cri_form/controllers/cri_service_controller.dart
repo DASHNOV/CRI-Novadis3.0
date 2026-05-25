@@ -341,6 +341,11 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
       // 2. Push distant
       try {
         await _remoteRepo.saveCriService(submittedCri);
+        if (submittedCri.photos.isNotEmpty) {
+          try {
+            await _remoteRepo.uploadPhotos(submittedCri.id, submittedCri.photos);
+          } catch (_) {}
+        }
         submittedCri = submittedCri.copyWith(syncStatus: 'synced');
         await _db.updateCriService(submittedCri.toDb());
       } catch (e) {

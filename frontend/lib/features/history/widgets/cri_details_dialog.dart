@@ -1,12 +1,18 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:novadis_cri/core/config/api_config.dart';
+import 'package:novadis_cri/core/storage/storage_service.dart';
+import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/data/models/cri_model.dart';
-import 'package:novadis_cri/data/repositories/site_summary_repository.dart';
+import 'package:novadis_cri/data/models/cri_photo_model.dart';
 import 'package:novadis_cri/data/models/site_summary_model.dart';
+import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
+import 'package:novadis_cri/data/repositories/site_summary_repository.dart';
+import 'package:novadis_cri/features/cri_form/widgets/photo_picker.dart';
 import 'package:novadis_cri/features/cri_form/widgets/site_summary_card.dart';
 import 'package:novadis_cri/services/stats_api_service.dart';
-import 'package:novadis_cri/core/theme/app_theme.dart';
 
 class CriDetailsDialog extends ConsumerStatefulWidget {
   final CriModel cri;
@@ -37,8 +43,22 @@ class CriDetailsDialog extends ConsumerStatefulWidget {
 class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
   late String? _clientSignature = widget.initialClientSignature;
   bool _isToggling = false;
+  List<CriPhotoModel> _photos = [];
+  String? _authToken;
 
   CriModel get cri => widget.cri;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPhotoData();
+  }
+
+  Future<void> _loadPhotoData() async {
+    final token = await ref.read(storageServiceProvider).getAccessToken();
+    final photos = await ref.read(criRemoteRepositoryProvider).fetchCriPhotos(cri.id);
+    if (mounted) setState(() { _authToken = token; _photos = photos; });
+  }
 
   bool get _isSigned => _clientSignature != null;
 
@@ -168,6 +188,11 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
                         ],
                       ),
                     ),
+
+                    if (_photos.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      _buildPhotosSection(),
+                    ],
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -267,6 +292,72 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
           child: const Text('Aucun historique serveur pour ce site.'),
         );
       },
+    );
+  }
+
+  Widget _buildPhotosSection() {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'PHOTOS (${_photos.length})',
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: AppTheme.primaryContent,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.1,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 120,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _photos.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final photo = _photos[index];
+              final url = '${ApiConfig.baseUrl}/CRI/${cri.id}/photos/${photo.id}';
+              return GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PhotoViewScreen(
+                      photoPath: url,
+                      isNetworkImage: true,
+                      authToken: _authToken,
+                    ),
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CachedNetworkImage(
+                    imageUrl: url,
+                    httpHeaders: _authToken != null
+                        ? {'Authorization': 'Bearer $_authToken'}
+                        : const {},
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(
+                      width: 120,
+                      height: 120,
+                      color: AppTheme.surfaceVariant,
+                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                    errorWidget: (_, __, ___) => Container(
+                      width: 120,
+                      height: 120,
+                      color: AppTheme.surfaceVariant,
+                      child: Icon(Icons.broken_image, color: AppTheme.textSecondary),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

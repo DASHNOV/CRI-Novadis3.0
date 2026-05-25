@@ -6,9 +6,9 @@ on:
   push:
     branches: [master, dev]
     paths:
-      - 'backend/**'
-      - 'frontend/**'
-      - '.github/workflows/ci-tests.yml'
+      - "backend/**"
+      - "frontend/**"
+      - ".github/workflows/ci-tests.yml"
 
 jobs:
   backend-tests:
@@ -20,7 +20,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: "10.0.x"
 
       - name: Restore
         working-directory: backend
@@ -32,7 +32,7 @@ jobs:
 
       - name: Test
         working-directory: backend
-        run: dotnet test src/NovadisApi.Tests/NovadisApi.Tests.csproj --no-build --configuration Release --logger "trx" --results-directory TestResults --collect:"XPlat Code Coverage"
+        run: dotnet test NovadisApi.slnx --configuration Release --logger "trx" --results-directory TestResults
 
       - name: Upload test results
         if: always()
