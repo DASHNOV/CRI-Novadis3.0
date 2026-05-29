@@ -177,16 +177,16 @@ namespace NovadisApi.Services.Email
                     EnableSsl = true
                 };
 
+                smtpClient.Timeout = 30000;
                 var sendTask = smtpClient.SendMailAsync(mailMessage);
-                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(5)); // Timeout de 5 secondes
+                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(30));
 
                 var completedTask = await Task.WhenAny(sendTask, timeoutTask);
 
                 if (completedTask == timeoutTask)
                 {
-                    _logger.LogWarning("⏳ Email sending timed out after 5s. Proceeding without waiting. (Mocking send)");
-                    // On ne casse pas le flux, on considère que c'est envoyé (pour ne pas bloquer le user)
-                    return; 
+                    _logger.LogWarning("⏳ Email sending timed out after 30s. Proceeding without waiting. (Mocking send)");
+                    return;
                 }
 
                 // Si le sendTask est terminé, on vérifie s'il a levé une exception
