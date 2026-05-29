@@ -19,6 +19,9 @@ using System.Globalization;
 using System.Text;
 using System.Threading.RateLimiting;
 
+// Traite les DateTime sans Kind comme UTC — compatibilité SQL Server → PostgreSQL
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Charger les variables d'environnement depuis le fichier .env (secrets)
@@ -43,12 +46,12 @@ builder.Configuration.AddEnvironmentVariables();
 // 1️⃣ CONFIGURATION DE LA BASE DE DONNÉES
 // ========================================
 builder.Services.AddDbContext<NovadisDbContext>(options =>
-    options.UseSqlServer(
+    options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlOptions => sqlOptions.EnableRetryOnFailure(
+        npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
             maxRetryCount: 3,
             maxRetryDelay: TimeSpan.FromSeconds(5),
-            errorNumbersToAdd: null
+            errorCodesToAdd: null
         )
     )
 );
@@ -376,26 +379,22 @@ app.MapControllers();
 app.MapHealthChecks("/api/health");
 
 // ========================================
-// 9️⃣ MIGRATION AUTOMATIQUE (DEV ONLY)
+// 9️⃣ MIGRATION AUTOMATIQUE
 // ========================================
-if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<NovadisDbContext>();
-    
+
     try
     {
-        app.Logger.LogInformation("Skipping automatic migrations (already handled manually)...");
-        // dbContext.Database.Migrate();
-        // app.Logger.LogInformation("Database migrations applied successfully");
-
-        // Feature "Trusted Device" désactivée : CRI_App_User n'a pas les droits ALTER TABLE.
-        // Pour réactiver : faire appliquer la migration 20260427100000_AddTrustedDeviceToken
-        // par un compte admin (sa/dba), puis retirer [NotMapped] sur UserToken.TrustedDeviceToken.
+        app.Logger.LogInformation("Applying pending database migrations...");
+        dbContext.Database.Migrate();
+        app.Logger.LogInformation("Database migrations applied successfully");
     }
     catch (Exception ex)
     {
         app.Logger.LogError(ex, "An error occurred while migrating the database");
+        throw;
     }
 }
 
@@ -412,22 +411,19 @@ if (!app.Environment.IsEnvironment("Test"))
     {
         // Créer la table Sites si elle n'existe pas
         dbContext.Database.ExecuteSqlRaw(@"
-            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Sites')
-            BEGIN
-                CREATE TABLE Sites (
-                    Numero int NOT NULL PRIMARY KEY,
-                    NomDuSite nvarchar(500) NOT NULL,
-                    Adresse nvarchar(500) NULL,
-                    Ville nvarchar(255) NULL,
-                    CodePostal nvarchar(20) NULL,
-                    Pays nvarchar(100) NULL,
-                    ResponsableDorigine nvarchar(255) NULL,
-                    DateDeCreation datetime2 NULL
-                );
-                CREATE INDEX IX_Sites_NomDuSite ON Sites(NomDuSite);
-                CREATE INDEX IX_Sites_Ville ON Sites(Ville);
-                CREATE INDEX IX_Sites_CodePostal ON Sites(CodePostal);
-            END");
+            CREATE TABLE IF NOT EXISTS ""Sites"" (
+                ""Numero"" integer NOT NULL PRIMARY KEY,
+                ""NomDuSite"" character varying(500) NOT NULL,
+                ""Adresse"" character varying(500) NULL,
+                ""Ville"" character varying(255) NULL,
+                ""CodePostal"" character varying(20) NULL,
+                ""Pays"" character varying(100) NULL,
+                ""ResponsableDorigine"" character varying(255) NULL,
+                ""DateDeCreation"" timestamp with time zone NULL
+            );
+            CREATE INDEX IF NOT EXISTS ""IX_Sites_NomDuSite"" ON ""Sites""(""NomDuSite"");
+            CREATE INDEX IF NOT EXISTS ""IX_Sites_Ville"" ON ""Sites""(""Ville"");
+            CREATE INDEX IF NOT EXISTS ""IX_Sites_CodePostal"" ON ""Sites""(""CodePostal"");");
 
         // Importer le CSV seulement si la table est vide
         var siteCount = dbContext.Sites.Count();

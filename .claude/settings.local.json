@@ -92,7 +92,8 @@
       "Bash(rtk flutter *)",
       "Bash(rtk dotnet *)",
       "Bash(dotnet test *)",
-      "Bash(dotnet restore *)"
+      "Bash(dotnet restore *)",
+      "Bash(rtk ls *)"
     ]
   }
 }

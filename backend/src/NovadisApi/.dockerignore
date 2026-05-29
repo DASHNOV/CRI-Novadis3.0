@@ -1,0 +1,9 @@
+bin/
+obj/
+.env
+.env.*
+logs/
+uploads/
+*.user
+*.suo
+.vs/
