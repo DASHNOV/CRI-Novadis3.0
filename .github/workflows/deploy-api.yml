@@ -6,47 +6,71 @@ on:
     branches:
       - dev
     paths:
-      - 'backend/**'
-      - '.github/workflows/deploy-api.yml'
+      - "backend/**"
+      - "docker-compose.yml"
+      - ".github/workflows/deploy-api.yml"
+
+env:
+  IMAGE_NAME: cri-novadis-api
+  IMAGE_TAG: latest
+  REMOTE_DIR: /opt/cri-novadis
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Build and Publish API
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend/src/NovadisApi
+          tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          outputs: type=docker,dest=/tmp/${{ env.IMAGE_NAME }}.tar
+
+      - name: Configure SSH
         run: |
-          cd backend/src/NovadisApi
-          dotnet publish -c Release -o publish
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to production
+      - name: Transfer image to VPS
         run: |
-          $ErrorActionPreference = 'Stop'
-          $publishPath = "backend\src\NovadisApi\publish"
-          $deployPath = "C:\novadis-api"
+          scp /tmp/${{ env.IMAGE_NAME }}.tar \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/${{ env.IMAGE_NAME }}.tar
 
-          Write-Host "Stopping NovadisApi service..."
-          Stop-Service -Name NovadisApi -Force
+      - name: Transfer docker-compose.yml
+        run: |
+          scp docker-compose.yml \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ env.REMOTE_DIR }}/docker-compose.yml
 
-          Write-Host "Clearing old files..."
-          Get-ChildItem -Path $deployPath -Exclude '.env' -Force | Remove-Item -Recurse -Force
-
-          Write-Host "Copying new files..."
-          Copy-Item -Path "$publishPath\*" -Destination $deployPath -Recurse -Force
-
-          Write-Host "Starting NovadisApi service..."
-          Start-Service -Name NovadisApi
-
-          Write-Host "Deployment completed successfully!"
+      - name: Load image and restart services on VPS
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash <<EOF
+            set -e
+            docker load -i /tmp/${{ env.IMAGE_NAME }}.tar
+            rm /tmp/${{ env.IMAGE_NAME }}.tar
+            cd ${{ env.REMOTE_DIR }}
+            docker compose up -d --remove-orphans
+            docker compose ps
+          EOF
 
       - name: Smoke test
         run: |
-          Start-Sleep -Seconds 5
-          $response = Invoke-WebRequest -Uri "http://localhost:5200/api/health/live" -UseBasicParsing
-          if ($response.StatusCode -ne 200) {
-            Write-Error "Smoke test failed: API not responding (status $($response.StatusCode))"
+          sleep 10
+          STATUS=$(ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "curl -s -o /dev/null -w '%{http_code}' http://localhost:5200/api/health/live")
+          if [ "$STATUS" != "200" ]; then
+            echo "Smoke test failed: API returned $STATUS"
             exit 1
-          }
-          Write-Host "Smoke test passed: API is alive"
+          fi
+          echo "Smoke test passed: API is alive (200)"
+
+      - name: Cleanup SSH
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519

@@ -387,9 +387,16 @@ app.MapHealthChecks("/api/health");
 
     try
     {
-        app.Logger.LogInformation("Applying pending database migrations...");
-        dbContext.Database.Migrate();
-        app.Logger.LogInformation("Database migrations applied successfully");
+        if (dbContext.Database.IsRelational())
+        {
+            app.Logger.LogInformation("Applying pending database migrations...");
+            dbContext.Database.Migrate();
+            app.Logger.LogInformation("Database migrations applied successfully");
+        }
+        else
+        {
+            app.Logger.LogInformation("Non-relational provider detected (tests) — skipping migrations");
+        }
     }
     catch (Exception ex)
     {
