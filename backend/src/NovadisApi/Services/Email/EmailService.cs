@@ -1,6 +1,10 @@
 using System.Net;
 using System.Net.Mail;
+using Azure.Identity;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using Microsoft.Graph.Users.Item.SendMail;
 
 namespace NovadisApi.Services.Email
 {
@@ -144,55 +148,46 @@ namespace NovadisApi.Services.Email
                     toEmail = devOverrideEmail;
                 }
 
-                var smtpHost = _configuration["Email:SmtpHost"];
-                if (string.IsNullOrEmpty(smtpHost))
+                var tenantId = _configuration["Email:TenantId"];
+                var clientId = _configuration["Email:ClientId"];
+                var clientSecret = _configuration["Email:ClientSecret"];
+                var fromEmail = _configuration["Email:FromAddress"];
+
+                if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(clientId)
+                    || string.IsNullOrEmpty(clientSecret) || string.IsNullOrEmpty(fromEmail))
                 {
-                    _logger.LogWarning("⚠️ SMTP not configured. Mocking email send to {Email}", toEmail);
+                    _logger.LogWarning("⚠️ Microsoft Graph not configured. Mocking email send to {Email}", toEmail);
                     _logger.LogInformation("📧 Email Subject: {Subject}", subject);
-                    _logger.LogInformation("📝 Email Body: {Body}", htmlBody); 
+                    _logger.LogInformation("📝 Email Body: {Body}", htmlBody);
                     return;
                 }
 
-                var smtpPort = int.Parse(_configuration["Email:SmtpPort"] ?? "587");
-                var smtpUsername = _configuration["Email:Username"] 
-                    ?? throw new InvalidOperationException("SMTP Username not configured");
-                var smtpPassword = _configuration["Email:Password"] 
-                    ?? throw new InvalidOperationException("SMTP Password not configured");
-                var fromEmail = _configuration["Email:FromAddress"] ?? smtpUsername;
-                var fromName = _configuration["Email:FromName"] ?? "Novadis CRI";
+                var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+                var graphClient = new GraphServiceClient(credential, new[] { "https://graph.microsoft.com/.default" });
 
-                using var mailMessage = new MailMessage
+                var message = new Message
                 {
-                    From = new MailAddress(fromEmail, fromName),
                     Subject = subject,
-                    Body = htmlBody,
-                    IsBodyHtml = true
+                    Body = new ItemBody
+                    {
+                        ContentType = BodyType.Html,
+                        Content = htmlBody
+                    },
+                    ToRecipients = new List<Recipient>
+                    {
+                        new Recipient { EmailAddress = new EmailAddress { Address = toEmail } }
+                    }
                 };
 
-                mailMessage.To.Add(toEmail);
-
-                using var smtpClient = new SmtpClient(smtpHost, smtpPort)
+                var sendMailBody = new SendMailPostRequestBody
                 {
-                    Credentials = new NetworkCredential(smtpUsername, smtpPassword),
-                    EnableSsl = true
+                    Message = message,
+                    SaveToSentItems = false
                 };
 
-                smtpClient.Timeout = 30000;
-                var sendTask = smtpClient.SendMailAsync(mailMessage);
-                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(30));
+                await graphClient.Users[fromEmail].SendMail.PostAsync(sendMailBody);
 
-                var completedTask = await Task.WhenAny(sendTask, timeoutTask);
-
-                if (completedTask == timeoutTask)
-                {
-                    _logger.LogWarning("⏳ Email sending timed out after 30s. Proceeding without waiting. (Mocking send)");
-                    return;
-                }
-
-                // Si le sendTask est terminé, on vérifie s'il a levé une exception
-                await sendTask;
-
-                _logger.LogInformation("Email sent successfully to {Email}", toEmail);
+                _logger.LogInformation("Email sent successfully to {Email} via Microsoft Graph", toEmail);
             }
             catch (Exception ex)
             {

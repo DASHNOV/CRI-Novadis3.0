@@ -90,7 +90,7 @@ public sealed class AuthService : IAuthService
             Details = $"Code de connexion envoyé à {user.Email}",
             IpAddress = request.IpAddress
         });
-        await _context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(CancellationToken.None);
 
         _logger.LogInformation("Login code sent successfully to {Email}", request.Email);
         return AuthResult<LoginResponse>.Success(new LoginResponse(codeExpiry));
