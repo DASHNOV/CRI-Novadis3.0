@@ -36,14 +36,13 @@ namespace NovadisApi.Controllers
                 return Ok(ApiResponse<IEnumerable<SiteDto>>.SuccessResponse(new List<SiteDto>()));
             }
 
-            var normalizedQuery = RemoveDiacritics(q.ToLower());
+            var pattern = $"%{RemoveDiacritics(q)}%";
 
-            // Use SQL Server COLLATE for accent-insensitive search
             var sites = await _context.Sites
                 .Where(s =>
-                    EF.Functions.Collate(s.NomDuSite, "Latin1_General_CI_AI").Contains(q) ||
-                    (s.Adresse != null && EF.Functions.Collate(s.Adresse, "Latin1_General_CI_AI").Contains(q)) ||
-                    (s.Ville != null && EF.Functions.Collate(s.Ville, "Latin1_General_CI_AI").Contains(q)) ||
+                    EF.Functions.ILike(NovadisDbContext.Unaccent(s.NomDuSite), pattern) ||
+                    (s.Adresse != null && EF.Functions.ILike(NovadisDbContext.Unaccent(s.Adresse), pattern)) ||
+                    (s.Ville != null && EF.Functions.ILike(NovadisDbContext.Unaccent(s.Ville), pattern)) ||
                     (s.CodePostal != null && s.CodePostal.Contains(q))
                 )
                 .OrderBy(s => s.NomDuSite)

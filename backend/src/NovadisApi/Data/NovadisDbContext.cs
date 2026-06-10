@@ -30,9 +30,16 @@ namespace NovadisApi.Data
         // Historique des documents exportés (PDF/XLSX)
         public DbSet<ExportedDocument> ExportedDocuments { get; set; }
 
+        public static string Unaccent(string input) => throw new NotSupportedException(
+            "NovadisDbContext.Unaccent doit être utilisé dans une requête EF Core (mappé sur la fonction PostgreSQL unaccent).");
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder
+                .HasDbFunction(typeof(NovadisDbContext).GetMethod(nameof(Unaccent), new[] { typeof(string) })!)
+                .HasName("unaccent");
 
             // Configuration User
             modelBuilder.Entity<User>(entity =>
