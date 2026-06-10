@@ -44,8 +44,12 @@ class AuthService {
       final data = response.data['data'];
       await _saveAuthData(email, data);
       return true;
-    } on DioException {
-      // Appareil non reconnu ou token expiré → continuer avec OTP
+    } on DioException catch (e) {
+      // Appareil non reconnu ou session expirée côté serveur → purger le token
+      // local pour éviter de retenter et tomber sur un rate limit (429).
+      if (e.response?.statusCode == 401) {
+        await _storage.clearTrustedDevice();
+      }
       return false;
     }
   }
