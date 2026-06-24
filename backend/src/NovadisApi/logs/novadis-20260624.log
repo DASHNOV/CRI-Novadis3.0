@@ -741,3 +741,64 @@ POSITION: 110
 [2026-06-24 15:02:40.729 +02:00 WRN] HTTP GET /api/users/me → 404 en 1ms {"UserId":"0b740d20-767d-4452-8999-d36f564edb02","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHPHKVK3V6:00000004","ConnectionId":"0HNMHPHKVK3V6","Application":"NovadisApi","Environment":"Development"}
 [2026-06-24 15:03:35.173 +02:00 WRN] HTTP PUT /api/users/me/signature → 404 en 0ms {"UserId":"0b740d20-767d-4452-8999-d36f564edb02","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHPHKVK3V2:00000013","ConnectionId":"0HNMHPHKVK3V2","Application":"NovadisApi","Environment":"Development"}
 [2026-06-24 15:12:09.321 +02:00 INF] Application is shutting down... {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:12:17.708 +02:00 INF] Applying pending database migrations... {"SourceContext":"NovadisApi","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:12:18.012 +02:00 INF] Database migrations applied successfully {"SourceContext":"NovadisApi","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:12:18.191 +02:00 INF] Sites table already contains 8 entries, skipping import {"SourceContext":"Program","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:12:18.196 +02:00 INF] Novadis CRI API starting... {"SourceContext":"NovadisApi","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:12:18.198 +02:00 INF] Environment: Development {"SourceContext":"NovadisApi","Application":"NovadisApi"}
+[2026-06-24 15:12:18.347 +02:00 INF] Now listening on: http://0.0.0.0:5200 {"EventId":{"Id":14,"Name":"ListeningOnAddress"},"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:12:18.350 +02:00 INF] Application started. Press Ctrl+C to shut down. {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:12:18.352 +02:00 INF] Hosting environment: Development {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:12:18.353 +02:00 INF] Content root path: C:\Users\rdenimal\Documents\App_Novadis\CRI_Novadis\CRI_Novadis2.0\backend\src\NovadisApi {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:13:28.375 +02:00 INF] Login attempt for email: rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"55813d8d-92a1-4354-aa01-2215604cdfc6","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHU9GMUSJM:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHU9GMUSJM","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:13:28.742 +02:00 INF] 🔐 [DEV] Code de connexion pour rdenimal@novadis.eu: 215456 {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"55813d8d-92a1-4354-aa01-2215604cdfc6","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHU9GMUSJM:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHU9GMUSJM","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:13:29.074 +02:00 WRN] ⚠️ Microsoft Graph not configured. Mocking email send to rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"55813d8d-92a1-4354-aa01-2215604cdfc6","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHU9GMUSJM:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHU9GMUSJM","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:13:29.082 +02:00 INF] 📧 Email Subject: Code de connexion Novadis CRI {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"55813d8d-92a1-4354-aa01-2215604cdfc6","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHU9GMUSJM:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHU9GMUSJM","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:13:29.088 +02:00 INF] 📝 Email Body: 
+        <html>
+        <body style='font-family: Arial, sans-serif;'>
+            <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                <h2 style='color: #2563eb;'>Connexion à Novadis CRI</h2>
+                <p>Bonjour Rémy,</p>
+                <p>Voici votre code de vérification pour vous connecter :</p>
+                <div style='background: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;'>
+                    <h1 style='color: #1f2937; font-size: 36px; letter-spacing: 8px; margin: 0;'>215456</h1>
+                </div>
+                <p style='color: #6b7280;'>Ce code expire dans 10 minutes.</p>
+                <p style='color: #6b7280; font-size: 12px;'>Si vous n'avez pas demandé ce code, ignorez cet email.</p>
+                <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;'>
+                <p style='color: #9ca3af; font-size: 12px;'>© 2026 Novadis - Tous droits réservés</p>
+            </div>
+        </body>
+        </html> {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"55813d8d-92a1-4354-aa01-2215604cdfc6","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHU9GMUSJM:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHU9GMUSJM","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:13:29.141 +02:00 INF] Login code sent successfully to rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"55813d8d-92a1-4354-aa01-2215604cdfc6","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHU9GMUSJM:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHU9GMUSJM","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:13:29.168 +02:00 WRN] HTTP POST /api/auth/login → 200 en 1037ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHU9GMUSJM:00000002","ConnectionId":"0HNMHU9GMUSJM","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:13:38.824 +02:00 INF] Code verification attempt for rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"920c290b-c309-46ad-8848-1c82ca8902ce","ActionName":"NovadisApi.Controllers.AuthController.VerifyCode (NovadisApi)","RequestId":"0HNMHU9GMUSJM:00000004","RequestPath":"/api/auth/verify","ConnectionId":"0HNMHU9GMUSJM","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:13:38.960 +02:00 INF] User rdenimal@novadis.eu logged in successfully {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"920c290b-c309-46ad-8848-1c82ca8902ce","ActionName":"NovadisApi.Controllers.AuthController.VerifyCode (NovadisApi)","RequestId":"0HNMHU9GMUSJM:00000004","RequestPath":"/api/auth/verify","ConnectionId":"0HNMHU9GMUSJM","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:14:18.285 +02:00 INF] Purge RGPD : 0 AuditLogs, 0 AuthAttempts, 0 UserTokens supprimés {"SourceContext":"NovadisApi.Services.Maintenance.DataRetentionService","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:14:44.112 +02:00 WRN] HTTP POST /api/CRI → 400 en 30ms {"UserId":"0b740d20-767d-4452-8999-d36f564edb02","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHU9GMUSJM:00000018","ConnectionId":"0HNMHU9GMUSJM","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:14:54.842 +02:00 WRN] The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased. {"EventId":{"Id":10102,"Name":"Microsoft.EntityFrameworkCore.Query.RowLimitingOperationWithoutOrderByWarning"},"SourceContext":"Microsoft.EntityFrameworkCore.Query","ActionId":"d811fc62-4dc3-46dc-aacf-9b059a07becd","ActionName":"NovadisApi.Controllers.CRIController.SearchClients (NovadisApi)","RequestId":"0HNMHU9GMUSJM:0000001C","RequestPath":"/api/CRI/clients/search","ConnectionId":"0HNMHU9GMUSJM","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:33:00.543 +02:00 INF] Login attempt for email: rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"55813d8d-92a1-4354-aa01-2215604cdfc6","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHU9GMUSK2:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHU9GMUSK2","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:33:00.569 +02:00 INF] 🔐 [DEV] Code de connexion pour rdenimal@novadis.eu: 399760 {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"55813d8d-92a1-4354-aa01-2215604cdfc6","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHU9GMUSK2:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHU9GMUSK2","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:33:00.577 +02:00 WRN] ⚠️ Microsoft Graph not configured. Mocking email send to rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"55813d8d-92a1-4354-aa01-2215604cdfc6","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHU9GMUSK2:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHU9GMUSK2","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:33:00.583 +02:00 INF] 📧 Email Subject: Code de connexion Novadis CRI {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"55813d8d-92a1-4354-aa01-2215604cdfc6","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHU9GMUSK2:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHU9GMUSK2","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:33:00.588 +02:00 INF] 📝 Email Body: 
+        <html>
+        <body style='font-family: Arial, sans-serif;'>
+            <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                <h2 style='color: #2563eb;'>Connexion à Novadis CRI</h2>
+                <p>Bonjour Rémy,</p>
+                <p>Voici votre code de vérification pour vous connecter :</p>
+                <div style='background: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;'>
+                    <h1 style='color: #1f2937; font-size: 36px; letter-spacing: 8px; margin: 0;'>399760</h1>
+                </div>
+                <p style='color: #6b7280;'>Ce code expire dans 10 minutes.</p>
+                <p style='color: #6b7280; font-size: 12px;'>Si vous n'avez pas demandé ce code, ignorez cet email.</p>
+                <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;'>
+                <p style='color: #9ca3af; font-size: 12px;'>© 2026 Novadis - Tous droits réservés</p>
+            </div>
+        </body>
+        </html> {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"55813d8d-92a1-4354-aa01-2215604cdfc6","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHU9GMUSK2:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHU9GMUSK2","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:33:00.602 +02:00 INF] Login code sent successfully to rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"55813d8d-92a1-4354-aa01-2215604cdfc6","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHU9GMUSK2:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHU9GMUSK2","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:33:11.014 +02:00 INF] Code verification attempt for rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"920c290b-c309-46ad-8848-1c82ca8902ce","ActionName":"NovadisApi.Controllers.AuthController.VerifyCode (NovadisApi)","RequestId":"0HNMHU9GMUSK2:00000004","RequestPath":"/api/auth/verify","ConnectionId":"0HNMHU9GMUSK2","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 15:33:11.036 +02:00 INF] User rdenimal@novadis.eu logged in successfully {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"920c290b-c309-46ad-8848-1c82ca8902ce","ActionName":"NovadisApi.Controllers.AuthController.VerifyCode (NovadisApi)","RequestId":"0HNMHU9GMUSK2:00000004","RequestPath":"/api/auth/verify","ConnectionId":"0HNMHU9GMUSK2","Application":"NovadisApi","Environment":"Development"}
