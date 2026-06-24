@@ -93,7 +93,13 @@
       "Bash(rtk dotnet *)",
       "Bash(dotnet test *)",
       "Bash(dotnet restore *)",
-      "Bash(rtk ls *)"
+      "Bash(rtk ls *)",
+      "PowerShell(docker run *)",
+      "Bash(psql host=localhost port=5432 dbname=cri_novadis_dev user=cri_user password=changeme *)",
+      "PowerShell(psql *)",
+      "PowerShell(docker exec postgres-dev *)",
+      "Bash(docker exec postgres-dev *)",
+      "Bash(PGPASSWORD=changeme psql -h localhost -p 5432 -U cri_user -d cri_novadis_dev -c \"SELECT COUNT\\(*\\) FROM \\\\\"Sites\\\\\";\")"
     ]
   }
 }

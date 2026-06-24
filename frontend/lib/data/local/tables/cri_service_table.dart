@@ -155,7 +155,8 @@ enum ServiceContratType {
 enum ServiceSystemType {
   video('Vidéo'),
   controleAcces('Contrôle d\'accès'),
-  intrusion('Intrusion');
+  intrusion('Intrusion'),
+  hypervision('Hypervision');
 
   final String label;
   const ServiceSystemType(this.label);

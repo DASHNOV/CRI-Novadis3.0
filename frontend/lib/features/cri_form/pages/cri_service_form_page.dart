@@ -165,7 +165,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
 
     // Vérifier qu'au moins un type de système est sélectionné
     if (cri.systemTypes.isEmpty) {
-      return 'Sélectionnez au moins un type d\'intervention (Vidéo, Contrôle d\'accès ou Intrusion)';
+      return 'Sélectionnez au moins un type d\'intervention (Vidéo, Contrôle d\'accès, Intrusion ou Hypervision)';
     }
 
     return null; // Tout est OK
@@ -1024,7 +1024,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
     );
   }
 
-  /// Type d'intervention (sélection multiple obligatoire) — Vidéo / Contrôle d'accès / Intrusion
+  /// Type d'intervention (sélection multiple obligatoire) — Vidéo / Contrôle d'accès / Intrusion / Hypervision
   Widget _buildSystemTypesField(CriServiceFormState state) {
     final selected =
         state.currentCri?.systemTypes ?? const <ServiceSystemType>[];
