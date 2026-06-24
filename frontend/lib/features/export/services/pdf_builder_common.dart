@@ -44,7 +44,7 @@ mixin PdfBuilderCommon {
   Future<void> loadLogo() async {
     if (_logo != null) return;
     try {
-      final logoData = await rootBundle.load('assets/novadis_logo.png');
+      final logoData = await rootBundle.load('assets/logos/novadis_logo_blanc.jpg');
       _logo = pw.MemoryImage(logoData.buffer.asUint8List());
     } catch (e) {
       debugPrint('[PDF] Logo non trouvé: $e');
@@ -525,7 +525,7 @@ mixin PdfBuilderCommon {
     return pw.Container(
       decoration: const pw.BoxDecoration(
         border: pw.Border(
-          bottom: pw.BorderSide(color: _lightGray, width: 0.3),
+          bottom: pw.BorderSide(color: _black, width: 0.5),
         ),
       ),
       child: pw.Row(
@@ -547,7 +547,7 @@ mixin PdfBuilderCommon {
         padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: const pw.BoxDecoration(
           border: pw.Border(
-            right: pw.BorderSide(color: _lightGray, width: 0.3),
+            right: pw.BorderSide(color: _black, width: 0.5),
           ),
         ),
         child: pw.Column(
@@ -578,7 +578,7 @@ mixin PdfBuilderCommon {
       padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: const pw.BoxDecoration(
         border: pw.Border(
-          bottom: pw.BorderSide(color: _lightGray, width: 0.3),
+          bottom: pw.BorderSide(color: _black, width: 0.5),
         ),
       ),
       child: pw.Column(
