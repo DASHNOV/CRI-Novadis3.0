@@ -554,6 +554,9 @@ namespace NovadisApi.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("SavedSignature")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")

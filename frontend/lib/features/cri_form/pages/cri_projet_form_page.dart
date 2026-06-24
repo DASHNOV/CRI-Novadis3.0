@@ -10,6 +10,7 @@ import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
 import 'package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart';
 import 'package:novadis_cri/features/cri_form/widgets/photo_picker.dart';
 import 'package:novadis_cri/features/cri_form/widgets/signature_pad.dart';
+import 'package:novadis_cri/services/user_api_service.dart';
 import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 import 'package:novadis_cri/data/models/site_model.dart';
 import 'package:novadis_cri/features/cri_form/widgets/site_selector.dart';
@@ -1188,6 +1189,9 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
                   SignaturePadWidget(
                     label: index == 0 ? 'Signature technicien *' : 'Signature technicien ${index + 1}',
                     initialSignaturePath: index < sigs.length ? sigs[index] : null,
+                    savedSignatureBase64: index == 0
+                        ? ref.watch(savedSignatureProvider).valueOrNull
+                        : null,
                     onSignatureSaved: (path) {
                       ref.read(criProjetFormProvider.notifier).updateTechnicianSignature(path, index: index);
                     },

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -6,8 +7,8 @@ import 'package:novadis_cri/core/utils/file_utils.dart';
 
 final _fileUtils = createFileUtils();
 
-/// Widget pour capturer une signature
-/// Permet de dessiner, effacer et sauvegarder en PNG
+/// Widget pour capturer une signature.
+/// Si [savedSignatureBase64] est fourni, affiche un bouton pour l'utiliser directement.
 class SignaturePadWidget extends StatefulWidget {
   final String label;
   final String? initialSignaturePath;
@@ -15,6 +16,7 @@ class SignaturePadWidget extends StatefulWidget {
   final bool enabled;
   final Color penColor;
   final double penStrokeWidth;
+  final String? savedSignatureBase64;
 
   const SignaturePadWidget({
     super.key,
@@ -24,6 +26,7 @@ class SignaturePadWidget extends StatefulWidget {
     this.enabled = true,
     this.penColor = Colors.black,
     this.penStrokeWidth = 3.0,
+    this.savedSignatureBase64,
   });
 
   @override
@@ -67,6 +70,42 @@ class _SignaturePadWidgetState extends State<SignaturePadWidget> {
       _hasSignature = false;
     });
     widget.onSignatureSaved(null);
+  }
+
+  Future<void> _useSavedSignature() async {
+    final base64 = widget.savedSignatureBase64;
+    if (base64 == null || base64.isEmpty) return;
+
+    setState(() => _isSaving = true);
+    try {
+      final bytes = base64Decode(base64);
+      final fileName = 'saved_sig_${DateTime.now().millisecondsSinceEpoch}.png';
+      final filePath = await _fileUtils.saveSignature(bytes, fileName);
+      setState(() {
+        _savedPath = filePath;
+        _hasSignature = true;
+      });
+      widget.onSignatureSaved(filePath);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Signature enregistrée utilisée'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du chargement de la signature : $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   Future<void> _saveSignature() async {
@@ -170,6 +209,32 @@ class _SignaturePadWidgetState extends State<SignaturePadWidget> {
               ),
           ],
         ),
+        if (widget.enabled &&
+            !_hasSignature &&
+            widget.savedSignatureBase64 != null &&
+            widget.savedSignatureBase64!.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          OutlinedButton.icon(
+            onPressed: _isSaving ? null : _useSavedSignature,
+            icon: const Icon(Icons.draw, size: 16),
+            label: const Text('Utiliser ma signature enregistrée'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              textStyle: const TextStyle(fontSize: 13),
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Row(
+            children: [
+              Expanded(child: Divider()),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Text('ou', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ),
+              Expanded(child: Divider()),
+            ],
+          ),
+        ],
         const SizedBox(height: 8),
         GestureDetector(
           onTap: widget.enabled ? _showSignatureDialog : null,

@@ -36,6 +36,8 @@ namespace NovadisApi.Models
 
         public DateTime? LastLoginAt { get; set; }
 
+        public string? SavedSignature { get; set; }
+
         // Helper methods - supporte les deux formes du rôle
         public bool IsAdmin() => Role == "Admin";
         public bool IsTechnician() => Role == "Technician" || Role == "Technicien";

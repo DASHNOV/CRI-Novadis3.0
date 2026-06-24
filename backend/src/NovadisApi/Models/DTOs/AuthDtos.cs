@@ -98,6 +98,12 @@ namespace NovadisApi.Models.DTOs
         public string Role { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public DateTime? LastLoginAt { get; set; }
+        public string? SavedSignature { get; set; }
+    }
+
+    public class UpdateMySignatureDto
+    {
+        public string? SignatureBase64 { get; set; }
     }
 
     /// <summary>
