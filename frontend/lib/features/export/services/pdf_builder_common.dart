@@ -85,8 +85,10 @@ mixin PdfBuilderCommon {
   Future<pw.Document> buildCriServiceDocument(CriServiceModel cri) async {
     await loadLogo();
 
-    // Pré-charger les signatures (async) avant la construction synchrone de la page
-    final techSigBytes = await _resolveSignatureBytes(cri.technicianSignature);
+    // Pré-charger toutes les signatures techniciens + client
+    final techSigBytesList = await Future.wait(
+      cri.technicianSignatures.map((s) => _resolveSignatureBytes(s)),
+    );
     final clientSigBytes = await _resolveSignatureBytes(cri.clientSignature);
 
     final pdf = pw.Document();
@@ -244,11 +246,11 @@ mixin PdfBuilderCommon {
               ]),
               pw.SizedBox(height: 6),
               _buildSignatureBlock(
-                techName: cri.technicianName,
+                techNames: cri.technicianNames.isNotEmpty ? cri.technicianNames : [cri.technicianName],
                 techEmail: 'sav@novadis.eu',
                 clientName: cri.clientName,
                 clientEmail: cri.email,
-                techSignatureBytes: techSigBytes,
+                techSignatureBytesList: techSigBytesList,
                 clientSignatureBytes: clientSigBytes,
               ),
               pw.SizedBox(height: 12),
@@ -274,8 +276,10 @@ mixin PdfBuilderCommon {
   Future<pw.Document> buildCriProjetDocument(CriProjetModel cri) async {
     await loadLogo();
 
-    // Pré-charger les signatures
-    final techSigBytes = await _resolveSignatureBytes(cri.technicianSignature);
+    // Pré-charger toutes les signatures techniciens + client
+    final techSigBytesList = await Future.wait(
+      cri.technicianSignatures.map((s) => _resolveSignatureBytes(s)),
+    );
     final clientSigBytes = await _resolveSignatureBytes(cri.clientSignature);
 
     final pdf = pw.Document();
@@ -453,11 +457,11 @@ mixin PdfBuilderCommon {
 
               // ─── Signatures ───
               _buildSignatureBlock(
-                techName: cri.technicianName,
+                techNames: cri.technicianNames.isNotEmpty ? cri.technicianNames : [cri.technicianName],
                 techEmail: 'tech@novadis.eu',
                 clientName: cri.clientName,
                 clientEmail: cri.email,
-                techSignatureBytes: techSigBytes,
+                techSignatureBytesList: techSigBytesList,
                 clientSignatureBytes: clientSigBytes,
               ),
               pw.SizedBox(height: 12),
@@ -702,15 +706,18 @@ mixin PdfBuilderCommon {
     );
   }
 
-  /// Bloc signatures — prend les bytes pré-chargés (pas de base64/chemin)
+  /// Bloc signatures — prend les bytes pré-chargés (pas de base64/chemin).
+  /// Supporte plusieurs techniciens (liste de noms + signatures).
   pw.Widget _buildSignatureBlock({
-    required String techName,
+    required List<String> techNames,
     required String techEmail,
     required String clientName,
     String? clientEmail,
-    Uint8List? techSignatureBytes,
+    required List<Uint8List?> techSignatureBytesList,
     Uint8List? clientSignatureBytes,
   }) {
+    final effectiveNames = techNames.isEmpty ? [''] : techNames;
+
     return pw.Container(
       decoration: pw.BoxDecoration(
         border: pw.Border.all(color: _black, width: 0.5),
@@ -718,7 +725,7 @@ mixin PdfBuilderCommon {
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          // Technicien
+          // Techniciens (empilés verticalement si plusieurs)
           pw.Expanded(
             child: pw.Container(
               padding: const pw.EdgeInsets.all(6),
@@ -730,21 +737,42 @@ mixin PdfBuilderCommon {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('Intervenant Novadis :', style: _labelStyle),
                   pw.Text(
-                    techName,
-                    style: pw.TextStyle(
-                      fontSize: 9,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
+                    effectiveNames.length > 1
+                        ? 'Intervenants Novadis :'
+                        : 'Intervenant Novadis :',
+                    style: _labelStyle,
                   ),
-                  pw.Text(
-                    'Mail de contact : $techEmail',
-                    style: _smallStyle,
-                  ),
-                  pw.SizedBox(height: 4),
-                  pw.Text('Signature :', style: _labelStyle),
-                  _buildSignatureFromBytes(techSignatureBytes),
+                  pw.SizedBox(height: 2),
+                  ...effectiveNames.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final name = entry.value;
+                    final sigBytes = i < techSignatureBytesList.length
+                        ? techSignatureBytesList[i]
+                        : null;
+                    return pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        if (i > 0)
+                          pw.Divider(color: _lightGray, thickness: 0.5),
+                        pw.Text(
+                          name,
+                          style: pw.TextStyle(
+                            fontSize: 9,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                        if (i == 0)
+                          pw.Text(
+                            'Mail : $techEmail',
+                            style: _smallStyle,
+                          ),
+                        pw.SizedBox(height: 2),
+                        pw.Text('Signature :', style: _labelStyle),
+                        _buildSignatureFromBytes(sigBytes),
+                      ],
+                    );
+                  }),
                 ],
               ),
             ),
@@ -831,7 +859,7 @@ mixin PdfBuilderCommon {
           return pw.Padding(
             padding: const pw.EdgeInsets.only(bottom: 1),
             child: pw.Text(
-              '• ${s.software.label} (v. $version)',
+              '${s.software.label} (v. $version)',
               style: _valueStyle,
             ),
           );

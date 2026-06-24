@@ -99,7 +99,8 @@
       "PowerShell(psql *)",
       "PowerShell(docker exec postgres-dev *)",
       "Bash(docker exec postgres-dev *)",
-      "Bash(PGPASSWORD=changeme psql -h localhost -p 5432 -U cri_user -d cri_novadis_dev -c \"SELECT COUNT\\(*\\) FROM \\\\\"Sites\\\\\";\")"
+      "Bash(PGPASSWORD=changeme psql -h localhost -p 5432 -U cri_user -d cri_novadis_dev -c \"SELECT COUNT\\(*\\) FROM \\\\\"Sites\\\\\";\")",
+      "Bash(flutter test *)"
     ]
   }
 }

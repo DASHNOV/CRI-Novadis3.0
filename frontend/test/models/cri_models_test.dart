@@ -129,6 +129,7 @@ void main() {
 
     test('calculates duration from start and end time', () {
       final duration = CriServiceModel.calculateDuration(
+        DateTime(2024, 1, 1),
         DateTime(2024, 1, 1, 9, 0),
         DateTime(2024, 1, 1, 11, 30),
       );

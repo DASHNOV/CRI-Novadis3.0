@@ -73,7 +73,7 @@ class CriRemoteRepository {
               interventionType: ProjetInterventionType.installationMateriel,
               workDescription: item['workDescription']?.toString() ?? '',
               projectStatus: ProjectStatus.enCours,
-              technicianName: technicianName,
+              technicianNames: [technicianName],
               createdAt: date,
             ));
           } else {
@@ -90,11 +90,11 @@ class CriRemoteRepository {
               priority: ServicePriority.normale,
               requestDescription: item['workDescription']?.toString() ?? '',
               actionsPerformed: item['workDescription']?.toString() ?? '',
-              interventionDurationMinutes: (item['duration'] != null) 
+              interventionDurationMinutes: (item['duration'] != null)
                   ? ((item['duration'] as num).toDouble()).toInt()
                   : 60,
               resolutionStatus: ResolutionStatus.resolu,
-              technicianName: technicianName,
+              technicianNames: [technicianName],
               createdAt: date,
             ));
           }

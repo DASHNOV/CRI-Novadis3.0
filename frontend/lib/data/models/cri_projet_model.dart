@@ -47,8 +47,8 @@ class CriProjetModel {
 
   // Section 6: Validation
   final List<String> photos;
-  final String technicianName;
-  final String? technicianSignature;
+  final List<String> technicianNames;
+  final List<String?> technicianSignatures;
   final String? clientSignature;
   final String? clientComments;
 
@@ -86,8 +86,8 @@ class CriProjetModel {
     this.nextInterventionDate,
     required this.projectStatus,
     this.photos = const [],
-    required this.technicianName,
-    this.technicianSignature,
+    this.technicianNames = const [],
+    this.technicianSignatures = const [],
     this.clientSignature,
     this.clientComments,
     required this.createdAt,
@@ -96,8 +96,42 @@ class CriProjetModel {
     this.isDraft = true,
   });
 
-  /// Champ obsolète - retourne une chaîne vide
-  String get departement => '';
+  /// Dérive le numéro de département depuis le code postal (2 premiers chiffres).
+  String get departement {
+    final cp = codePostal?.trim() ?? '';
+    if (cp.length >= 2) return cp.substring(0, 2);
+    return '';
+  }
+
+  /// Nom du premier technicien (rétrocompatibilité avec le dashboard/export)
+  String get technicianName => technicianNames.isNotEmpty ? technicianNames.first : '';
+
+  /// Signature du premier technicien (rétrocompatibilité)
+  String? get technicianSignature =>
+      technicianSignatures.isNotEmpty ? technicianSignatures.first : null;
+
+  static List<String> _parseNamesList(dynamic raw) {
+    if (raw == null) return [];
+    final s = raw.toString();
+    if (s.startsWith('[')) {
+      try {
+        return List<String>.from(jsonDecode(s));
+      } catch (_) {}
+    }
+    return s.isNotEmpty ? [s] : [];
+  }
+
+  static List<String?> _parseSignaturesList(dynamic raw) {
+    if (raw == null) return [null];
+    final s = raw.toString();
+    if (s.isEmpty) return [null];
+    if (s.startsWith('[')) {
+      try {
+        return (jsonDecode(s) as List).map((e) => e as String?).toList();
+      } catch (_) {}
+    }
+    return [s];
+  }
 
   /// Calcule la durée en tenant compte d'une date de fin différente (multi-jours)
   int get durationMinutes {
@@ -167,8 +201,8 @@ class CriProjetModel {
     DateTime? nextInterventionDate,
     ProjectStatus? projectStatus,
     List<String>? photos,
-    String? technicianName,
-    String? technicianSignature,
+    List<String>? technicianNames,
+    List<String?>? technicianSignatures,
     String? clientSignature,
     String? clientComments,
     DateTime? createdAt,
@@ -204,8 +238,8 @@ class CriProjetModel {
       nextInterventionDate: nextInterventionDate ?? this.nextInterventionDate,
       projectStatus: projectStatus ?? this.projectStatus,
       photos: photos ?? this.photos,
-      technicianName: technicianName ?? this.technicianName,
-      technicianSignature: technicianSignature ?? this.technicianSignature,
+      technicianNames: technicianNames ?? this.technicianNames,
+      technicianSignatures: technicianSignatures ?? this.technicianSignatures,
       clientSignature: clientSignature ?? this.clientSignature,
       clientComments: clientComments ?? this.clientComments,
       createdAt: createdAt ?? this.createdAt,
@@ -245,8 +279,8 @@ class CriProjetModel {
       'nextInterventionDate': nextInterventionDate?.toIso8601String(),
       'projectStatus': projectStatus.name,
       'photos': jsonEncode(photos),
-      'technicianName': technicianName,
-      'technicianSignature': technicianSignature,
+      'technicianName': jsonEncode(technicianNames),
+      'technicianSignature': jsonEncode(technicianSignatures),
       'clientSignature': clientSignature,
       'clientComments': clientComments,
       'createdAt': createdAt.toIso8601String(),
@@ -290,8 +324,10 @@ class CriProjetModel {
       nextInterventionDate: Value(nextInterventionDate),
       projectStatus: Value(projectStatus.name),
       photos: Value(jsonEncode(photos)),
-      technicianName: Value(technicianName),
-      technicianSignature: Value(technicianSignature),
+      technicianName: Value(jsonEncode(technicianNames)),
+      technicianSignature: Value(
+        technicianSignatures.isEmpty ? null : jsonEncode(technicianSignatures),
+      ),
       clientSignature: Value(clientSignature),
       clientComments: Value(clientComments),
       createdAt: Value(createdAt),
@@ -336,8 +372,8 @@ class CriProjetModel {
       photos: db.photos != null
           ? List<String>.from(jsonDecode(db.photos!))
           : [],
-      technicianName: db.technicianName,
-      technicianSignature: db.technicianSignature,
+      technicianNames: _parseNamesList(db.technicianName),
+      technicianSignatures: _parseSignaturesList(db.technicianSignature),
       clientSignature: db.clientSignature,
       clientComments: db.clientComments,
       createdAt: db.createdAt,
@@ -391,8 +427,8 @@ class CriProjetModel {
       photos: json['photos'] != null
           ? List<String>.from(jsonDecode(json['photos'] as String))
           : [],
-      technicianName: json['technicianName'] as String,
-      technicianSignature: json['technicianSignature'] as String?,
+      technicianNames: _parseNamesList(json['technicianName']),
+      technicianSignatures: _parseSignaturesList(json['technicianSignature']),
       clientSignature: json['clientSignature'] as String?,
       clientComments: json['clientComments'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
@@ -432,7 +468,8 @@ class CriProjetModel {
       interventionType: ProjetInterventionType.installationMateriel,
       workDescription: '',
       projectStatus: ProjectStatus.enCours,
-      technicianName: technicianName,
+      technicianNames: [technicianName],
+      technicianSignatures: [null],
       createdAt: now,
     );
   }

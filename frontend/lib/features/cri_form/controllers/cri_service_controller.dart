@@ -268,12 +268,13 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
-  void updateTechnicianSignature(String? signaturePath) {
+  void updateTechnicianSignature(String? signaturePath, {int index = 0}) {
     if (state.currentCri == null) return;
+    final sigs = List<String?>.from(state.currentCri!.technicianSignatures);
+    while (sigs.length <= index) { sigs.add(null); }
+    sigs[index] = signaturePath;
     state = state.copyWith(
-      currentCri: state.currentCri!.copyWith(
-        technicianSignature: signaturePath,
-      ),
+      currentCri: state.currentCri!.copyWith(technicianSignatures: sigs),
       isDirty: true,
     );
   }
@@ -286,10 +287,41 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     );
   }
 
-  void updateTechnicianName(String? name) {
+  void updateTechnicianName(String? name, {int index = 0}) {
     if (state.currentCri == null) return;
+    final names = List<String>.from(state.currentCri!.technicianNames);
+    while (names.length <= index) { names.add(''); }
+    names[index] = name ?? '';
     state = state.copyWith(
-      currentCri: state.currentCri!.copyWith(technicianName: name ?? ''),
+      currentCri: state.currentCri!.copyWith(technicianNames: names),
+      isDirty: true,
+    );
+  }
+
+  void addTechnician() {
+    if (state.currentCri == null) return;
+    final names = List<String>.from(state.currentCri!.technicianNames)..add('');
+    final sigs = List<String?>.from(state.currentCri!.technicianSignatures)..add(null);
+    state = state.copyWith(
+      currentCri: state.currentCri!.copyWith(
+        technicianNames: names,
+        technicianSignatures: sigs,
+      ),
+      isDirty: true,
+    );
+  }
+
+  void removeTechnician(int index) {
+    if (state.currentCri == null) return;
+    if (state.currentCri!.technicianNames.length <= 1) return;
+    final names = List<String>.from(state.currentCri!.technicianNames)..removeAt(index);
+    final sigs = List<String?>.from(state.currentCri!.technicianSignatures);
+    if (index < sigs.length) sigs.removeAt(index);
+    state = state.copyWith(
+      currentCri: state.currentCri!.copyWith(
+        technicianNames: names,
+        technicianSignatures: sigs,
+      ),
       isDirty: true,
     );
   }

@@ -1348,35 +1348,79 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             },
           ),
           const SizedBox(height: 24),
-          Text('Nom du technicien *', style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                )),
+          Text('Techniciens intervenants *', style: TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          )),
           const SizedBox(height: 8),
-          FormBuilderTextField(
-            name: 'technicianName',
-            initialValue: state.currentCri?.technicianName ?? '',
-            decoration: const InputDecoration(
-              hintText: 'Nom du technicien',
-              prefixIcon: Icon(Icons.person),
-            ),
-            validator: FormBuilderValidators.required(errorText: 'Nom requis'),
-            onChanged: (value) {
-              ref
-                  .read(criServiceFormProvider.notifier)
-                  .updateTechnicianName(value);
+          ...List.generate(
+            state.currentCri?.technicianNames.length ?? 1,
+            (index) {
+              final names = state.currentCri?.technicianNames ?? [''];
+              final sigs = state.currentCri?.technicianSignatures ?? [null];
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (index > 0) ...[
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                  ],
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Technicien ${index + 1}',
+                          style: TextStyle(
+                            color: AppTheme.textTertiary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      if (index > 0)
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                          tooltip: 'Retirer ce technicien',
+                          onPressed: () {
+                            ref.read(criServiceFormProvider.notifier).removeTechnician(index);
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  FormBuilderTextField(
+                    name: 'technicianName_$index',
+                    initialValue: index < names.length ? names[index] : '',
+                    decoration: const InputDecoration(
+                      hintText: 'Nom du technicien',
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    validator: FormBuilderValidators.required(errorText: 'Nom requis'),
+                    onChanged: (value) {
+                      ref.read(criServiceFormProvider.notifier).updateTechnicianName(value, index: index);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  SignaturePadWidget(
+                    label: index == 0 ? 'Signature technicien *' : 'Signature technicien ${index + 1}',
+                    initialSignaturePath: index < sigs.length ? sigs[index] : null,
+                    onSignatureSaved: (path) {
+                      ref.read(criServiceFormProvider.notifier).updateTechnicianSignature(path, index: index);
+                    },
+                  ),
+                ],
+              );
             },
           ),
-          const SizedBox(height: 24),
-          SignaturePadWidget(
-            label: 'Signature technicien *',
-            initialSignaturePath: state.currentCri?.technicianSignature,
-            onSignatureSaved: (path) {
-              ref
-                  .read(criServiceFormProvider.notifier)
-                  .updateTechnicianSignature(path);
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () {
+              ref.read(criServiceFormProvider.notifier).addTechnician();
             },
+            icon: const Icon(Icons.person_add),
+            label: const Text('Ajouter un technicien'),
           ),
           const SizedBox(height: 24),
           SignaturePadWidget(

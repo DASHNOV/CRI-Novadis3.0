@@ -61,8 +61,8 @@ class CriServiceModel {
 
   // Section 8: Validation
   final List<String> photos;
-  final String technicianName;
-  final String? technicianSignature;
+  final List<String> technicianNames;
+  final List<String?> technicianSignatures;
   final String? clientSignature;
 
   // Métadonnées
@@ -107,8 +107,8 @@ class CriServiceModel {
     this.devisARealiser = false,
     this.facturable = false,
     this.photos = const [],
-    required this.technicianName,
-    this.technicianSignature,
+    this.technicianNames = const [],
+    this.technicianSignatures = const [],
     this.clientSignature,
     required this.createdAt,
     this.updatedAt,
@@ -172,6 +172,36 @@ class CriServiceModel {
     return '${minutes}min';
   }
 
+  /// Nom du premier technicien (rétrocompatibilité avec le dashboard/export)
+  String get technicianName => technicianNames.isNotEmpty ? technicianNames.first : '';
+
+  /// Signature du premier technicien (rétrocompatibilité)
+  String? get technicianSignature =>
+      technicianSignatures.isNotEmpty ? technicianSignatures.first : null;
+
+  static List<String> _parseNamesList(dynamic raw) {
+    if (raw == null) return [];
+    final s = raw.toString();
+    if (s.startsWith('[')) {
+      try {
+        return List<String>.from(jsonDecode(s));
+      } catch (_) {}
+    }
+    return s.isNotEmpty ? [s] : [];
+  }
+
+  static List<String?> _parseSignaturesList(dynamic raw) {
+    if (raw == null) return [null];
+    final s = raw.toString();
+    if (s.isEmpty) return [null];
+    if (s.startsWith('[')) {
+      try {
+        return (jsonDecode(s) as List).map((e) => e as String?).toList();
+      } catch (_) {}
+    }
+    return [s];
+  }
+
   /// Crée une copie avec des modifications
   CriServiceModel copyWith({
     String? id,
@@ -211,8 +241,8 @@ class CriServiceModel {
     bool? devisARealiser,
     bool? facturable,
     List<String>? photos,
-    String? technicianName,
-    String? technicianSignature,
+    List<String>? technicianNames,
+    List<String?>? technicianSignatures,
     String? clientSignature,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -258,8 +288,8 @@ class CriServiceModel {
       devisARealiser: devisARealiser ?? this.devisARealiser,
       facturable: facturable ?? this.facturable,
       photos: photos ?? this.photos,
-      technicianName: technicianName ?? this.technicianName,
-      technicianSignature: technicianSignature ?? this.technicianSignature,
+      technicianNames: technicianNames ?? this.technicianNames,
+      technicianSignatures: technicianSignatures ?? this.technicianSignatures,
       clientSignature: clientSignature ?? this.clientSignature,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -306,8 +336,8 @@ class CriServiceModel {
       'devisARealiser': devisARealiser,
       'facturable': facturable,
       'photos': jsonEncode(photos),
-      'technicianName': technicianName,
-      'technicianSignature': technicianSignature,
+      'technicianName': jsonEncode(technicianNames),
+      'technicianSignature': jsonEncode(technicianSignatures),
       'clientSignature': clientSignature,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
@@ -358,8 +388,10 @@ class CriServiceModel {
       devisARealiser: Value(devisARealiser),
       facturable: Value(facturable),
       photos: Value(jsonEncode(photos)),
-      technicianName: Value(technicianName),
-      technicianSignature: Value(technicianSignature),
+      technicianName: Value(jsonEncode(technicianNames)),
+      technicianSignature: Value(
+        technicianSignatures.isEmpty ? null : jsonEncode(technicianSignatures),
+      ),
       clientSignature: Value(clientSignature),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -412,8 +444,8 @@ class CriServiceModel {
       photos: db.photos != null
           ? List<String>.from(jsonDecode(db.photos!))
           : [],
-      technicianName: db.technicianName,
-      technicianSignature: db.technicianSignature,
+      technicianNames: _parseNamesList(db.technicianName),
+      technicianSignatures: _parseSignaturesList(db.technicianSignature),
       clientSignature: db.clientSignature,
       createdAt: db.createdAt,
       updatedAt: db.updatedAt,
@@ -483,8 +515,8 @@ class CriServiceModel {
       photos: json['photos'] != null
           ? List<String>.from(jsonDecode(json['photos'] as String))
           : [],
-      technicianName: json['technicianName'] as String,
-      technicianSignature: json['technicianSignature'] as String?,
+      technicianNames: _parseNamesList(json['technicianName']),
+      technicianSignatures: _parseSignaturesList(json['technicianSignature']),
       clientSignature: json['clientSignature'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
       updatedAt: json['updatedAt'] != null
@@ -524,7 +556,8 @@ class CriServiceModel {
       actionsPerformed: '',
       interventionDurationMinutes: 60,
       resolutionStatus: ResolutionStatus.nonResolu,
-      technicianName: technicianName,
+      technicianNames: [technicianName],
+      technicianSignatures: [null],
       createdAt: now,
     );
   }
