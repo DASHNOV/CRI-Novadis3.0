@@ -103,6 +103,8 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     DateTime? interventionDate,
     DateTime? startTime,
     DateTime? endTime,
+    DateTime? endDate,
+    bool clearEndDate = false,
   }) {
     if (state.currentCri == null) return;
     state = state.copyWith(
@@ -110,6 +112,8 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
         interventionDate: interventionDate,
         startTime: startTime,
         endTime: endTime,
+        endDate: endDate,
+        clearEndDate: clearEndDate,
       ),
       isDirty: true,
     );

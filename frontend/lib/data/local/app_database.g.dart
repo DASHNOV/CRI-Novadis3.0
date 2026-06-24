@@ -32,6 +32,12 @@ class $CriServiceTableTable extends CriServiceTable
   late final GeneratedColumn<DateTime> endTime = GeneratedColumn<DateTime>(
       'end_time', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _endDateMeta =
+      const VerificationMeta('endDate');
+  @override
+  late final GeneratedColumn<DateTime> endDate = GeneratedColumn<DateTime>(
+      'end_date', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _ticketNumberMeta =
       const VerificationMeta('ticketNumber');
   @override
@@ -278,6 +284,7 @@ class $CriServiceTableTable extends CriServiceTable
         interventionDate,
         startTime,
         endTime,
+        endDate,
         ticketNumber,
         clientName,
         site,
@@ -350,6 +357,10 @@ class $CriServiceTableTable extends CriServiceTable
           endTime.isAcceptableOrUnknown(data['end_time']!, _endTimeMeta));
     } else if (isInserting) {
       context.missing(_endTimeMeta);
+    }
+    if (data.containsKey('end_date')) {
+      context.handle(_endDateMeta,
+          endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta));
     }
     if (data.containsKey('ticket_number')) {
       context.handle(
@@ -589,6 +600,8 @@ class $CriServiceTableTable extends CriServiceTable
           .read(DriftSqlType.dateTime, data['${effectivePrefix}start_time'])!,
       endTime: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}end_time'])!,
+      endDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}end_date']),
       ticketNumber: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}ticket_number']),
       clientName: attachedDatabase.typeMapping
@@ -680,6 +693,7 @@ class CriService extends DataClass implements Insertable<CriService> {
   final DateTime interventionDate;
   final DateTime startTime;
   final DateTime endTime;
+  final DateTime? endDate;
   final String? ticketNumber;
   final String clientName;
   final String site;
@@ -722,6 +736,7 @@ class CriService extends DataClass implements Insertable<CriService> {
       required this.interventionDate,
       required this.startTime,
       required this.endTime,
+      this.endDate,
       this.ticketNumber,
       required this.clientName,
       required this.site,
@@ -766,6 +781,9 @@ class CriService extends DataClass implements Insertable<CriService> {
     map['intervention_date'] = Variable<DateTime>(interventionDate);
     map['start_time'] = Variable<DateTime>(startTime);
     map['end_time'] = Variable<DateTime>(endTime);
+    if (!nullToAbsent || endDate != null) {
+      map['end_date'] = Variable<DateTime>(endDate);
+    }
     if (!nullToAbsent || ticketNumber != null) {
       map['ticket_number'] = Variable<String>(ticketNumber);
     }
@@ -859,6 +877,9 @@ class CriService extends DataClass implements Insertable<CriService> {
       interventionDate: Value(interventionDate),
       startTime: Value(startTime),
       endTime: Value(endTime),
+      endDate: endDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endDate),
       ticketNumber: ticketNumber == null && nullToAbsent
           ? const Value.absent()
           : Value(ticketNumber),
@@ -946,6 +967,7 @@ class CriService extends DataClass implements Insertable<CriService> {
       interventionDate: serializer.fromJson<DateTime>(json['interventionDate']),
       startTime: serializer.fromJson<DateTime>(json['startTime']),
       endTime: serializer.fromJson<DateTime>(json['endTime']),
+      endDate: serializer.fromJson<DateTime?>(json['endDate']),
       ticketNumber: serializer.fromJson<String?>(json['ticketNumber']),
       clientName: serializer.fromJson<String>(json['clientName']),
       site: serializer.fromJson<String>(json['site']),
@@ -999,6 +1021,7 @@ class CriService extends DataClass implements Insertable<CriService> {
       'interventionDate': serializer.toJson<DateTime>(interventionDate),
       'startTime': serializer.toJson<DateTime>(startTime),
       'endTime': serializer.toJson<DateTime>(endTime),
+      'endDate': serializer.toJson<DateTime?>(endDate),
       'ticketNumber': serializer.toJson<String?>(ticketNumber),
       'clientName': serializer.toJson<String>(clientName),
       'site': serializer.toJson<String>(site),
@@ -1047,6 +1070,7 @@ class CriService extends DataClass implements Insertable<CriService> {
           DateTime? interventionDate,
           DateTime? startTime,
           DateTime? endTime,
+          Value<DateTime?> endDate = const Value.absent(),
           Value<String?> ticketNumber = const Value.absent(),
           String? clientName,
           String? site,
@@ -1089,6 +1113,7 @@ class CriService extends DataClass implements Insertable<CriService> {
         interventionDate: interventionDate ?? this.interventionDate,
         startTime: startTime ?? this.startTime,
         endTime: endTime ?? this.endTime,
+        endDate: endDate.present ? endDate.value : this.endDate,
         ticketNumber:
             ticketNumber.present ? ticketNumber.value : this.ticketNumber,
         clientName: clientName ?? this.clientName,
@@ -1156,6 +1181,7 @@ class CriService extends DataClass implements Insertable<CriService> {
           : this.interventionDate,
       startTime: data.startTime.present ? data.startTime.value : this.startTime,
       endTime: data.endTime.present ? data.endTime.value : this.endTime,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
       ticketNumber: data.ticketNumber.present
           ? data.ticketNumber.value
           : this.ticketNumber,
@@ -1249,6 +1275,7 @@ class CriService extends DataClass implements Insertable<CriService> {
           ..write('interventionDate: $interventionDate, ')
           ..write('startTime: $startTime, ')
           ..write('endTime: $endTime, ')
+          ..write('endDate: $endDate, ')
           ..write('ticketNumber: $ticketNumber, ')
           ..write('clientName: $clientName, ')
           ..write('site: $site, ')
@@ -1298,6 +1325,7 @@ class CriService extends DataClass implements Insertable<CriService> {
         interventionDate,
         startTime,
         endTime,
+        endDate,
         ticketNumber,
         clientName,
         site,
@@ -1344,6 +1372,7 @@ class CriService extends DataClass implements Insertable<CriService> {
           other.interventionDate == this.interventionDate &&
           other.startTime == this.startTime &&
           other.endTime == this.endTime &&
+          other.endDate == this.endDate &&
           other.ticketNumber == this.ticketNumber &&
           other.clientName == this.clientName &&
           other.site == this.site &&
@@ -1391,6 +1420,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
   final Value<DateTime> interventionDate;
   final Value<DateTime> startTime;
   final Value<DateTime> endTime;
+  final Value<DateTime?> endDate;
   final Value<String?> ticketNumber;
   final Value<String> clientName;
   final Value<String> site;
@@ -1434,6 +1464,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     this.interventionDate = const Value.absent(),
     this.startTime = const Value.absent(),
     this.endTime = const Value.absent(),
+    this.endDate = const Value.absent(),
     this.ticketNumber = const Value.absent(),
     this.clientName = const Value.absent(),
     this.site = const Value.absent(),
@@ -1478,6 +1509,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     required DateTime interventionDate,
     required DateTime startTime,
     required DateTime endTime,
+    this.endDate = const Value.absent(),
     this.ticketNumber = const Value.absent(),
     required String clientName,
     required String site,
@@ -1534,6 +1566,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     Expression<DateTime>? interventionDate,
     Expression<DateTime>? startTime,
     Expression<DateTime>? endTime,
+    Expression<DateTime>? endDate,
     Expression<String>? ticketNumber,
     Expression<String>? clientName,
     Expression<String>? site,
@@ -1578,6 +1611,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
       if (interventionDate != null) 'intervention_date': interventionDate,
       if (startTime != null) 'start_time': startTime,
       if (endTime != null) 'end_time': endTime,
+      if (endDate != null) 'end_date': endDate,
       if (ticketNumber != null) 'ticket_number': ticketNumber,
       if (clientName != null) 'client_name': clientName,
       if (site != null) 'site': site,
@@ -1629,6 +1663,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
       Value<DateTime>? interventionDate,
       Value<DateTime>? startTime,
       Value<DateTime>? endTime,
+      Value<DateTime?>? endDate,
       Value<String?>? ticketNumber,
       Value<String>? clientName,
       Value<String>? site,
@@ -1672,6 +1707,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
       interventionDate: interventionDate ?? this.interventionDate,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
+      endDate: endDate ?? this.endDate,
       ticketNumber: ticketNumber ?? this.ticketNumber,
       clientName: clientName ?? this.clientName,
       site: site ?? this.site,
@@ -1730,6 +1766,9 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
     }
     if (endTime.present) {
       map['end_time'] = Variable<DateTime>(endTime.value);
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<DateTime>(endDate.value);
     }
     if (ticketNumber.present) {
       map['ticket_number'] = Variable<String>(ticketNumber.value);
@@ -1858,6 +1897,7 @@ class CriServiceTableCompanion extends UpdateCompanion<CriService> {
           ..write('interventionDate: $interventionDate, ')
           ..write('startTime: $startTime, ')
           ..write('endTime: $endTime, ')
+          ..write('endDate: $endDate, ')
           ..write('ticketNumber: $ticketNumber, ')
           ..write('clientName: $clientName, ')
           ..write('site: $site, ')
@@ -1932,6 +1972,12 @@ class $CriProjetTableTable extends CriProjetTable
   late final GeneratedColumn<DateTime> endTime = GeneratedColumn<DateTime>(
       'end_time', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _endDateMeta =
+      const VerificationMeta('endDate');
+  @override
+  late final GeneratedColumn<DateTime> endDate = GeneratedColumn<DateTime>(
+      'end_date', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _clientNameMeta =
       const VerificationMeta('clientName');
   @override
@@ -1992,8 +2038,7 @@ class $CriProjetTableTable extends CriProjetTable
   @override
   late final GeneratedColumn<String> projectNumber = GeneratedColumn<String>(
       'project_number', aliasedName, false,
-      additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 50),
+      additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 50),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
   static const VerificationMeta _projectPhaseMeta =
@@ -2123,6 +2168,7 @@ class $CriProjetTableTable extends CriProjetTable
         interventionDate,
         startTime,
         endTime,
+        endDate,
         clientName,
         site,
         address,
@@ -2188,6 +2234,10 @@ class $CriProjetTableTable extends CriProjetTable
           endTime.isAcceptableOrUnknown(data['end_time']!, _endTimeMeta));
     } else if (isInserting) {
       context.missing(_endTimeMeta);
+    }
+    if (data.containsKey('end_date')) {
+      context.handle(_endDateMeta,
+          endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta));
     }
     if (data.containsKey('client_name')) {
       context.handle(
@@ -2382,6 +2432,8 @@ class $CriProjetTableTable extends CriProjetTable
           .read(DriftSqlType.dateTime, data['${effectivePrefix}start_time'])!,
       endTime: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}end_time'])!,
+      endDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}end_date']),
       clientName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}client_name'])!,
       site: attachedDatabase.typeMapping
@@ -2457,6 +2509,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
   final DateTime interventionDate;
   final DateTime startTime;
   final DateTime endTime;
+  final DateTime? endDate;
   final String clientName;
   final String site;
   final String? address;
@@ -2492,6 +2545,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
       required this.interventionDate,
       required this.startTime,
       required this.endTime,
+      this.endDate,
       required this.clientName,
       required this.site,
       this.address,
@@ -2529,6 +2583,9 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
     map['intervention_date'] = Variable<DateTime>(interventionDate);
     map['start_time'] = Variable<DateTime>(startTime);
     map['end_time'] = Variable<DateTime>(endTime);
+    if (!nullToAbsent || endDate != null) {
+      map['end_date'] = Variable<DateTime>(endDate);
+    }
     map['client_name'] = Variable<String>(clientName);
     map['site'] = Variable<String>(site);
     if (!nullToAbsent || address != null) {
@@ -2604,6 +2661,9 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
       interventionDate: Value(interventionDate),
       startTime: Value(startTime),
       endTime: Value(endTime),
+      endDate: endDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endDate),
       clientName: Value(clientName),
       site: Value(site),
       address: address == null && nullToAbsent
@@ -2675,6 +2735,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
       interventionDate: serializer.fromJson<DateTime>(json['interventionDate']),
       startTime: serializer.fromJson<DateTime>(json['startTime']),
       endTime: serializer.fromJson<DateTime>(json['endTime']),
+      endDate: serializer.fromJson<DateTime?>(json['endDate']),
       clientName: serializer.fromJson<String>(json['clientName']),
       site: serializer.fromJson<String>(json['site']),
       address: serializer.fromJson<String?>(json['address']),
@@ -2719,6 +2780,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
       'interventionDate': serializer.toJson<DateTime>(interventionDate),
       'startTime': serializer.toJson<DateTime>(startTime),
       'endTime': serializer.toJson<DateTime>(endTime),
+      'endDate': serializer.toJson<DateTime?>(endDate),
       'clientName': serializer.toJson<String>(clientName),
       'site': serializer.toJson<String>(site),
       'address': serializer.toJson<String?>(address),
@@ -2758,6 +2820,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
           DateTime? interventionDate,
           DateTime? startTime,
           DateTime? endTime,
+          Value<DateTime?> endDate = const Value.absent(),
           String? clientName,
           String? site,
           Value<String?> address = const Value.absent(),
@@ -2793,6 +2856,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
         interventionDate: interventionDate ?? this.interventionDate,
         startTime: startTime ?? this.startTime,
         endTime: endTime ?? this.endTime,
+        endDate: endDate.present ? endDate.value : this.endDate,
         clientName: clientName ?? this.clientName,
         site: site ?? this.site,
         address: address.present ? address.value : this.address,
@@ -2845,6 +2909,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
           : this.interventionDate,
       startTime: data.startTime.present ? data.startTime.value : this.startTime,
       endTime: data.endTime.present ? data.endTime.value : this.endTime,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
       clientName:
           data.clientName.present ? data.clientName.value : this.clientName,
       site: data.site.present ? data.site.value : this.site,
@@ -2918,6 +2983,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
           ..write('interventionDate: $interventionDate, ')
           ..write('startTime: $startTime, ')
           ..write('endTime: $endTime, ')
+          ..write('endDate: $endDate, ')
           ..write('clientName: $clientName, ')
           ..write('site: $site, ')
           ..write('address: $address, ')
@@ -2958,6 +3024,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
         interventionDate,
         startTime,
         endTime,
+        endDate,
         clientName,
         site,
         address,
@@ -2997,6 +3064,7 @@ class CriProjet extends DataClass implements Insertable<CriProjet> {
           other.interventionDate == this.interventionDate &&
           other.startTime == this.startTime &&
           other.endTime == this.endTime &&
+          other.endDate == this.endDate &&
           other.clientName == this.clientName &&
           other.site == this.site &&
           other.address == this.address &&
@@ -3034,6 +3102,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
   final Value<DateTime> interventionDate;
   final Value<DateTime> startTime;
   final Value<DateTime> endTime;
+  final Value<DateTime?> endDate;
   final Value<String> clientName;
   final Value<String> site;
   final Value<String?> address;
@@ -3070,6 +3139,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
     this.interventionDate = const Value.absent(),
     this.startTime = const Value.absent(),
     this.endTime = const Value.absent(),
+    this.endDate = const Value.absent(),
     this.clientName = const Value.absent(),
     this.site = const Value.absent(),
     this.address = const Value.absent(),
@@ -3107,6 +3177,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
     required DateTime interventionDate,
     required DateTime startTime,
     required DateTime endTime,
+    this.endDate = const Value.absent(),
     required String clientName,
     required String site,
     this.address = const Value.absent(),
@@ -3156,6 +3227,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
     Expression<DateTime>? interventionDate,
     Expression<DateTime>? startTime,
     Expression<DateTime>? endTime,
+    Expression<DateTime>? endDate,
     Expression<String>? clientName,
     Expression<String>? site,
     Expression<String>? address,
@@ -3193,6 +3265,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
       if (interventionDate != null) 'intervention_date': interventionDate,
       if (startTime != null) 'start_time': startTime,
       if (endTime != null) 'end_time': endTime,
+      if (endDate != null) 'end_date': endDate,
       if (clientName != null) 'client_name': clientName,
       if (site != null) 'site': site,
       if (address != null) 'address': address,
@@ -3235,6 +3308,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
       Value<DateTime>? interventionDate,
       Value<DateTime>? startTime,
       Value<DateTime>? endTime,
+      Value<DateTime?>? endDate,
       Value<String>? clientName,
       Value<String>? site,
       Value<String?>? address,
@@ -3271,6 +3345,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
       interventionDate: interventionDate ?? this.interventionDate,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
+      endDate: endDate ?? this.endDate,
       clientName: clientName ?? this.clientName,
       site: site ?? this.site,
       address: address ?? this.address,
@@ -3319,6 +3394,9 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
     }
     if (endTime.present) {
       map['end_time'] = Variable<DateTime>(endTime.value);
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<DateTime>(endDate.value);
     }
     if (clientName.present) {
       map['client_name'] = Variable<String>(clientName.value);
@@ -3424,6 +3502,7 @@ class CriProjetTableCompanion extends UpdateCompanion<CriProjet> {
           ..write('interventionDate: $interventionDate, ')
           ..write('startTime: $startTime, ')
           ..write('endTime: $endTime, ')
+          ..write('endDate: $endDate, ')
           ..write('clientName: $clientName, ')
           ..write('site: $site, ')
           ..write('address: $address, ')
@@ -3982,6 +4061,7 @@ typedef $$CriServiceTableTableCreateCompanionBuilder = CriServiceTableCompanion
   required DateTime interventionDate,
   required DateTime startTime,
   required DateTime endTime,
+  Value<DateTime?> endDate,
   Value<String?> ticketNumber,
   required String clientName,
   required String site,
@@ -4027,6 +4107,7 @@ typedef $$CriServiceTableTableUpdateCompanionBuilder = CriServiceTableCompanion
   Value<DateTime> interventionDate,
   Value<DateTime> startTime,
   Value<DateTime> endTime,
+  Value<DateTime?> endDate,
   Value<String?> ticketNumber,
   Value<String> clientName,
   Value<String> site,
@@ -4088,6 +4169,9 @@ class $$CriServiceTableTableFilterComposer
 
   ColumnFilters<DateTime> get endTime => $composableBuilder(
       column: $table.endTime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get endDate => $composableBuilder(
+      column: $table.endDate, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get ticketNumber => $composableBuilder(
       column: $table.ticketNumber, builder: (column) => ColumnFilters(column));
@@ -4237,6 +4321,9 @@ class $$CriServiceTableTableOrderingComposer
 
   ColumnOrderings<DateTime> get endTime => $composableBuilder(
       column: $table.endTime, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get endDate => $composableBuilder(
+      column: $table.endDate, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get ticketNumber => $composableBuilder(
       column: $table.ticketNumber,
@@ -4392,6 +4479,9 @@ class $$CriServiceTableTableAnnotationComposer
   GeneratedColumn<DateTime> get endTime =>
       $composableBuilder(column: $table.endTime, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
+
   GeneratedColumn<String> get ticketNumber => $composableBuilder(
       column: $table.ticketNumber, builder: (column) => column);
 
@@ -4539,6 +4629,7 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             Value<DateTime> interventionDate = const Value.absent(),
             Value<DateTime> startTime = const Value.absent(),
             Value<DateTime> endTime = const Value.absent(),
+            Value<DateTime?> endDate = const Value.absent(),
             Value<String?> ticketNumber = const Value.absent(),
             Value<String> clientName = const Value.absent(),
             Value<String> site = const Value.absent(),
@@ -4583,6 +4674,7 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             interventionDate: interventionDate,
             startTime: startTime,
             endTime: endTime,
+            endDate: endDate,
             ticketNumber: ticketNumber,
             clientName: clientName,
             site: site,
@@ -4627,6 +4719,7 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             required DateTime interventionDate,
             required DateTime startTime,
             required DateTime endTime,
+            Value<DateTime?> endDate = const Value.absent(),
             Value<String?> ticketNumber = const Value.absent(),
             required String clientName,
             required String site,
@@ -4671,6 +4764,7 @@ class $$CriServiceTableTableTableManager extends RootTableManager<
             interventionDate: interventionDate,
             startTime: startTime,
             endTime: endTime,
+            endDate: endDate,
             ticketNumber: ticketNumber,
             clientName: clientName,
             site: site,
@@ -4738,6 +4832,7 @@ typedef $$CriProjetTableTableCreateCompanionBuilder = CriProjetTableCompanion
   required DateTime interventionDate,
   required DateTime startTime,
   required DateTime endTime,
+  Value<DateTime?> endDate,
   required String clientName,
   required String site,
   Value<String?> address,
@@ -4776,6 +4871,7 @@ typedef $$CriProjetTableTableUpdateCompanionBuilder = CriProjetTableCompanion
   Value<DateTime> interventionDate,
   Value<DateTime> startTime,
   Value<DateTime> endTime,
+  Value<DateTime?> endDate,
   Value<String> clientName,
   Value<String> site,
   Value<String?> address,
@@ -4830,6 +4926,9 @@ class $$CriProjetTableTableFilterComposer
 
   ColumnFilters<DateTime> get endTime => $composableBuilder(
       column: $table.endTime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get endDate => $composableBuilder(
+      column: $table.endDate, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get clientName => $composableBuilder(
       column: $table.clientName, builder: (column) => ColumnFilters(column));
@@ -4952,6 +5051,9 @@ class $$CriProjetTableTableOrderingComposer
 
   ColumnOrderings<DateTime> get endTime => $composableBuilder(
       column: $table.endTime, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get endDate => $composableBuilder(
+      column: $table.endDate, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get clientName => $composableBuilder(
       column: $table.clientName, builder: (column) => ColumnOrderings(column));
@@ -5079,6 +5181,9 @@ class $$CriProjetTableTableAnnotationComposer
   GeneratedColumn<DateTime> get endTime =>
       $composableBuilder(column: $table.endTime, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
+
   GeneratedColumn<String> get clientName => $composableBuilder(
       column: $table.clientName, builder: (column) => column);
 
@@ -5198,6 +5303,7 @@ class $$CriProjetTableTableTableManager extends RootTableManager<
             Value<DateTime> interventionDate = const Value.absent(),
             Value<DateTime> startTime = const Value.absent(),
             Value<DateTime> endTime = const Value.absent(),
+            Value<DateTime?> endDate = const Value.absent(),
             Value<String> clientName = const Value.absent(),
             Value<String> site = const Value.absent(),
             Value<String?> address = const Value.absent(),
@@ -5235,6 +5341,7 @@ class $$CriProjetTableTableTableManager extends RootTableManager<
             interventionDate: interventionDate,
             startTime: startTime,
             endTime: endTime,
+            endDate: endDate,
             clientName: clientName,
             site: site,
             address: address,
@@ -5272,6 +5379,7 @@ class $$CriProjetTableTableTableManager extends RootTableManager<
             required DateTime interventionDate,
             required DateTime startTime,
             required DateTime endTime,
+            Value<DateTime?> endDate = const Value.absent(),
             required String clientName,
             required String site,
             Value<String?> address = const Value.absent(),
@@ -5309,6 +5417,7 @@ class $$CriProjetTableTableTableManager extends RootTableManager<
             interventionDate: interventionDate,
             startTime: startTime,
             endTime: endTime,
+            endDate: endDate,
             clientName: clientName,
             site: site,
             address: address,

@@ -24,7 +24,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -55,6 +55,10 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(criServiceTable, criServiceTable.devisARealiser);
           await m.addColumn(criServiceTable, criServiceTable.facturable);
         }
+        if (from < 7) {
+          await m.addColumn(criServiceTable, criServiceTable.endDate);
+          await m.addColumn(criProjetTable, criProjetTable.endDate);
+        }
       },
       beforeOpen: (details) async {
         // Auto-repair: ensure all expected columns exist in the tables.
@@ -78,6 +82,7 @@ class AppDatabase extends _$AppDatabase {
       'system_types': 'TEXT',
       'devis_a_realiser': 'INTEGER NOT NULL DEFAULT 0',
       'facturable': 'INTEGER NOT NULL DEFAULT 0',
+      'end_date': 'INTEGER',
     };
 
     // CRI Projet table columns that may be missing
@@ -86,6 +91,7 @@ class AppDatabase extends _$AppDatabase {
       'code_postal': 'TEXT',
       'pays': 'TEXT',
       'softwares': 'TEXT',
+      'end_date': 'INTEGER',
     };
 
     for (final entry in serviceColumns.entries) {

@@ -13,6 +13,7 @@ class CriServiceTable extends Table {
   DateTimeColumn get interventionDate => dateTime()();
   DateTimeColumn get startTime => dateTime()();
   DateTimeColumn get endTime => dateTime()();
+  DateTimeColumn get endDate => dateTime().nullable()();
   TextColumn get ticketNumber =>
       text().withLength(max: 50).nullable()();
 

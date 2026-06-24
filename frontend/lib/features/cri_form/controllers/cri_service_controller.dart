@@ -87,19 +87,25 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     DateTime? interventionDate,
     DateTime? startTime,
     DateTime? endTime,
+    DateTime? endDate,
+    bool clearEndDate = false,
     String? ticketNumber,
   }) {
     if (state.currentCri == null) return;
 
+    final newDate = interventionDate ?? state.currentCri!.interventionDate;
     final newStart = startTime ?? state.currentCri!.startTime;
     final newEnd = endTime ?? state.currentCri!.endTime;
-    final duration = CriServiceModel.calculateDuration(newStart, newEnd);
+    final newEndDate = clearEndDate ? null : (endDate ?? state.currentCri!.endDate);
+    final duration = CriServiceModel.calculateDuration(newDate, newStart, newEnd, newEndDate);
 
     state = state.copyWith(
       currentCri: state.currentCri!.copyWith(
         interventionDate: interventionDate,
         startTime: startTime,
         endTime: endTime,
+        endDate: endDate,
+        clearEndDate: clearEndDate,
         ticketNumber: ticketNumber,
         interventionDurationMinutes: duration,
       ),

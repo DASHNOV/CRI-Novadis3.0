@@ -112,7 +112,9 @@ mixin PdfBuilderCommon {
                   _buildCell('Projet / Site :', cri.site, flex: 3),
                   _buildCell(
                     'Date :',
-                    dateFormat.format(cri.interventionDate),
+                    cri.endDate != null
+                        ? '${dateFormat.format(cri.interventionDate)}  - ${dateFormat.format(cri.endDate!)}'
+                        : dateFormat.format(cri.interventionDate),
                     flex: 2,
                   ),
                 ]),
@@ -177,6 +179,10 @@ mixin PdfBuilderCommon {
                       'Intrusion',
                       cri.systemTypes.contains(ServiceSystemType.intrusion),
                     ),
+                    _checkbox(
+                      'Hypervision',
+                      cri.systemTypes.contains(ServiceSystemType.hypervision),
+                    ),
                   ], flex: 2),
                 ]),
               ]),
@@ -208,7 +214,10 @@ mixin PdfBuilderCommon {
                     [
                       _checkbox(
                         'Terminée',
-                        cri.resolutionStatus == ResolutionStatus.resolu,
+                        cri.resolutionStatus == ResolutionStatus.resolu ||
+                            (!cri.additionalInterventionRequired &&
+                                !cri.devisARealiser &&
+                                !cri.facturable),
                       ),
                       _checkbox('A Suivre', cri.additionalInterventionRequired),
                       _checkbox('Devis à réaliser', cri.devisARealiser),
@@ -219,7 +228,9 @@ mixin PdfBuilderCommon {
                   ),
                   _buildCell(
                     'Fin d\'intervention :',
-                    '${timeFormat.format(cri.endTime)} H',
+                    cri.endDate != null
+                        ? '${dateFormat.format(cri.endDate!)} ${timeFormat.format(cri.endTime)} H'
+                        : '${timeFormat.format(cri.endTime)} H',
                     flex: 2,
                   ),
                 ]),
@@ -295,7 +306,9 @@ mixin PdfBuilderCommon {
                   _buildCell('Projet / Site :', cri.site, flex: 3),
                   _buildCell(
                     'Date :',
-                    dateFormat.format(cri.interventionDate),
+                    cri.endDate != null
+                        ? '${dateFormat.format(cri.interventionDate)}  - ${dateFormat.format(cri.endDate!)}'
+                        : dateFormat.format(cri.interventionDate),
                     flex: 2,
                   ),
                 ]),
@@ -420,7 +433,9 @@ mixin PdfBuilderCommon {
                   ),
                   _buildCell(
                     'Fin d\'intervention :',
-                    '${timeFormat.format(cri.endTime)} H',
+                    cri.endDate != null
+                        ? '${dateFormat.format(cri.endDate!)} ${timeFormat.format(cri.endTime)} H'
+                        : '${timeFormat.format(cri.endTime)} H',
                     flex: 2,
                   ),
                 ]),

@@ -12,6 +12,7 @@ class CriProjetModel {
   final DateTime interventionDate;
   final DateTime startTime;
   final DateTime endTime;
+  final DateTime? endDate;
 
   // Section 2: Client
   final String clientName;
@@ -62,6 +63,7 @@ class CriProjetModel {
     required this.interventionDate,
     required this.startTime,
     required this.endTime,
+    this.endDate,
     required this.clientName,
     required this.site,
     this.address,
@@ -97,18 +99,38 @@ class CriProjetModel {
   /// Champ obsolète - retourne une chaîne vide
   String get departement => '';
 
-  /// Calcule la durée de l'intervention en minutes
+  /// Calcule la durée en tenant compte d'une date de fin différente (multi-jours)
   int get durationMinutes {
-    return endTime.difference(startTime).inMinutes;
+    final start = DateTime(
+      interventionDate.year,
+      interventionDate.month,
+      interventionDate.day,
+      startTime.hour,
+      startTime.minute,
+    );
+    final effectiveEndDate = endDate ?? interventionDate;
+    final end = DateTime(
+      effectiveEndDate.year,
+      effectiveEndDate.month,
+      effectiveEndDate.day,
+      endTime.hour,
+      endTime.minute,
+    );
+    return end.difference(start).inMinutes;
   }
 
   /// Alias pour durationMinutes
   int get interventionDurationMinutes => durationMinutes;
 
-  /// Formate la durée en heures et minutes
+  /// Formate la durée en jours, heures et minutes
   String get formattedDuration {
-    final hours = durationMinutes ~/ 60;
-    final minutes = durationMinutes % 60;
+    final totalMinutes = durationMinutes;
+    final days = totalMinutes ~/ (60 * 24);
+    final hours = (totalMinutes % (60 * 24)) ~/ 60;
+    final minutes = totalMinutes % 60;
+    if (days > 0) {
+      return '${days}j ${hours}h${minutes.toString().padLeft(2, '0')}';
+    }
     if (hours > 0) {
       return '${hours}h${minutes.toString().padLeft(2, '0')}';
     }
@@ -121,6 +143,8 @@ class CriProjetModel {
     DateTime? interventionDate,
     DateTime? startTime,
     DateTime? endTime,
+    DateTime? endDate,
+    bool clearEndDate = false,
     String? clientName,
     String? site,
     String? address,
@@ -157,6 +181,7 @@ class CriProjetModel {
       interventionDate: interventionDate ?? this.interventionDate,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
+      endDate: clearEndDate ? null : (endDate ?? this.endDate),
       clientName: clientName ?? this.clientName,
       site: site ?? this.site,
       address: address ?? this.address,
@@ -197,6 +222,7 @@ class CriProjetModel {
       'interventionDate': interventionDate.toIso8601String(),
       'startTime': startTime.toIso8601String(),
       'endTime': endTime.toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
       'clientName': clientName,
       'site': site,
       'address': address,
@@ -237,6 +263,7 @@ class CriProjetModel {
       interventionDate: Value(interventionDate),
       startTime: Value(startTime),
       endTime: Value(endTime),
+      endDate: Value(endDate),
       clientName: Value(clientName),
       site: Value(site),
       address: Value(address),
@@ -280,6 +307,7 @@ class CriProjetModel {
       interventionDate: db.interventionDate,
       startTime: db.startTime,
       endTime: db.endTime,
+      endDate: db.endDate,
       clientName: db.clientName,
       site: db.site,
       address: db.address,
@@ -326,6 +354,9 @@ class CriProjetModel {
       interventionDate: DateTime.parse(json['interventionDate'] as String),
       startTime: DateTime.parse(json['startTime'] as String),
       endTime: DateTime.parse(json['endTime'] as String),
+      endDate: json['endDate'] != null
+          ? DateTime.parse(json['endDate'] as String)
+          : null,
       clientName: json['clientName'] as String,
       site: json['site'] as String,
       address: json['address'] as String?,

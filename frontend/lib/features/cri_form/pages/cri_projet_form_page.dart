@@ -31,6 +31,8 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
   final _formKey = GlobalKey<FormBuilderState>();
   int _currentStep = 0;
   final bool _autoSaveEnabled = true;
+  bool _isMultiDay = false;
+  bool _isMultiDayInitialized = false;
 
   // Controllers pour auto-complétion des champs à la sélection d'un site
   final _addressController = TextEditingController();
@@ -277,6 +279,12 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
 
   /// Section 1: Informations générales
   Step _buildGeneralStep(CriProjetFormState state, ThemeData theme) {
+    // Initialisation lazy du switch depuis le modèle chargé
+    if (!_isMultiDayInitialized && state.currentCri != null) {
+      _isMultiDay = state.currentCri!.endDate != null;
+      _isMultiDayInitialized = true;
+    }
+
     return Step(
       title: const Text('Général'),
       subtitle: const Text('Date et heures'),
@@ -285,7 +293,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Date d\'intervention *', style: TextStyle(
+          Text('Date de début *', style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -295,7 +303,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             name: 'interventionDate',
             initialValue: state.currentCri?.interventionDate ?? DateTime.now(),
             decoration: const InputDecoration(
-              hintText: 'Date d\'intervention',
+              hintText: 'Date de début',
               prefixIcon: Icon(Icons.calendar_today),
             ),
             inputType: InputType.date,
@@ -385,6 +393,79 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Switch(
+                value: _isMultiDay,
+                onChanged: (value) {
+                  setState(() => _isMultiDay = value);
+                  if (!value) {
+                    ref
+                        .read(criProjetFormProvider.notifier)
+                        .updateGeneralInfo(clearEndDate: true);
+                  } else {
+                    final cri = ref.read(criProjetFormProvider).currentCri;
+                    final initialEndDate =
+                        cri?.endDate ?? cri?.interventionDate ?? DateTime.now();
+                    ref
+                        .read(criProjetFormProvider.notifier)
+                        .updateGeneralInfo(endDate: initialEndDate);
+                  }
+                },
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Intervention sur plusieurs jours',
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            child: _isMultiDay
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Date de fin *', style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        )),
+                        const SizedBox(height: 8),
+                        FormBuilderDateTimePicker(
+                          name: 'endDate',
+                          initialValue: state.currentCri?.endDate ??
+                              state.currentCri?.interventionDate ??
+                              DateTime.now(),
+                          decoration: const InputDecoration(
+                            hintText: 'Date de fin',
+                            prefixIcon: Icon(Icons.calendar_today_outlined),
+                          ),
+                          inputType: InputType.date,
+                          format: DateFormat('dd/MM/yyyy'),
+                          validator: FormBuilderValidators.required(
+                            errorText: 'Date de fin requise',
+                          ),
+                          onChanged: (value) {
+                            if (value != null) {
+                              ref
+                                  .read(criProjetFormProvider.notifier)
+                                  .updateGeneralInfo(endDate: value);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
           ),
           if (state.currentCri != null)
             Padding(

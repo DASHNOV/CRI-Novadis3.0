@@ -12,6 +12,7 @@ class CriServiceModel {
   final DateTime interventionDate;
   final DateTime startTime;
   final DateTime endTime;
+  final DateTime? endDate;
   final String ticketNumber;
 
   // Section 2: Client
@@ -75,6 +76,7 @@ class CriServiceModel {
     required this.interventionDate,
     required this.startTime,
     required this.endTime,
+    this.endDate,
     required this.ticketNumber,
     required this.clientName,
     required this.site,
@@ -130,15 +132,40 @@ class CriServiceModel {
   /// Champ utilisé dans le PDF - par défaut liste vide
   List<dynamic> get piecesDetachees => [];
 
-  /// Calcule la durée à partir des heures de début et fin
-  static int calculateDuration(DateTime startTime, DateTime endTime) {
-    return endTime.difference(startTime).inMinutes;
+  /// Calcule la durée en tenant compte d'une date de fin différente (multi-jours)
+  static int calculateDuration(
+    DateTime interventionDate,
+    DateTime startTime,
+    DateTime endTime, [
+    DateTime? endDate,
+  ]) {
+    final start = DateTime(
+      interventionDate.year,
+      interventionDate.month,
+      interventionDate.day,
+      startTime.hour,
+      startTime.minute,
+    );
+    final effectiveEndDate = endDate ?? interventionDate;
+    final end = DateTime(
+      effectiveEndDate.year,
+      effectiveEndDate.month,
+      effectiveEndDate.day,
+      endTime.hour,
+      endTime.minute,
+    );
+    return end.difference(start).inMinutes;
   }
 
-  /// Formate la durée en heures et minutes
+  /// Formate la durée en jours, heures et minutes
   String get formattedDuration {
-    final hours = interventionDurationMinutes ~/ 60;
-    final minutes = interventionDurationMinutes % 60;
+    final totalMinutes = interventionDurationMinutes;
+    final days = totalMinutes ~/ (60 * 24);
+    final hours = (totalMinutes % (60 * 24)) ~/ 60;
+    final minutes = totalMinutes % 60;
+    if (days > 0) {
+      return '${days}j ${hours}h${minutes.toString().padLeft(2, '0')}';
+    }
     if (hours > 0) {
       return '${hours}h${minutes.toString().padLeft(2, '0')}';
     }
@@ -151,6 +178,8 @@ class CriServiceModel {
     DateTime? interventionDate,
     DateTime? startTime,
     DateTime? endTime,
+    DateTime? endDate,
+    bool clearEndDate = false,
     String? ticketNumber,
     String? clientName,
     String? site,
@@ -195,6 +224,7 @@ class CriServiceModel {
       interventionDate: interventionDate ?? this.interventionDate,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
+      endDate: clearEndDate ? null : (endDate ?? this.endDate),
       ticketNumber: ticketNumber ?? this.ticketNumber,
       clientName: clientName ?? this.clientName,
       site: site ?? this.site,
@@ -245,6 +275,7 @@ class CriServiceModel {
       'interventionDate': interventionDate.toIso8601String(),
       'startTime': startTime.toIso8601String(),
       'endTime': endTime.toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
       'ticketNumber': ticketNumber,
       'clientName': clientName,
       'site': site,
@@ -292,6 +323,7 @@ class CriServiceModel {
       interventionDate: Value(interventionDate),
       startTime: Value(startTime),
       endTime: Value(endTime),
+      endDate: Value(endDate),
       ticketNumber: Value(ticketNumber.isEmpty ? null : ticketNumber),
       clientName: Value(clientName),
       site: Value(site),
@@ -342,6 +374,7 @@ class CriServiceModel {
       interventionDate: db.interventionDate,
       startTime: db.startTime,
       endTime: db.endTime,
+      endDate: db.endDate,
       ticketNumber: db.ticketNumber ?? '',
       clientName: db.clientName,
       site: db.site,
@@ -396,6 +429,9 @@ class CriServiceModel {
       interventionDate: DateTime.parse(json['interventionDate'] as String),
       startTime: DateTime.parse(json['startTime'] as String),
       endTime: DateTime.parse(json['endTime'] as String),
+      endDate: json['endDate'] != null
+          ? DateTime.parse(json['endDate'] as String)
+          : null,
       ticketNumber: (json['ticketNumber'] as String?) ?? '',
       clientName: json['clientName'] as String,
       site: json['site'] as String,

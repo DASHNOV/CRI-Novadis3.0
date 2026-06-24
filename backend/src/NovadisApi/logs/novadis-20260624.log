@@ -67,3 +67,440 @@ Npgsql.NpgsqlException (0x80004005): Failed to connect to 127.0.0.1:5432
    at Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal.NpgsqlMigrator.Migrate(String targetMigration)
    at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.Migrate(DatabaseFacade databaseFacade)
    at Program.<Main>$(String[] args) in C:\Users\rdenimal\Documents\App_Novadis\CRI_Novadis\CRI_Novadis2.0\backend\src\NovadisApi\Program.cs:line 393
+[2026-06-24 09:14:14.138 +02:00 INF] Applying pending database migrations... {"SourceContext":"NovadisApi","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:14:14.805 +02:00 INF] Database migrations applied successfully {"SourceContext":"NovadisApi","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:14:14.968 +02:00 WRN] CSV file not found, skipping site import {"SourceContext":"Program","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:14:14.971 +02:00 INF] Novadis CRI API starting... {"SourceContext":"NovadisApi","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:14:14.976 +02:00 INF] Environment: Development {"SourceContext":"NovadisApi","Application":"NovadisApi"}
+[2026-06-24 09:14:15.151 +02:00 INF] Now listening on: http://0.0.0.0:5200 {"EventId":{"Id":14,"Name":"ListeningOnAddress"},"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:14:15.156 +02:00 INF] Application started. Press Ctrl+C to shut down. {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:14:15.158 +02:00 INF] Hosting environment: Development {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:14:15.161 +02:00 INF] Content root path: C:\Users\rdenimal\Documents\App_Novadis\CRI_Novadis\CRI_Novadis2.0\backend\src\NovadisApi {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:16:15.188 +02:00 INF] Purge RGPD : 0 AuditLogs, 0 AuthAttempts, 0 UserTokens supprimés {"SourceContext":"NovadisApi.Services.Maintenance.DataRetentionService","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:17:28.326 +02:00 INF] Login attempt for email: rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT60:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT60","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:17:28.433 +02:00 WRN] Login failed: User not found or inactive - rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT60:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT60","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:17:28.462 +02:00 WRN] HTTP POST /api/auth/login → 400 en 248ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT60:00000002","ConnectionId":"0HNMHO2IUGT60","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:17:47.789 +02:00 INF] Login attempt for email: rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT60:00000004","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT60","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:17:47.800 +02:00 WRN] Login failed: User not found or inactive - rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT60:00000004","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT60","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:17:47.806 +02:00 WRN] HTTP POST /api/auth/login → 400 en 21ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT60:00000004","ConnectionId":"0HNMHO2IUGT60","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:18:07.118 +02:00 INF] Login attempt for email: rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT60:00000006","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT60","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:18:07.128 +02:00 WRN] Login failed: User not found or inactive - rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT60:00000006","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT60","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:18:07.135 +02:00 WRN] HTTP POST /api/auth/login → 400 en 26ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT60:00000006","ConnectionId":"0HNMHO2IUGT60","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:18:48.077 +02:00 WRN] HTTP GET /api/auth/login → 405 en 5ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT61:00000001","ConnectionId":"0HNMHO2IUGT61","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:18:50.079 +02:00 WRN] HTTP GET /api/auth/login → 405 en 1ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT61:00000002","ConnectionId":"0HNMHO2IUGT61","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:18:54.397 +02:00 WRN] HTTP GET /api → 404 en 0ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT61:00000003","ConnectionId":"0HNMHO2IUGT61","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:18:59.741 +02:00 WRN] HTTP GET /api/ → 404 en 0ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT61:00000004","ConnectionId":"0HNMHO2IUGT61","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:19:37.580 +02:00 WRN] HTTP GET /api/ → 404 en 0ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT61:00000005","ConnectionId":"0HNMHO2IUGT61","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:20:23.783 +02:00 INF] Login attempt for email: rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT63:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT63","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:20:23.834 +02:00 WRN] Login failed: User not found or inactive - rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT63:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT63","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:20:23.841 +02:00 WRN] HTTP POST /api/auth/login → 400 en 59ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT63:00000002","ConnectionId":"0HNMHO2IUGT63","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:27:56.055 +02:00 INF] Login attempt for email: rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT64:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT64","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:27:56.076 +02:00 WRN] Login failed: User not found or inactive - rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT64:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT64","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:27:56.082 +02:00 WRN] HTTP POST /api/auth/login → 400 en 27ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT64:00000002","ConnectionId":"0HNMHO2IUGT64","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:31:48.560 +02:00 INF] Login attempt for email: rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT65:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT65","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:31:48.754 +02:00 INF] 🔐 [DEV] Code de connexion pour rdenimal@novadis.eu: 316215 {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT65:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT65","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:31:48.876 +02:00 WRN] ⚠️ Microsoft Graph not configured. Mocking email send to rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT65:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT65","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:31:48.880 +02:00 INF] 📧 Email Subject: Code de connexion Novadis CRI {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT65:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT65","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:31:48.885 +02:00 INF] 📝 Email Body: 
+        <html>
+        <body style='font-family: Arial, sans-serif;'>
+            <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                <h2 style='color: #2563eb;'>Connexion à Novadis CRI</h2>
+                <p>Bonjour Rémy,</p>
+                <p>Voici votre code de vérification pour vous connecter :</p>
+                <div style='background: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;'>
+                    <h1 style='color: #1f2937; font-size: 36px; letter-spacing: 8px; margin: 0;'>316215</h1>
+                </div>
+                <p style='color: #6b7280;'>Ce code expire dans 10 minutes.</p>
+                <p style='color: #6b7280; font-size: 12px;'>Si vous n'avez pas demandé ce code, ignorez cet email.</p>
+                <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;'>
+                <p style='color: #9ca3af; font-size: 12px;'>© 2026 Novadis - Tous droits réservés</p>
+            </div>
+        </body>
+        </html> {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT65:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT65","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:31:48.934 +02:00 INF] Login code sent successfully to rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT65:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT65","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:32:21.593 +02:00 INF] Code verification attempt for rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"ccad7574-8b36-4077-bad3-2901d3b982cf","ActionName":"NovadisApi.Controllers.AuthController.VerifyCode (NovadisApi)","RequestId":"0HNMHO2IUGT65:00000004","RequestPath":"/api/auth/verify","ConnectionId":"0HNMHO2IUGT65","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:32:21.682 +02:00 INF] User rdenimal@novadis.eu logged in successfully {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"ccad7574-8b36-4077-bad3-2901d3b982cf","ActionName":"NovadisApi.Controllers.AuthController.VerifyCode (NovadisApi)","RequestId":"0HNMHO2IUGT65:00000004","RequestPath":"/api/auth/verify","ConnectionId":"0HNMHO2IUGT65","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:37:13.614 +02:00 ERR] Failed executing DbCommand (4ms) [Parameters=[@__pattern_1='?', @__q_2_contains='?', @__p_3='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Numero", s."NomDuSite", s."Adresse", s."Ville", s."CodePostal", s."Pays"
+FROM "Sites" AS s
+WHERE unaccent(s."NomDuSite") ILIKE @__pattern_1 ESCAPE '' OR (s."Adresse" IS NOT NULL AND unaccent(s."Adresse") ILIKE @__pattern_1 ESCAPE '') OR (s."Ville" IS NOT NULL AND unaccent(s."Ville") ILIKE @__pattern_1 ESCAPE '') OR (s."CodePostal" IS NOT NULL AND s."CodePostal" LIKE @__q_2_contains)
+ORDER BY s."NomDuSite"
+LIMIT @__p_3 {"EventId":{"Id":20102,"Name":"Microsoft.EntityFrameworkCore.Database.Command.CommandError"},"SourceContext":"Microsoft.EntityFrameworkCore.Database.Command","ActionId":"97300bd6-ba4f-4d00-a48a-e7f9d2b47c0d","ActionName":"NovadisApi.Controllers.SitesController.SearchSites (NovadisApi)","RequestId":"0HNMHO2IUGT6B:00000002","RequestPath":"/api/Sites/search","ConnectionId":"0HNMHO2IUGT6B","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:37:13.651 +02:00 ERR] An exception occurred while iterating over the results of a query for context type 'NovadisApi.Data.NovadisDbContext'.
+Npgsql.PostgresException (0x80004005): 42883: function unaccent(character varying) does not exist
+
+POSITION: 110
+   at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+  Exception data:
+    Severity: ERROR
+    SqlState: 42883
+    MessageText: function unaccent(character varying) does not exist
+    Hint: No function matches the given name and argument types. You might need to add explicit type casts.
+    Position: 110
+    File: parse_func.c
+    Line: 629
+    Routine: ParseFuncOrColumn {"EventId":{"Id":10100,"Name":"Microsoft.EntityFrameworkCore.Query.QueryIterationFailed"},"SourceContext":"Microsoft.EntityFrameworkCore.Query","ActionId":"97300bd6-ba4f-4d00-a48a-e7f9d2b47c0d","ActionName":"NovadisApi.Controllers.SitesController.SearchSites (NovadisApi)","RequestId":"0HNMHO2IUGT6B:00000002","RequestPath":"/api/Sites/search","ConnectionId":"0HNMHO2IUGT6B","Application":"NovadisApi","Environment":"Development"}
+Npgsql.PostgresException (0x80004005): 42883: function unaccent(character varying) does not exist
+
+POSITION: 110
+   at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+  Exception data:
+    Severity: ERROR
+    SqlState: 42883
+    MessageText: function unaccent(character varying) does not exist
+    Hint: No function matches the given name and argument types. You might need to add explicit type casts.
+    Position: 110
+    File: parse_func.c
+    Line: 629
+    Routine: ParseFuncOrColumn
+[2026-06-24 09:37:13.665 +02:00 ERR] HTTP GET /api/Sites/search → 500 en 81ms {"UserId":"0b740d20-767d-4452-8999-d36f564edb02","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT6B:00000002","ConnectionId":"0HNMHO2IUGT6B","Application":"NovadisApi","Environment":"Development"}
+Npgsql.PostgresException (0x80004005): 42883: function unaccent(character varying) does not exist
+
+POSITION: 110
+   at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at NovadisApi.Controllers.SitesController.SearchSites(String q) in C:\Users\rdenimal\Documents\App_Novadis\CRI_Novadis\CRI_Novadis2.0\backend\src\NovadisApi\Controllers\SitesController.cs:line 41
+   at lambda_method903(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42883
+    MessageText: function unaccent(character varying) does not exist
+    Hint: No function matches the given name and argument types. You might need to add explicit type casts.
+    Position: 110
+    File: parse_func.c
+    Line: 629
+    Routine: ParseFuncOrColumn
+[2026-06-24 09:37:13.693 +02:00 ERR] Unhandled exception on GET /api/Sites/search (TraceId=0HNMHO2IUGT6B:00000002) {"SourceContext":"NovadisApi.Middleware.GlobalExceptionHandler","RequestId":"0HNMHO2IUGT6B:00000002","RequestPath":"/api/Sites/search","ConnectionId":"0HNMHO2IUGT6B","Application":"NovadisApi","Environment":"Development"}
+Npgsql.PostgresException (0x80004005): 42883: function unaccent(character varying) does not exist
+
+POSITION: 110
+   at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at NovadisApi.Controllers.SitesController.SearchSites(String q) in C:\Users\rdenimal\Documents\App_Novadis\CRI_Novadis\CRI_Novadis2.0\backend\src\NovadisApi\Controllers\SitesController.cs:line 41
+   at lambda_method903(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Program.<>c__DisplayClass0_0.<<<Main>$>b__9>d.MoveNext() in C:\Users\rdenimal\Documents\App_Novadis\CRI_Novadis\CRI_Novadis2.0\backend\src\NovadisApi\Program.cs:line 324
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42883
+    MessageText: function unaccent(character varying) does not exist
+    Hint: No function matches the given name and argument types. You might need to add explicit type casts.
+    Position: 110
+    File: parse_func.c
+    Line: 629
+    Routine: ParseFuncOrColumn
+[2026-06-24 09:37:13.804 +02:00 ERR] Failed executing DbCommand (2ms) [Parameters=[@__pattern_1='?', @__q_2_contains='?', @__p_3='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Numero", s."NomDuSite", s."Adresse", s."Ville", s."CodePostal", s."Pays"
+FROM "Sites" AS s
+WHERE unaccent(s."NomDuSite") ILIKE @__pattern_1 ESCAPE '' OR (s."Adresse" IS NOT NULL AND unaccent(s."Adresse") ILIKE @__pattern_1 ESCAPE '') OR (s."Ville" IS NOT NULL AND unaccent(s."Ville") ILIKE @__pattern_1 ESCAPE '') OR (s."CodePostal" IS NOT NULL AND s."CodePostal" LIKE @__q_2_contains)
+ORDER BY s."NomDuSite"
+LIMIT @__p_3 {"EventId":{"Id":20102,"Name":"Microsoft.EntityFrameworkCore.Database.Command.CommandError"},"SourceContext":"Microsoft.EntityFrameworkCore.Database.Command","ActionId":"97300bd6-ba4f-4d00-a48a-e7f9d2b47c0d","ActionName":"NovadisApi.Controllers.SitesController.SearchSites (NovadisApi)","RequestId":"0HNMHO2IUGT6B:00000004","RequestPath":"/api/Sites/search","ConnectionId":"0HNMHO2IUGT6B","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:37:13.811 +02:00 ERR] An exception occurred while iterating over the results of a query for context type 'NovadisApi.Data.NovadisDbContext'.
+Npgsql.PostgresException (0x80004005): 42883: function unaccent(character varying) does not exist
+
+POSITION: 110
+   at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+  Exception data:
+    Severity: ERROR
+    SqlState: 42883
+    MessageText: function unaccent(character varying) does not exist
+    Hint: No function matches the given name and argument types. You might need to add explicit type casts.
+    Position: 110
+    File: parse_func.c
+    Line: 629
+    Routine: ParseFuncOrColumn {"EventId":{"Id":10100,"Name":"Microsoft.EntityFrameworkCore.Query.QueryIterationFailed"},"SourceContext":"Microsoft.EntityFrameworkCore.Query","ActionId":"97300bd6-ba4f-4d00-a48a-e7f9d2b47c0d","ActionName":"NovadisApi.Controllers.SitesController.SearchSites (NovadisApi)","RequestId":"0HNMHO2IUGT6B:00000004","RequestPath":"/api/Sites/search","ConnectionId":"0HNMHO2IUGT6B","Application":"NovadisApi","Environment":"Development"}
+Npgsql.PostgresException (0x80004005): 42883: function unaccent(character varying) does not exist
+
+POSITION: 110
+   at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+  Exception data:
+    Severity: ERROR
+    SqlState: 42883
+    MessageText: function unaccent(character varying) does not exist
+    Hint: No function matches the given name and argument types. You might need to add explicit type casts.
+    Position: 110
+    File: parse_func.c
+    Line: 629
+    Routine: ParseFuncOrColumn
+[2026-06-24 09:37:13.851 +02:00 ERR] HTTP GET /api/Sites/search → 500 en 51ms {"UserId":"0b740d20-767d-4452-8999-d36f564edb02","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT6B:00000004","ConnectionId":"0HNMHO2IUGT6B","Application":"NovadisApi","Environment":"Development"}
+Npgsql.PostgresException (0x80004005): 42883: function unaccent(character varying) does not exist
+
+POSITION: 110
+   at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at NovadisApi.Controllers.SitesController.SearchSites(String q) in C:\Users\rdenimal\Documents\App_Novadis\CRI_Novadis\CRI_Novadis2.0\backend\src\NovadisApi\Controllers\SitesController.cs:line 41
+   at lambda_method903(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42883
+    MessageText: function unaccent(character varying) does not exist
+    Hint: No function matches the given name and argument types. You might need to add explicit type casts.
+    Position: 110
+    File: parse_func.c
+    Line: 629
+    Routine: ParseFuncOrColumn
+[2026-06-24 09:37:13.865 +02:00 ERR] Unhandled exception on GET /api/Sites/search (TraceId=0HNMHO2IUGT6B:00000004) {"SourceContext":"NovadisApi.Middleware.GlobalExceptionHandler","RequestId":"0HNMHO2IUGT6B:00000004","RequestPath":"/api/Sites/search","ConnectionId":"0HNMHO2IUGT6B","Application":"NovadisApi","Environment":"Development"}
+Npgsql.PostgresException (0x80004005): 42883: function unaccent(character varying) does not exist
+
+POSITION: 110
+   at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at NovadisApi.Controllers.SitesController.SearchSites(String q) in C:\Users\rdenimal\Documents\App_Novadis\CRI_Novadis\CRI_Novadis2.0\backend\src\NovadisApi\Controllers\SitesController.cs:line 41
+   at lambda_method903(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Program.<>c__DisplayClass0_0.<<<Main>$>b__9>d.MoveNext() in C:\Users\rdenimal\Documents\App_Novadis\CRI_Novadis\CRI_Novadis2.0\backend\src\NovadisApi\Program.cs:line 324
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42883
+    MessageText: function unaccent(character varying) does not exist
+    Hint: No function matches the given name and argument types. You might need to add explicit type casts.
+    Position: 110
+    File: parse_func.c
+    Line: 629
+    Routine: ParseFuncOrColumn
+[2026-06-24 09:53:38.104 +02:00 WRN] HTTP GET /api/Sites/search → 400 en 14ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT6K:00000001","ConnectionId":"0HNMHO2IUGT6K","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:54:17.618 +02:00 WRN] HTTP GET /api/Sites → 401 en 3ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT6O:00000001","ConnectionId":"0HNMHO2IUGT6O","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 09:54:21.106 +02:00 WRN] HTTP GET /api/Sites → 401 en 0ms {"UserId":"anon","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT6P:00000001","ConnectionId":"0HNMHO2IUGT6P","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:09:15.929 +02:00 INF] Login attempt for email: rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT76:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT76","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:09:15.944 +02:00 INF] 🔐 [DEV] Code de connexion pour rdenimal@novadis.eu: 987416 {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT76:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT76","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:09:15.948 +02:00 WRN] ⚠️ Microsoft Graph not configured. Mocking email send to rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT76:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT76","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:09:15.953 +02:00 INF] 📧 Email Subject: Code de connexion Novadis CRI {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT76:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT76","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:09:15.957 +02:00 INF] 📝 Email Body: 
+        <html>
+        <body style='font-family: Arial, sans-serif;'>
+            <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                <h2 style='color: #2563eb;'>Connexion à Novadis CRI</h2>
+                <p>Bonjour Rémy,</p>
+                <p>Voici votre code de vérification pour vous connecter :</p>
+                <div style='background: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;'>
+                    <h1 style='color: #1f2937; font-size: 36px; letter-spacing: 8px; margin: 0;'>987416</h1>
+                </div>
+                <p style='color: #6b7280;'>Ce code expire dans 10 minutes.</p>
+                <p style='color: #6b7280; font-size: 12px;'>Si vous n'avez pas demandé ce code, ignorez cet email.</p>
+                <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;'>
+                <p style='color: #9ca3af; font-size: 12px;'>© 2026 Novadis - Tous droits réservés</p>
+            </div>
+        </body>
+        </html> {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT76:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT76","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:09:15.967 +02:00 INF] Login code sent successfully to rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT76:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT76","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:09:29.931 +02:00 INF] Code verification attempt for rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"ccad7574-8b36-4077-bad3-2901d3b982cf","ActionName":"NovadisApi.Controllers.AuthController.VerifyCode (NovadisApi)","RequestId":"0HNMHO2IUGT76:00000004","RequestPath":"/api/auth/verify","ConnectionId":"0HNMHO2IUGT76","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:09:29.960 +02:00 INF] User rdenimal@novadis.eu logged in successfully {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"ccad7574-8b36-4077-bad3-2901d3b982cf","ActionName":"NovadisApi.Controllers.AuthController.VerifyCode (NovadisApi)","RequestId":"0HNMHO2IUGT76:00000004","RequestPath":"/api/auth/verify","ConnectionId":"0HNMHO2IUGT76","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:29:22.051 +02:00 INF] Login attempt for email: rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT7C:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT7C","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:29:22.080 +02:00 INF] 🔐 [DEV] Code de connexion pour rdenimal@novadis.eu: 582645 {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT7C:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT7C","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:29:22.085 +02:00 WRN] ⚠️ Microsoft Graph not configured. Mocking email send to rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT7C:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT7C","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:29:22.090 +02:00 INF] 📧 Email Subject: Code de connexion Novadis CRI {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT7C:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT7C","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:29:22.094 +02:00 INF] 📝 Email Body: 
+        <html>
+        <body style='font-family: Arial, sans-serif;'>
+            <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                <h2 style='color: #2563eb;'>Connexion à Novadis CRI</h2>
+                <p>Bonjour Rémy,</p>
+                <p>Voici votre code de vérification pour vous connecter :</p>
+                <div style='background: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;'>
+                    <h1 style='color: #1f2937; font-size: 36px; letter-spacing: 8px; margin: 0;'>582645</h1>
+                </div>
+                <p style='color: #6b7280;'>Ce code expire dans 10 minutes.</p>
+                <p style='color: #6b7280; font-size: 12px;'>Si vous n'avez pas demandé ce code, ignorez cet email.</p>
+                <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;'>
+                <p style='color: #9ca3af; font-size: 12px;'>© 2026 Novadis - Tous droits réservés</p>
+            </div>
+        </body>
+        </html> {"SourceContext":"NovadisApi.Services.Email.EmailService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT7C:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT7C","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:29:22.104 +02:00 INF] Login code sent successfully to rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"8d183c96-a4f6-4942-bd12-2637da9e6a20","ActionName":"NovadisApi.Controllers.AuthController.Login (NovadisApi)","RequestId":"0HNMHO2IUGT7C:00000002","RequestPath":"/api/auth/login","ConnectionId":"0HNMHO2IUGT7C","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:29:38.366 +02:00 INF] Code verification attempt for rdenimal@novadis.eu {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"ccad7574-8b36-4077-bad3-2901d3b982cf","ActionName":"NovadisApi.Controllers.AuthController.VerifyCode (NovadisApi)","RequestId":"0HNMHO2IUGT7C:00000004","RequestPath":"/api/auth/verify","ConnectionId":"0HNMHO2IUGT7C","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:29:38.385 +02:00 INF] User rdenimal@novadis.eu logged in successfully {"SourceContext":"NovadisApi.Services.Auth.AuthService","ActionId":"ccad7574-8b36-4077-bad3-2901d3b982cf","ActionName":"NovadisApi.Controllers.AuthController.VerifyCode (NovadisApi)","RequestId":"0HNMHO2IUGT7C:00000004","RequestPath":"/api/auth/verify","ConnectionId":"0HNMHO2IUGT7C","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:31:17.441 +02:00 WRN] HTTP POST /api/CRI → 400 en 26ms {"UserId":"0b740d20-767d-4452-8999-d36f564edb02","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT7H:0000000E","ConnectionId":"0HNMHO2IUGT7H","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:31:27.768 +02:00 WRN] The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased. {"EventId":{"Id":10102,"Name":"Microsoft.EntityFrameworkCore.Query.RowLimitingOperationWithoutOrderByWarning"},"SourceContext":"Microsoft.EntityFrameworkCore.Query","ActionId":"6c910daf-2083-474c-b377-33c49e8e990b","ActionName":"NovadisApi.Controllers.CRIController.SearchClients (NovadisApi)","RequestId":"0HNMHO2IUGT7H:00000014","RequestPath":"/api/CRI/clients/search","ConnectionId":"0HNMHO2IUGT7H","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:39:05.699 +02:00 WRN] HTTP POST /api/CRI → 400 en 1ms {"UserId":"0b740d20-767d-4452-8999-d36f564edb02","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT7I:0000000C","ConnectionId":"0HNMHO2IUGT7I","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:39:12.152 +02:00 WRN] HTTP POST /api/CRI → 400 en 1ms {"UserId":"0b740d20-767d-4452-8999-d36f564edb02","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT7I:0000000E","ConnectionId":"0HNMHO2IUGT7I","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:39:13.474 +02:00 WRN] HTTP POST /api/CRI → 400 en 1ms {"UserId":"0b740d20-767d-4452-8999-d36f564edb02","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT7I:0000000F","ConnectionId":"0HNMHO2IUGT7I","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:39:15.112 +02:00 WRN] HTTP POST /api/CRI → 400 en 1ms {"UserId":"0b740d20-767d-4452-8999-d36f564edb02","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT7I:00000010","ConnectionId":"0HNMHO2IUGT7I","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:39:24.009 +02:00 WRN] HTTP POST /api/CRI → 400 en 1ms {"UserId":"0b740d20-767d-4452-8999-d36f564edb02","SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","RequestId":"0HNMHO2IUGT7I:00000012","ConnectionId":"0HNMHO2IUGT7I","Application":"NovadisApi","Environment":"Development"}
+[2026-06-24 10:40:03.449 +02:00 INF] Application is shutting down... {"SourceContext":"Microsoft.Hosting.Lifetime","Application":"NovadisApi","Environment":"Development"}

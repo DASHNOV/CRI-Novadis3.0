@@ -11,6 +11,7 @@ class CriProjetTable extends Table {
   DateTimeColumn get interventionDate => dateTime()();
   DateTimeColumn get startTime => dateTime()();
   DateTimeColumn get endTime => dateTime()();
+  DateTimeColumn get endDate => dateTime().nullable()();
 
   // Section 2: Client
   TextColumn get clientName => text()();
