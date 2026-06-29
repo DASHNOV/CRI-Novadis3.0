@@ -10,6 +10,8 @@ import 'package:novadis_cri/data/local/app_database.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/core/theme/theme_provider.dart';
 import 'package:novadis_cri/data/models/cri_model.dart';
+import 'package:novadis_cri/core/constants/permissions.dart';
+import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 import 'package:novadis_cri/features/auth/presentation/providers/permissions_provider.dart';
 import 'package:novadis_cri/features/history/widgets/cri_details_dialog.dart';
 
@@ -164,6 +166,46 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
     }
 
     return drafts;
+  }
+
+  Future<void> _deleteRemoteCri(Map<String, dynamic> cri) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer ce CRI ?'),
+        content: const Text(
+            'Cette action est irréversible. Le CRI sera définitivement supprimé.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.error),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await ref.read(criRemoteRepositoryProvider).deleteCri(cri['id'].toString());
+      if (mounted) _loadData();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: AppTheme.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _deleteDraft(Map<String, dynamic> cri) async {
@@ -903,6 +945,15 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
     final hasSigned = cri['clientSignature'] != null;
     final isDraft = cri['_isDraft'] == true;
 
+    final currentUserId = ref.read(userIdProvider);
+    final criOwnerId = cri['technicianId']?.toString();
+    final isAdmin = ref.read(permissionsProvider).hasPermission(Permission.deleteAnyCri);
+    final canDeleteRemote = !isDraft &&
+        (isAdmin ||
+            (currentUserId != null &&
+                criOwnerId != null &&
+                currentUserId == criOwnerId));
+
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.space8),
       decoration: BoxDecoration(
@@ -956,6 +1007,10 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                 initialClientSignature: cri['clientSignature']?.toString(),
                 canToggleSignature: canToggle,
                 onSignatureChanged: _loadData,
+                canDelete: canDeleteRemote,
+                onDeleted: () {
+                  if (mounted) _loadData();
+                },
               ),
             );
           },
@@ -992,6 +1047,22 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                           ),
                           tooltip: 'Supprimer le brouillon',
                           onPressed: () => _deleteDraft(cri),
+                        ),
+                      ),
+                    ] else if (canDeleteRemote) ...[
+                      const SizedBox(width: AppTheme.space4),
+                      SizedBox(
+                        width: 30,
+                        height: 30,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(
+                            Icons.delete_outline_rounded,
+                            size: 18,
+                            color: AppTheme.error,
+                          ),
+                          tooltip: 'Supprimer le CRI',
+                          onPressed: () => _deleteRemoteCri(cri),
                         ),
                       ),
                     ],

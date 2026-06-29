@@ -142,7 +142,11 @@ class HistoryScreen extends HookConsumerWidget {
       );
 
       if (confirmed == true) {
-        // Tentative de suppression (on essaie les deux tables car on a juste l'ID)
+        // Suppression serveur (ignorée si le CRI est un brouillon local uniquement)
+        try {
+          await remoteRepo.deleteCri(id);
+        } catch (_) {}
+
         int deleted = await db.deleteCriService(id);
         if (deleted == 0) {
           deleted = await db.deleteCriProjet(id);
@@ -182,7 +186,14 @@ class HistoryScreen extends HookConsumerWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        builder: (context) => CriDetailsDialog(cri: cri),
+        builder: (context) => CriDetailsDialog(
+          cri: cri,
+          canDelete: true,
+          onDeleted: () async {
+            int deleted = await db.deleteCriService(cri.id);
+            if (deleted == 0) await db.deleteCriProjet(cri.id);
+          },
+        ),
       );
     }
 

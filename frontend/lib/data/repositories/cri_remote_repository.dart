@@ -231,6 +231,14 @@ class CriRemoteRepository {
     };
   }
 
+  Future<void> deleteCri(String criId) async {
+    try {
+      await _dio.delete('/CRI/$criId');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// Récupère les photos serveur d'un CRI.
   Future<List<CriPhotoModel>> fetchCriPhotos(String criId) async {
     try {

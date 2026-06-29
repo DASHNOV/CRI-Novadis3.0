@@ -28,12 +28,20 @@ class CriDetailsDialog extends ConsumerStatefulWidget {
   /// Doit être `false` si l'utilisateur courant n'est pas propriétaire du CRI.
   final bool canToggleSignature;
 
+  /// Autorise l'affichage du bouton de suppression.
+  final bool canDelete;
+
+  /// Appelé après une suppression réussie (avant fermeture du dialogue).
+  final VoidCallback? onDeleted;
+
   const CriDetailsDialog({
     super.key,
     required this.cri,
     this.initialClientSignature,
     this.onSignatureChanged,
     this.canToggleSignature = false,
+    this.canDelete = false,
+    this.onDeleted,
   });
 
   @override
@@ -43,6 +51,7 @@ class CriDetailsDialog extends ConsumerStatefulWidget {
 class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
   late String? _clientSignature = widget.initialClientSignature;
   bool _isToggling = false;
+  bool _isDeleting = false;
   List<CriPhotoModel> _photos = [];
   String? _authToken;
 
@@ -95,6 +104,43 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
     }
   }
 
+  Future<void> _handleDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer ce CRI ?'),
+        content: const Text(
+          'Cette action est irréversible. Le CRI sera définitivement supprimé.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.error),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _isDeleting = true);
+    try {
+      await ref.read(criRemoteRepositoryProvider).deleteCri(cri.id);
+      if (!mounted) return;
+      widget.onDeleted?.call();
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isDeleting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString()), backgroundColor: AppTheme.error),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -133,6 +179,21 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
                         style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
+                    if (widget.canDelete)
+                      _isDeleting
+                          ? const Padding(
+                              padding: EdgeInsets.all(8),
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            )
+                          : IconButton(
+                              icon: const Icon(Icons.delete_outline, color: AppTheme.error),
+                              onPressed: _handleDelete,
+                              tooltip: 'Supprimer',
+                            ),
                     IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () => Navigator.pop(context),
