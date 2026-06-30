@@ -66,3 +66,6 @@ StyleCop.Cache
 
 # Generated export files
 export-storage/
+
+# Logs applicatifs
+src/NovadisApi/logs/
