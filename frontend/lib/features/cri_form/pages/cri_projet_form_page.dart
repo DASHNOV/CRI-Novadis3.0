@@ -17,6 +17,9 @@ import 'package:novadis_cri/features/cri_form/widgets/site_selector.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/features/cri_form/widgets/form_shared_widgets.dart';
 import 'package:novadis_cri/core/theme/theme_provider.dart';
+import 'package:novadis_cri/data/models/site_summary_model.dart';
+import 'package:novadis_cri/data/repositories/site_summary_repository.dart';
+import 'package:novadis_cri/features/cri_form/widgets/site_summary_card.dart';
 
 /// Page de formulaire CRI Projet avec 6 sections
 class CriProjetFormPage extends ConsumerStatefulWidget {
@@ -34,6 +37,7 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
   final bool _autoSaveEnabled = true;
   bool _isMultiDay = false;
   bool _isMultiDayInitialized = false;
+  SiteSummaryModel? _siteSummary;
 
   // Controllers pour auto-complétion des champs à la sélection d'un site
   final _addressController = TextEditingController();
@@ -101,6 +105,20 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
     _formKey.currentState?.fields['ville']?.didChange(site.ville ?? '');
     _formKey.currentState?.fields['codePostal']?.didChange(site.codePostal ?? '');
     _formKey.currentState?.fields['pays']?.didChange(site.pays ?? '');
+
+    _fetchSiteSummary(site.nomDuSite);
+  }
+
+  Future<void> _fetchSiteSummary(String siteName) async {
+    try {
+      final repo = ref.read(siteSummaryRepositoryProvider);
+      final summary = await repo.getSummary(siteName.trim());
+      if (mounted) {
+        setState(() => _siteSummary = summary);
+      }
+    } catch (e) {
+      debugPrint('Error fetching summary: $e');
+    }
   }
 
   Future<void> _autoSave() async {
@@ -251,27 +269,53 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
         key: _formKey,
         child: ContentContainer(
           maxWidth: 900,
-          child: Stepper(
-          currentStep: _currentStep,
-          onStepContinue: _onStepContinue,
-          onStepCancel: _onStepCancel,
-          onStepTapped: (index) => setState(() => _currentStep = index),
-          controlsBuilder: (context, details) => buildCriFormControls(
-            context,
-            details,
-            currentStep: _currentStep,
-            lastStep: 4,
-            isSaving: state.isSaving,
-            onSubmit: _submit,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Padding(
+                  padding: EdgeInsets.only(top: _siteSummary != null ? 120 : 0),
+                  child: Stepper(
+                    currentStep: _currentStep,
+                    onStepContinue: _onStepContinue,
+                    onStepCancel: _onStepCancel,
+                    onStepTapped: (index) => setState(() => _currentStep = index),
+                    controlsBuilder: (context, details) => buildCriFormControls(
+                      context,
+                      details,
+                      currentStep: _currentStep,
+                      lastStep: 4,
+                      isSaving: state.isSaving,
+                      onSubmit: _submit,
+                    ),
+                    steps: [
+                      _buildGeneralStep(state, theme),
+                      _buildClientStep(state, theme),
+                      _buildProjectStep(state, theme),
+                      _buildInterventionStep(state, theme),
+                      _buildValidationStep(state, theme),
+                    ],
+                  ),
+                ),
+              ),
+              if (_siteSummary != null)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    color: AppTheme.background.withValues(alpha: 0.95),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: SiteSummaryCard(
+                      summary: _siteSummary!,
+                      onDismiss: () => setState(() => _siteSummary = null),
+                      onSeeHistory: () {
+                        context.push('/history?site=${Uri.encodeQueryComponent(_siteSummary!.siteName)}');
+                      },
+                    ),
+                  ),
+                ),
+            ],
           ),
-          steps: [
-            _buildGeneralStep(state, theme),
-            _buildClientStep(state, theme),
-            _buildProjectStep(state, theme),
-            _buildInterventionStep(state, theme),
-            _buildValidationStep(state, theme),
-          ],
-        ),
         ),
       ),
       bottomNavigationBar: CriFormAutoSaveBar(lastAutoSave: state.lastAutoSave),

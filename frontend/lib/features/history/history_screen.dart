@@ -64,13 +64,20 @@ final historyListProvider = Provider.autoDispose<List<CriModel>>((ref) {
 });
 
 class HistoryScreen extends HookConsumerWidget {
-  const HistoryScreen({super.key});
+  final String? siteFilter;
+
+  const HistoryScreen({super.key, this.siteFilter});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(themeAnimationProvider);
     final db = ref.watch(appDatabaseProvider);
-    final criList = ref.watch(historyListProvider);
+    final allCris = ref.watch(historyListProvider);
+    final criList = siteFilter != null
+        ? allCris
+            .where((c) => c.site.toLowerCase() == siteFilter!.toLowerCase())
+            .toList()
+        : allCris;
     final remoteRepo = ref.watch(criRemoteRepositoryProvider);
     final servicesAsync = ref.watch(criServicesStreamProvider);
     final projectsAsync = ref.watch(criProjectsStreamProvider);
@@ -203,7 +210,10 @@ class HistoryScreen extends HookConsumerWidget {
         backgroundColor: AppTheme.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Text('Historique', style: TextStyle(color: AppTheme.textPrimary)),
+        title: Text(
+        siteFilter != null ? 'Historique : $siteFilter' : 'Historique',
+        style: TextStyle(color: AppTheme.textPrimary),
+      ),
         iconTheme: IconThemeData(color: AppTheme.textPrimary),
         actions: [
           IconButton(
@@ -227,14 +237,18 @@ class HistoryScreen extends HookConsumerWidget {
                   Icon(Icons.inbox_outlined, size: 64, color: AppTheme.textTertiary),
                   const SizedBox(height: 16),
                   Text(
-                    'Aucun CRI enregistré',
+                    siteFilter != null
+                        ? 'Aucun CRI pour ce site'
+                        : 'Aucun CRI enregistré',
                     style: Theme.of(
                       context,
                     ).textTheme.titleLarge?.copyWith(color: AppTheme.textSecondary),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Créez votre premier compte rendu d\'intervention',
+                    siteFilter != null
+                        ? 'Aucun compte rendu trouvé pour "$siteFilter"'
+                        : 'Créez votre premier compte rendu d\'intervention',
                     style: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(color: AppTheme.textTertiary),

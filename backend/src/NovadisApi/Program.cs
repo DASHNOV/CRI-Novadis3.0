@@ -181,6 +181,8 @@ builder.Services.AddRateLimiter(options =>
 // ========================================
 // 4️⃣ INJECTION DES SERVICES
 // ========================================
+builder.Services.AddMemoryCache();
+
 // Services d'authentification
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICodeGeneratorService, CodeGeneratorService>();

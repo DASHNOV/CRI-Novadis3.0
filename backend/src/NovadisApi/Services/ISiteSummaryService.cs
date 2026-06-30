@@ -5,5 +5,6 @@ namespace NovadisApi.Services
     public interface ISiteSummaryService
     {
         Task<SiteSummaryDto> GetSummaryAsync(string siteName);
+        void InvalidateSiteSummary(string? siteName);
     }
 }

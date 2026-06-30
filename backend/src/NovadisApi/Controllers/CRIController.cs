@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NovadisApi.Data;
 using NovadisApi.Models;
 using NovadisApi.Models.DTOs;
+using NovadisApi.Services;
 using System.Security.Claims;
 using System.Text.Json;
 
@@ -17,14 +18,16 @@ namespace NovadisApi.Controllers
         private readonly NovadisDbContext _context;
         private readonly ILogger<CRIController> _logger;
         private readonly IWebHostEnvironment _env;
+        private readonly ISiteSummaryService _siteSummaryService;
 
         private static readonly string[] AllowedMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
-        public CRIController(NovadisDbContext context, ILogger<CRIController> logger, IWebHostEnvironment env)
+        public CRIController(NovadisDbContext context, ILogger<CRIController> logger, IWebHostEnvironment env, ISiteSummaryService siteSummaryService)
         {
             _context = context;
             _logger = logger;
             _env = env;
+            _siteSummaryService = siteSummaryService;
         }
 
         private string GetPhotosDirectory(Guid criId)
@@ -147,6 +150,7 @@ namespace NovadisApi.Controllers
                     existing.SubmittedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
+                _siteSummaryService.InvalidateSiteSummary(existing.ClientSite);
                 return Ok(ApiResponse<CRIForm>.SuccessResponse(existing));
             }
 
@@ -158,7 +162,7 @@ namespace NovadisApi.Controllers
 
             _context.CRIForms.Add(cri);
             await _context.SaveChangesAsync();
-
+            _siteSummaryService.InvalidateSiteSummary(cri.ClientSite);
             return CreatedAtAction(nameof(GetCRI), new { id = cri.Id }, ApiResponse<CRIForm>.SuccessResponse(cri));
         }
 
@@ -203,7 +207,7 @@ namespace NovadisApi.Controllers
             }
 
             await _context.SaveChangesAsync();
-
+            _siteSummaryService.InvalidateSiteSummary(cri.ClientSite);
             return Ok(ApiResponse<CRIForm>.SuccessResponse(cri));
         }
 
@@ -268,6 +272,7 @@ namespace NovadisApi.Controllers
                 .Where(c => c.ClientName != null && c.ClientName.ToLower().Contains(query))
                 .Select(c => c.ClientName)
                 .Distinct()
+                .OrderBy(c => c)
                 .Take(20)
                 .ToListAsync();
 
@@ -295,6 +300,7 @@ namespace NovadisApi.Controllers
                 .Where(c => c.ClientSite != null)
                 .Select(c => c.ClientSite)
                 .Distinct()
+                .OrderBy(c => c)
                 .Take(20)
                 .ToListAsync();
 

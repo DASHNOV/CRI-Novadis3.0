@@ -18,6 +18,11 @@ namespace NovadisApi.Models.DTOs
         // D. Analyse de Chronicité
         public bool ChronicityAlert { get; set; }
         public string? ChronicProblemDescription { get; set; }
+
+        // E. Indicateurs supplémentaires
+        public string? MostFrequentTechnician { get; set; }
+        public string ResolutionTrend { get; set; } = "Inconnu"; // Amélioration, Stable, Dégradation, Inconnu
+        public double? AverageDurationMinutes { get; set; }
     }
 
     public class SiteTimelineEventDto

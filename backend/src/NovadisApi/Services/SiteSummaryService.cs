@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using NovadisApi.Data;
-using NovadisApi.Models;
 using NovadisApi.Models.DTOs;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace NovadisApi.Services
@@ -10,18 +9,37 @@ namespace NovadisApi.Services
     public class SiteSummaryService : ISiteSummaryService
     {
         private readonly NovadisDbContext _context;
+        private readonly IMemoryCache _cache;
 
-        public SiteSummaryService(NovadisDbContext context)
+        private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
+            { "le", "la", "les", "un", "une", "de", "du", "des", "et", "ou", "en", "par", "au", "aux", "sur", "sous", "à", "ce", "qui", "que" };
+
+        public SiteSummaryService(NovadisDbContext context, IMemoryCache cache)
         {
             _context = context;
+            _cache = cache;
+        }
+
+        public void InvalidateSiteSummary(string? siteName)
+        {
+            if (!string.IsNullOrWhiteSpace(siteName))
+                _cache.Remove($"site_summary_{siteName.ToLowerInvariant()}");
         }
 
         public async Task<SiteSummaryDto> GetSummaryAsync(string siteName)
         {
-            var summary = new SiteSummaryDto { SiteName = siteName };
+            var cacheKey = $"site_summary_{siteName.ToLowerInvariant()}";
+            if (_cache.TryGetValue(cacheKey, out SiteSummaryDto? cached))
+                return cached!;
 
-            // 1. Fetch CRIs for the site
-            // We fetch the latest 50 to avoid loading too much data, assuming that's enough for history
+            var summary = new SiteSummaryDto { SiteName = siteName };
+            var sixMonthsAgo = DateTime.Now.AddMonths(-6);
+
+            // Requête 1 : compte exact sur 6 mois sans limite Take
+            summary.RecurrenceLast6Months = await _context.CRIForms
+                .CountAsync(c => c.ClientSite == siteName && c.InterventionDate >= sixMonthsAgo);
+
+            // Requête 2 : 50 derniers CRI pour les calculs qualitatifs
             var cris = await _context.CRIForms
                 .Where(c => c.ClientSite == siteName)
                 .OrderByDescending(c => c.InterventionDate)
@@ -30,6 +48,7 @@ namespace NovadisApi.Services
 
             if (!cris.Any())
             {
+                _cache.Set(cacheKey, summary, TimeSpan.FromMinutes(15));
                 return summary;
             }
 
@@ -62,22 +81,20 @@ namespace NovadisApi.Services
                 }
             }
 
-            if (!processedCris.Any()) return summary;
+            if (!processedCris.Any())
+            {
+                _cache.Set(cacheKey, summary, TimeSpan.FromMinutes(15));
+                return summary;
+            }
 
             // A. Flash Info
-            // Status de la dernière visite
             var lastCri = processedCris.First();
             summary.LastVisitStatus = MapResolutionStatus(lastCri.ResolutionStatus);
 
-            // Récurrence (6 derniers mois)
-            var sixMonthsAgo = DateTime.Now.AddMonths(-6);
-            summary.RecurrenceLast6Months = processedCris.Count(c => c.Date >= sixMonthsAgo);
-
-            // Urgence: Tickets haute priorité non soldés
-            // Priority: haute, critique
-            // Status: != resolu
-            summary.HasUrgentPendingTickets = processedCris.Any(c => 
-                (c.Priority == "haute" || c.Priority == "critique") && 
+            // Urgence : uniquement les tickets haute/critique non résolus dans les 6 derniers mois
+            summary.HasUrgentPendingTickets = processedCris.Any(c =>
+                c.Date >= sixMonthsAgo &&
+                (c.Priority == "haute" || c.Priority == "critique") &&
                 c.ResolutionStatus != "resolu");
 
             // B. Timeline Critique (3 derniers événements)
@@ -90,38 +107,76 @@ namespace NovadisApi.Services
                 Status = MapResolutionStatus(c.ResolutionStatus)
             }).ToList();
 
-            // C. Héritage Technique
+            // C. Héritage Technique (dédupliqué)
             var recommendations = processedCris
                 .Where(c => !string.IsNullOrWhiteSpace(c.Recommendations))
-                .Select(c => c.Recommendations!)
+                .Select(c => c.Recommendations!.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
                 .Take(2)
                 .ToList();
 
             var cyberRecs = processedCris
                 .Where(c => !string.IsNullOrWhiteSpace(c.CybersecurityRecommendations))
-                .Select(c => "Cyber: " + c.CybersecurityRecommendations!)
+                .Select(c => "Cyber: " + c.CybersecurityRecommendations!.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
                 .Take(1)
                 .ToList();
-            
+
             summary.Recommendations.AddRange(recommendations);
             summary.Recommendations.AddRange(cyberRecs);
 
-            // D. Analyse de Chronicité
-            // Identical identifiedCause > 2 times in 3 months
+            // D. Analyse de Chronicité (normalisation + seuil adaptatif)
             var threeMonthsAgo = DateTime.Now.AddMonths(-3);
-            var recentCauses = processedCris
+            var recentWithCause = processedCris
                 .Where(c => c.Date >= threeMonthsAgo && !string.IsNullOrWhiteSpace(c.IdentifiedCause))
-                .GroupBy(c => c.IdentifiedCause!.Trim().ToLowerInvariant())
-                .Where(g => g.Count() > 2)
+                .ToList();
+
+            var threshold = Math.Max(2, (int)(recentWithCause.Count * 0.3));
+
+            var chronicCause = recentWithCause
+                .GroupBy(c => NormalizeCause(c.IdentifiedCause!))
+                .Where(g => g.Count() >= threshold)
+                .OrderByDescending(g => g.Count())
                 .Select(g => g.First().IdentifiedCause)
                 .FirstOrDefault();
 
-            if (recentCauses != null)
+            if (chronicCause != null)
             {
                 summary.ChronicityAlert = true;
-                summary.ChronicProblemDescription = recentCauses;
+                summary.ChronicProblemDescription = chronicCause;
             }
 
+            // E. Technicien le plus fréquent sur le site
+            summary.MostFrequentTechnician = processedCris
+                .GroupBy(c => c.TechnicianName)
+                .OrderByDescending(g => g.Count())
+                .Select(g => g.Key)
+                .FirstOrDefault();
+
+            // F. Tendance de résolution (3 derniers mois vs 3 mois précédents)
+            static double RatioResolu(IEnumerable<ProcessedCri> items)
+            {
+                var list = items.ToList();
+                return list.Count == 0 ? -1 : (double)list.Count(c => c.ResolutionStatus == "resolu") / list.Count;
+            }
+
+            var ratioRecent = RatioResolu(processedCris.Where(c => c.Date >= threeMonthsAgo));
+            var ratioOld = RatioResolu(processedCris.Where(c => c.Date >= sixMonthsAgo && c.Date < threeMonthsAgo));
+
+            summary.ResolutionTrend = (ratioRecent, ratioOld) switch
+            {
+                (-1, _) or (_, -1) => "Inconnu",
+                var (r, o) when r > o + 0.15 => "Amélioration",
+                var (r, o) when r < o - 0.15 => "Dégradation",
+                _ => "Stable"
+            };
+
+            // G. Durée moyenne (colonne structurée EF, pas le JSON)
+            var durations = cris.Where(c => c.DureeMinutes > 0).Select(c => (double)c.DureeMinutes).ToList();
+            if (durations.Count > 0)
+                summary.AverageDurationMinutes = durations.Average();
+
+            _cache.Set(cacheKey, summary, TimeSpan.FromMinutes(15));
             return summary;
         }
 
@@ -142,6 +197,12 @@ namespace NovadisApi.Services
                 _ => "Inconnu"
             };
         }
+
+        private string NormalizeCause(string cause) =>
+            string.Join(" ", cause.ToLowerInvariant()
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Where(w => !StopWords.Contains(w))
+                .OrderBy(w => w));
 
         private class ProcessedCri
         {

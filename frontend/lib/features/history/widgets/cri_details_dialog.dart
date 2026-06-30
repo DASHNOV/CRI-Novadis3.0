@@ -54,6 +54,7 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
   bool _isDeleting = false;
   List<CriPhotoModel> _photos = [];
   String? _authToken;
+  Future<SiteSummaryModel?>? _siteSummaryFuture;
 
   CriModel get cri => widget.cri;
 
@@ -61,6 +62,15 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
   void initState() {
     super.initState();
     _loadPhotoData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_siteSummaryFuture == null && cri.site.trim().isNotEmpty) {
+      final repo = ref.read(siteSummaryRepositoryProvider);
+      _siteSummaryFuture = repo.getSummary(cri.site.trim());
+    }
   }
 
   Future<void> _loadPhotoData() async {
@@ -326,10 +336,19 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
   }
 
   Widget _buildSiteSummary() {
-    final siteSummaryRepo = ref.watch(siteSummaryRepositoryProvider);
+    if (cri.site.trim().isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppTheme.border),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        ),
+        child: const Text('Aucun historique serveur pour ce site.'),
+      );
+    }
 
     return FutureBuilder<SiteSummaryModel?>(
-      future: siteSummaryRepo.getSummary(cri.site),
+      future: _siteSummaryFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Padding(

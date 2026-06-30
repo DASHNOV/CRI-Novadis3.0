@@ -134,7 +134,9 @@ class AppRouter {
       GoRoute(
         path: history,
         name: 'history',
-        builder: (context, state) => const HistoryScreen(),
+        builder: (context, state) => HistoryScreen(
+          siteFilter: state.uri.queryParameters['site'],
+        ),
       ),
       GoRoute(
         path: documents,

@@ -104,7 +104,8 @@
       "Bash(flutter devices *)",
       "Bash(echo \"Flutter starting in background with PID $!\")",
       "Bash(dart test *)",
-      "Bash(start *)"
+      "Bash(start *)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\rdenimal\\\\Documents\\\\App_Novadis\\\\CRI_Novadis\\\\CRI_Novadis2.0\\\\backend\\\\src\\\\NovadisApi\\\\logs\\\\novadis-20260629.log\" -Force)"
     ]
   }
 }

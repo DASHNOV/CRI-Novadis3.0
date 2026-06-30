@@ -21,7 +21,6 @@ import 'package:novadis_cri/data/models/site_model.dart';
 import 'package:novadis_cri/features/cri_form/widgets/site_selector.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/features/cri_form/widgets/form_shared_widgets.dart';
-import 'dart:async';
 import 'package:novadis_cri/core/theme/theme_provider.dart';
 
 /// Page de formulaire CRI Service avec 6 sections
@@ -41,7 +40,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
   bool _isMultiDay = false;
   bool _isMultiDayInitialized = false;
 
-  Timer? _debounceTimer;
+
   SiteSummaryModel? _siteSummary;
 
   // Controllers pour auto-complétion des champs à la sélection d'un site
@@ -60,7 +59,6 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     _addressController.dispose();
     _villeController.dispose();
     _codePostalController.dispose();
@@ -357,7 +355,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                     summary: _siteSummary!,
                     onDismiss: () => setState(() => _siteSummary = null),
                     onSeeHistory: () {
-                      context.push('/history');
+                      context.push('/history?site=${Uri.encodeQueryComponent(_siteSummary!.siteName)}');
                     },
                   ),
                 ),
@@ -692,16 +690,6 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                 ref
                     .read(criServiceFormProvider.notifier)
                     .updateClientInfo(site: val);
-
-                if (val.trim().length >= 3) {
-                  _debounceTimer?.cancel();
-                  _debounceTimer = Timer(
-                    const Duration(milliseconds: 1000),
-                    () {
-                      _fetchSiteSummary(val);
-                    },
-                  );
-                }
               },
             );
             if (constraints.maxWidth > 600) {

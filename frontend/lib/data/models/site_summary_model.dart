@@ -7,6 +7,9 @@ class SiteSummaryModel {
   final List<String> recommendations;
   final bool chronicityAlert;
   final String? chronicProblemDescription;
+  final String? mostFrequentTechnician;
+  final String resolutionTrend;
+  final double? averageDurationMinutes;
 
   SiteSummaryModel({
     required this.siteName,
@@ -17,6 +20,9 @@ class SiteSummaryModel {
     required this.recommendations,
     required this.chronicityAlert,
     this.chronicProblemDescription,
+    this.mostFrequentTechnician,
+    this.resolutionTrend = 'Inconnu',
+    this.averageDurationMinutes,
   });
 
   factory SiteSummaryModel.fromJson(Map<String, dynamic> json) {
@@ -33,6 +39,9 @@ class SiteSummaryModel {
           .toList(),
       chronicityAlert: json['chronicityAlert'] as bool,
       chronicProblemDescription: json['chronicProblemDescription'] as String?,
+      mostFrequentTechnician: json['mostFrequentTechnician'] as String?,
+      resolutionTrend: (json['resolutionTrend'] as String?) ?? 'Inconnu',
+      averageDurationMinutes: (json['averageDurationMinutes'] as num?)?.toDouble(),
     );
   }
 }

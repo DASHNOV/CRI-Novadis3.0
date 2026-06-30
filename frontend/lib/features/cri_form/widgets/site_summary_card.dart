@@ -197,29 +197,71 @@ class SiteSummaryCard extends StatelessWidget {
   }
 
   Widget _buildFlashInfo(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final hasTrend = summary.resolutionTrend != 'Inconnu';
+    final hasDuration = summary.averageDurationMinutes != null;
+    final hasTechnician = summary.mostFrequentTechnician != null &&
+        summary.mostFrequentTechnician!.isNotEmpty;
+    final showSecondRow = hasTrend || hasDuration || hasTechnician;
+
+    return Column(
       children: [
-        _buildIndicator(
-          context,
-          'Dernière visite',
-          summary.lastVisitStatus,
-          _getStatusColor(summary.lastVisitStatus),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildIndicator(
+              context,
+              'Dernière visite',
+              summary.lastVisitStatus,
+              _getStatusColor(summary.lastVisitStatus),
+            ),
+            _buildIndicator(
+              context,
+              'Interventions (6 mois)',
+              summary.recurrenceLast6Months.toString(),
+              summary.recurrenceLast6Months > 5 ? AppTheme.warning : AppTheme.success,
+            ),
+            if (summary.hasUrgentPendingTickets)
+              _buildIndicator(
+                context,
+                'Urgence',
+                'Tickets ouverts',
+                AppTheme.error,
+                icon: Icons.priority_high,
+              ),
+          ],
         ),
-        _buildIndicator(
-          context,
-          'Interventions (6 mois)',
-          summary.recurrenceLast6Months.toString(),
-          summary.recurrenceLast6Months > 5 ? AppTheme.warning : AppTheme.success,
-        ),
-        if (summary.hasUrgentPendingTickets)
-          _buildIndicator(
-            context,
-            'Urgence',
-            'Tickets ouverts',
-            AppTheme.error,
-            icon: Icons.priority_high,
+        if (showSecondRow) ...[
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              if (hasTrend)
+                _buildIndicator(
+                  context,
+                  'Tendance',
+                  summary.resolutionTrend,
+                  _getTrendColor(summary.resolutionTrend),
+                  icon: _getTrendIcon(summary.resolutionTrend),
+                ),
+              if (hasDuration)
+                _buildIndicator(
+                  context,
+                  'Durée moy.',
+                  '~${summary.averageDurationMinutes!.round()} min',
+                  AppTheme.textTertiary,
+                  icon: Icons.timer_outlined,
+                ),
+              if (hasTechnician)
+                _buildIndicator(
+                  context,
+                  'Expert du site',
+                  summary.mostFrequentTechnician!.split(' ').first,
+                  Theme.of(context).colorScheme.primary,
+                  icon: Icons.person_outline,
+                ),
+            ],
           ),
+        ],
       ],
     );
   }
@@ -343,6 +385,30 @@ class SiteSummaryCard extends StatelessWidget {
         return AppTheme.error;
       default:
         return AppTheme.textTertiary;
+    }
+  }
+
+  Color _getTrendColor(String trend) {
+    switch (trend) {
+      case 'Amélioration':
+        return AppTheme.success;
+      case 'Dégradation':
+        return AppTheme.error;
+      case 'Stable':
+        return AppTheme.warning;
+      default:
+        return AppTheme.textTertiary;
+    }
+  }
+
+  IconData _getTrendIcon(String trend) {
+    switch (trend) {
+      case 'Amélioration':
+        return Icons.trending_up;
+      case 'Dégradation':
+        return Icons.trending_down;
+      default:
+        return Icons.trending_flat;
     }
   }
 }
