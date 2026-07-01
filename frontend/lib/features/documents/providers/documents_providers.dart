@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/local/app_database.dart';
-import '../../../data/local/local_storage_service.dart';
 import '../../../data/models/cri_service_model.dart';
 import '../../../data/models/cri_projet_model.dart';
 import '../../../data/repositories/cri_remote_repository.dart';
@@ -34,7 +33,6 @@ final availableReportsProvider = FutureProvider<List<CriReportModel>>((
 ) async {
   try {
     final database = ref.watch(databaseProvider);
-    final localStorage = LocalStorageService();
     final remoteRepo = ref.watch(criRemoteRepositoryProvider);
 
   // CRI récupérés directement depuis le serveur (fallback si DB locale indisponible)
@@ -100,8 +98,6 @@ final availableReportsProvider = FutureProvider<List<CriReportModel>>((
     allReports.sort((a, b) => b.date.compareTo(a.date));
     return allReports;
   }
-  final legacyReports = await localStorage.getAllCri();
-
   final List<CriReportModel> allReports = [];
   final Set<String> seenIds = {};
 
@@ -130,21 +126,6 @@ final availableReportsProvider = FutureProvider<List<CriReportModel>>((
           nIntervention: report.projectNumber,
           date: report.interventionDate,
           isProjet: true,
-        ),
-      );
-    }
-  }
-
-  for (final report in legacyReports) {
-    if (seenIds.add(report.id)) {
-      allReports.add(
-        CriReportModel(
-          id: report.id,
-          clientName: report.client,
-          siteName: report.site,
-          nIntervention: 'CRI-${report.id}',
-          date: report.date,
-          isProjet: false,
         ),
       );
     }

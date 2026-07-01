@@ -11,6 +11,12 @@ import 'package:novadis_cri/core/theme/theme_provider.dart';
 /// Format d'export disponible depuis la sélection d'un CRI.
 enum CriExportFormat { pdf, xlsx }
 
+/// Ordre de tri par date des CRI.
+enum CriSortOrder {
+  dateDesc, // Du plus récent au plus ancien (défaut)
+  dateAsc, // Du plus ancien au plus récent
+}
+
 /// Page de sélection d'un CRI pour l'exportation (PDF ou Excel)
 class CriSelectionPage extends ConsumerStatefulWidget {
   final CriExportFormat format;
@@ -24,6 +30,7 @@ class CriSelectionPage extends ConsumerStatefulWidget {
 class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  CriSortOrder _sortOrder = CriSortOrder.dateDesc;
 
   @override
   void initState() {
@@ -55,59 +62,109 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
         elevation: 0,
         scrolledUnderElevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(64),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppTheme.space16,
-              0,
-              AppTheme.space16,
-              AppTheme.space12,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceVariant,
-                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (value) => setState(() => _searchQuery = value),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppTheme.textPrimary,
+          preferredSize: const Size.fromHeight(112),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1400),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppTheme.space16,
+                  0,
+                  AppTheme.space16,
+                  AppTheme.space12,
                 ),
-                decoration: InputDecoration(
-                  hintText: 'Rechercher un client, site ou numéro...',
-                  hintStyle: TextStyle(
-                    fontSize: 14,
-                    color: AppTheme.textTertiary,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search_rounded,
-                    color: AppTheme.textTertiary,
-                    size: 20,
-                  ),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(
-                            Icons.close_rounded,
+                child: Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceVariant,
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusLg),
+                        border: Border.all(
+                          color: AppTheme.border.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (value) =>
+                            setState(() => _searchQuery = value),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.textPrimary,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Rechercher un client, site ou numéro...',
+                          hintStyle: TextStyle(
+                            fontSize: 14,
                             color: AppTheme.textTertiary,
-                            size: 18,
                           ),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() => _searchQuery = '');
-                          },
-                        )
-                      : null,
-                  filled: true,
-                  fillColor: Colors.transparent,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: AppTheme.space12,
-                  ),
+                          prefixIcon: Icon(
+                            Icons.search_rounded,
+                            color: AppTheme.textTertiary,
+                            size: 20,
+                          ),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(
+                                    Icons.close_rounded,
+                                    color: AppTheme.textTertiary,
+                                    size: 18,
+                                  ),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() => _searchQuery = '');
+                                  },
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: Colors.transparent,
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: AppTheme.space12,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.space8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.sort_rounded,
+                          size: 16,
+                          color: AppTheme.textTertiary,
+                        ),
+                        const SizedBox(width: AppTheme.space8),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                _SortChip(
+                                  label: 'Plus récent',
+                                  selected:
+                                      _sortOrder == CriSortOrder.dateDesc,
+                                  onSelected: () => setState(
+                                    () => _sortOrder = CriSortOrder.dateDesc,
+                                  ),
+                                ),
+                                const SizedBox(width: AppTheme.space8),
+                                _SortChip(
+                                  label: 'Plus ancien',
+                                  selected:
+                                      _sortOrder == CriSortOrder.dateAsc,
+                                  onSelected: () => setState(
+                                    () => _sortOrder = CriSortOrder.dateAsc,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -121,7 +178,10 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
             return report.clientName.toLowerCase().contains(query) ||
                 report.siteName.toLowerCase().contains(query) ||
                 report.nIntervention.toLowerCase().contains(query);
-          }).toList();
+          }).toList()
+            ..sort((a, b) => _sortOrder == CriSortOrder.dateDesc
+                ? b.date.compareTo(a.date)
+                : a.date.compareTo(b.date));
 
           if (filteredReports.isEmpty) {
             return Center(
@@ -178,12 +238,53 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
               ref.invalidate(availableReportsProvider);
               return ref.read(availableReportsProvider.future);
             },
-            child: ListView.builder(
-              padding: const EdgeInsets.all(AppTheme.space16),
-              itemCount: filteredReports.length,
-              itemBuilder: (context, index) {
-                final report = filteredReports[index];
-                return _CriReportCard(report: report, format: widget.format);
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = constraints.maxWidth >= 1100
+                    ? 3
+                    : constraints.maxWidth >= 700
+                        ? 2
+                        : 1;
+
+                if (crossAxisCount == 1) {
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(AppTheme.space16),
+                    itemCount: filteredReports.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: AppTheme.space12),
+                    itemBuilder: (context, index) {
+                      final report = filteredReports[index];
+                      return _CriReportCard(
+                        report: report,
+                        format: widget.format,
+                      );
+                    },
+                  );
+                }
+
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1400),
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(AppTheme.space16),
+                      gridDelegate:
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: AppTheme.space16,
+                        mainAxisSpacing: AppTheme.space16,
+                        mainAxisExtent: 200,
+                      ),
+                      itemCount: filteredReports.length,
+                      itemBuilder: (context, index) {
+                        final report = filteredReports[index];
+                        return _CriReportCard(
+                          report: report,
+                          format: widget.format,
+                        );
+                      },
+                    ),
+                  ),
+                );
               },
             ),
           );
@@ -247,6 +348,52 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
   }
 }
 
+class _SortChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  const _SortChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? AppTheme.primary : AppTheme.surfaceVariant,
+      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+      child: InkWell(
+        onTap: onSelected,
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.space12,
+            vertical: AppTheme.space8,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+            border: Border.all(
+              color: selected
+                  ? Colors.transparent
+                  : AppTheme.border.withValues(alpha: 0.5),
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: selected ? Colors.white : AppTheme.textSecondary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _CriReportCard extends ConsumerWidget {
   final CriReportModel report;
   final CriExportFormat format;
@@ -264,7 +411,6 @@ class _CriReportCard extends ConsumerWidget {
         isProjet ? AppTheme.accent.withValues(alpha: 0.08) : AppTheme.infoLight;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.space12),
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),

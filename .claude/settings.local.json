@@ -105,7 +105,15 @@
       "Bash(echo \"Flutter starting in background with PID $!\")",
       "Bash(dart test *)",
       "Bash(start *)",
-      "Bash(Remove-Item \"C:\\\\Users\\\\rdenimal\\\\Documents\\\\App_Novadis\\\\CRI_Novadis\\\\CRI_Novadis2.0\\\\backend\\\\src\\\\NovadisApi\\\\logs\\\\novadis-20260629.log\" -Force)"
+      "Bash(Remove-Item \"C:\\\\Users\\\\rdenimal\\\\Documents\\\\App_Novadis\\\\CRI_Novadis\\\\CRI_Novadis2.0\\\\backend\\\\src\\\\NovadisApi\\\\logs\\\\novadis-20260629.log\" -Force)",
+      "Bash(powershell -Command \"Test-NetConnection -ComputerName localhost -Port 55800\")",
+      "Bash(find .claude/skills -name SKILL.md)",
+      "Bash(ls .claude/skills)",
+      "Bash(tee /tmp/flutter_run.log)",
+      "Bash(netsh interface *)",
+      "mcp__playwright__browser_resize",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot"
     ]
   }
 }
