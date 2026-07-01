@@ -113,7 +113,16 @@
       "Bash(netsh interface *)",
       "mcp__playwright__browser_resize",
       "mcp__playwright__browser_navigate",
-      "mcp__playwright__browser_take_screenshot"
+      "mcp__playwright__browser_take_screenshot",
+      "Bash(rm -rf C:/Users/rdenimal/AppData/Local/Temp/claude/C--Users-rdenimal-Documents-App-Novadis-CRI-Novadis-CRI-Novadis2-0/fce3d27b-2ae4-4695-ad0a-14bb9ed332ff/scratchpad/nvd-src-copy)",
+      "Bash(mkdir -p C:/Users/rdenimal/AppData/Local/Temp/claude/C--Users-rdenimal-Documents-App-Novadis-CRI-Novadis-CRI-Novadis2-0/fce3d27b-2ae4-4695-ad0a-14bb9ed332ff/scratchpad/nvd-src-copy)",
+      "Bash(cp -r NovadisApi C:/Users/rdenimal/AppData/Local/Temp/claude/C--Users-rdenimal-Documents-App-Novadis-CRI-Novadis-CRI-Novadis2-0/fce3d27b-2ae4-4695-ad0a-14bb9ed332ff/scratchpad/nvd-src-copy/)",
+      "Bash(cp -r NovadisApi.Tests C:/Users/rdenimal/AppData/Local/Temp/claude/C--Users-rdenimal-Documents-App-Novadis-CRI-Novadis-CRI-Novadis2-0/fce3d27b-2ae4-4695-ad0a-14bb9ed332ff/scratchpad/nvd-src-copy/)",
+      "Bash(rm -rf C:/Users/rdenimal/AppData/Local/Temp/claude/C--Users-rdenimal-Documents-App-Novadis-CRI-Novadis-CRI-Novadis2-0/fce3d27b-2ae4-4695-ad0a-14bb9ed332ff/scratchpad/nvd-src-copy/NovadisApi/bin C:/Users/rdenimal/AppData/Local/Temp/claude/C--Users-rdenimal-Documents-App-Novadis-CRI-Novadis-CRI-Novadis2-0/fce3d27b-2ae4-4695-ad0a-14bb9ed332ff/scratchpad/nvd-src-copy/NovadisApi/obj C:/Users/rdenimal/AppData/Local/Temp/claude/C--Users-rdenimal-Documents-App-Novadis-CRI-Novadis-CRI-Novadis2-0/fce3d27b-2ae4-4695-ad0a-14bb9ed332ff/scratchpad/nvd-src-copy/NovadisApi.Tests/bin C:/Users/rdenimal/AppData/Local/Temp/claude/C--Users-rdenimal-Documents-App-Novadis-CRI-Novadis-CRI-Novadis2-0/fce3d27b-2ae4-4695-ad0a-14bb9ed332ff/scratchpad/nvd-src-copy/NovadisApi.Tests/obj)",
+      "Bash(mkdir -p __TRACKED_VAR__/backend/src/NovadisApi/Resources)",
+      "Bash(cp __TRACKED_VAR__/frontend/assets/logos/novadis_logo_black.png __TRACKED_VAR__/backend/src/NovadisApi/Resources/novadis_logo.png)",
+      "Bash(cp -r /c/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0/backend/src/NovadisApi \"C:/Users/rdenimal/AppData/Local/Temp/claude/C--Users-rdenimal-Documents-App-Novadis-CRI-Novadis-CRI-Novadis2-0/fce3d27b-2ae4-4695-ad0a-14bb9ed332ff/scratchpad/nvd-src-copy2/NovadisApi\")",
+      "Bash(cp -r /c/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0/backend/src/NovadisApi.Tests \"C:/Users/rdenimal/AppData/Local/Temp/claude/C--Users-rdenimal-Documents-App-Novadis-CRI-Novadis-CRI-Novadis2-0/fce3d27b-2ae4-4695-ad0a-14bb9ed332ff/scratchpad/nvd-src-copy2/NovadisApi.Tests\")"
     ]
   }
 }

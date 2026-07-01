@@ -11,7 +11,7 @@ import '../services/service_factory.dart' as service_factory;
 import '../services/xlsx_export_api_service.dart';
 import '../services/exported_documents_api_service.dart';
 
-export '../services/xlsx_export_api_service.dart' show XlsxExportPeriod, XlsxExportPeriodX, XlsxExportResult;
+export '../services/xlsx_export_api_service.dart' show XlsxExportPeriod, XlsxExportPeriodX, XlsxExportResult, XlsxDetailLevel, XlsxDetailLevelX;
 export '../models/server_exported_document.dart';
 
 // ============================================================
@@ -670,7 +670,11 @@ final exportCriXlsxProvider = FutureProvider.family<XlsxExportResult, String>((
 });
 
 /// Paramètres pour l'export XLSX par période.
-typedef XlsxPeriodParams = ({XlsxExportPeriod period, DateTime referenceDate});
+typedef XlsxPeriodParams = ({
+  XlsxExportPeriod period,
+  DateTime referenceDate,
+  XlsxDetailLevel detailLevel,
+});
 
 /// Provider pour générer un XLSX agrégé (jour/semaine/mois/année).
 final exportPeriodXlsxProvider =
@@ -689,6 +693,7 @@ final exportPeriodXlsxProvider =
     final result = await api.exportPeriod(
       period: params.period,
       referenceDate: params.referenceDate,
+      detailLevel: params.detailLevel,
     );
 
     if (!kIsWeb && result.file is File) {
@@ -700,6 +705,7 @@ final exportPeriodXlsxProvider =
         metadata: {
           'period': params.period.slug,
           'referenceDate': params.referenceDate.toIso8601String(),
+          'detailLevel': params.detailLevel.slug,
         },
       );
       ref.invalidate(exportedDocumentsProvider);

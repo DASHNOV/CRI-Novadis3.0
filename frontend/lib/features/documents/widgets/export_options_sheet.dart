@@ -98,6 +98,7 @@ class ExportOptionsSheet extends ConsumerWidget {
   void _showPeriodXlsxDialog(BuildContext context) {
     XlsxExportPeriod selectedPeriod = XlsxExportPeriod.month;
     DateTime selectedDate = DateTime.now();
+    XlsxDetailLevel selectedDetailLevel = XlsxDetailLevel.full;
 
     showDialog(
       context: context,
@@ -162,6 +163,66 @@ class ExportOptionsSheet extends ConsumerWidget {
                     '${selectedDate.year}',
                   ),
                 ),
+                const SizedBox(height: 16),
+                Text(
+                  'Niveau de détail',
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: XlsxDetailLevel.values.map((d) {
+                    final selected = d == selectedDetailLevel;
+                    return InkWell(
+                      onTap: () => setState(() => selectedDetailLevel = d),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              selected
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_unchecked,
+                              size: 20,
+                              color: selected
+                                  ? AppTheme.primaryContent
+                                  : AppTheme.textTertiary,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    d.label,
+                                    style: TextStyle(
+                                      color: AppTheme.textPrimary,
+                                      fontWeight: selected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                  Text(
+                                    d.description,
+                                    style: TextStyle(
+                                      color: AppTheme.textTertiary,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ],
             ),
             actions: [
@@ -180,6 +241,7 @@ class ExportOptionsSheet extends ConsumerWidget {
                     ref,
                     period: selectedPeriod,
                     referenceDate: selectedDate,
+                    detailLevel: selectedDetailLevel,
                   );
                 },
               ),
@@ -195,6 +257,7 @@ class ExportOptionsSheet extends ConsumerWidget {
     WidgetRef ref, {
     required XlsxExportPeriod period,
     required DateTime referenceDate,
+    required XlsxDetailLevel detailLevel,
   }) async {
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
@@ -205,7 +268,11 @@ class ExportOptionsSheet extends ConsumerWidget {
     );
 
     try {
-      final params = (period: period, referenceDate: referenceDate);
+      final params = (
+        period: period,
+        referenceDate: referenceDate,
+        detailLevel: detailLevel,
+      );
       ref.invalidate(exportPeriodXlsxProvider(params));
       final result = await ref.read(exportPeriodXlsxProvider(params).future);
 

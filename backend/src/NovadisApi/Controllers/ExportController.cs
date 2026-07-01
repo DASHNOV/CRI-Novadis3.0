@@ -88,8 +88,9 @@ namespace NovadisApi.Controllers
         /// </summary>
         /// <param name="range">day, week, month ou year</param>
         /// <param name="date">Date de référence (ISO 8601). Par défaut: aujourd'hui UTC.</param>
+        /// <param name="detail">full (défaut) ou summary — niveau de détail du rapport.</param>
         [HttpGet("period.xlsx")]
-        public async Task<IActionResult> ExportByPeriod([FromQuery] string range, [FromQuery] DateTime? date, CancellationToken ct)
+        public async Task<IActionResult> ExportByPeriod([FromQuery] string range, [FromQuery] DateTime? date, [FromQuery] string? detail, CancellationToken ct)
         {
             var userId = GetCurrentUserId();
             if (userId == null) return Unauthorized();
@@ -99,10 +100,15 @@ namespace NovadisApi.Controllers
                 return BadRequest(new { error = "Paramètre 'range' invalide. Valeurs: day, week, month, year." });
             }
 
+            if (!TryParseDetailLevel(detail, out var detailLevel))
+            {
+                return BadRequest(new { error = "Paramètre 'detail' invalide. Valeurs: full, summary." });
+            }
+
             var reference = (date ?? DateTime.UtcNow).Date;
             try
             {
-                var result = await _xlsx.GeneratePeriodAsync(period, reference, userId.Value, User.IsInRole("Admin"));
+                var result = await _xlsx.GeneratePeriodAsync(period, reference, userId.Value, User.IsInRole("Admin"), detailLevel);
 
                 var objectKey = BuildObjectKey(userId.Value, result.Filename);
                 await _storage.UploadAsync(objectKey, result.Bytes, XlsxMime, ct);
@@ -113,6 +119,7 @@ namespace NovadisApi.Controllers
                     range = period.ToString().ToLowerInvariant(),
                     scope = User.IsInRole("Admin") ? "global" : "personnel",
                     referenceDate = reference,
+                    detailLevel = detailLevel.ToString().ToLowerInvariant(),
                 });
 
                 _db.ExportedDocuments.Add(new ExportedDocument
@@ -155,6 +162,16 @@ namespace NovadisApi.Controllers
                 case "month": case "mois": period = ExportPeriod.Month; return true;
                 case "year": case "annee": case "année": period = ExportPeriod.Year; return true;
                 default: period = default; return false;
+            }
+        }
+
+        private static bool TryParseDetailLevel(string? raw, out ExportDetailLevel detailLevel)
+        {
+            switch ((raw ?? "full").Trim().ToLowerInvariant())
+            {
+                case "": case "full": case "complet": detailLevel = ExportDetailLevel.Full; return true;
+                case "summary": case "resume": case "résumé": detailLevel = ExportDetailLevel.Summary; return true;
+                default: detailLevel = default; return false;
             }
         }
 

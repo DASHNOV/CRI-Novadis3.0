@@ -26,6 +26,28 @@ extension XlsxExportPeriodX on XlsxExportPeriod {
       };
 }
 
+/// Niveau de détail du rapport Excel de période.
+enum XlsxDetailLevel { full, summary }
+
+extension XlsxDetailLevelX on XlsxDetailLevel {
+  String get slug => switch (this) {
+        XlsxDetailLevel.full => 'full',
+        XlsxDetailLevel.summary => 'summary',
+      };
+
+  String get label => switch (this) {
+        XlsxDetailLevel.full => 'Rapport complet',
+        XlsxDetailLevel.summary => 'Résumé exécutif',
+      };
+
+  String get description => switch (this) {
+        XlsxDetailLevel.full =>
+          'Page de garde, résumé, liste des interventions, par site et par technicien',
+        XlsxDetailLevel.summary =>
+          'Page de garde et résumé avec indicateurs et graphiques uniquement',
+      };
+}
+
 /// Résultat d'un export XLSX.
 ///
 /// - `file`: `File` en natif, `String` (nom de fichier) sur le web.
@@ -64,6 +86,7 @@ class XlsxExportApiService {
   Future<XlsxExportResult> exportPeriod({
     required XlsxExportPeriod period,
     DateTime? referenceDate,
+    XlsxDetailLevel detailLevel = XlsxDetailLevel.full,
   }) async {
     final date = (referenceDate ?? DateTime.now()).toUtc();
     try {
@@ -72,6 +95,7 @@ class XlsxExportApiService {
         queryParameters: {
           'range': period.slug,
           'date': date.toIso8601String(),
+          'detail': detailLevel.slug,
         },
         options: Options(
           responseType: ResponseType.bytes,
