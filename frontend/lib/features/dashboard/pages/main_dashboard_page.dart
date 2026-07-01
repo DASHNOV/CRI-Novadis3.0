@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:novadis_cri/core/config/app_router.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
+import 'package:novadis_cri/core/utils/duration_format.dart';
 import 'package:novadis_cri/features/dashboard/config/chart_config.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 import 'package:novadis_cri/features/dashboard/providers/dashboard_providers.dart';
@@ -380,7 +381,7 @@ class _MainDashboardPageState extends ConsumerState<MainDashboardPage> {
           children: data.recentInterventions.take(5).map((item) {
             return MobileInterventionListItem(
               type: item.type,
-              client: '${item.technicianName} - ${item.durationMinutes} min',
+              client: '${item.technicianName} - ${formatDurationMinutes(item.durationMinutes)}',
               date: item.date,
               status: item.status,
               onTap: () {

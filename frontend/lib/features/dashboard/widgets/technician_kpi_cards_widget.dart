@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:novadis_cri/features/dashboard/config/chart_config.dart';
 import 'package:novadis_cri/features/dashboard/models/dashboard_models.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
+import 'package:novadis_cri/core/utils/duration_format.dart';
 
 /// Widget pour afficher les KPIs du technicien
 class TechnicianKpiCardsWidget extends StatelessWidget {
@@ -110,7 +111,7 @@ class TechnicianKpiCardsWidget extends StatelessWidget {
           child: _TechnicianKpiCard(
             title: 'Écart Std',
             value:
-                '$standardDevSign${kpis.standardDeviation.toStringAsFixed(0)}min',
+                '$standardDevSign${formatDurationMinutes(kpis.standardDeviation.abs())}',
             icon: Icons.trending_flat,
             color: standardDevColor,
             subtitle: kpis.standardDeviation < 0 ? 'Plus rapide' : 'Plus lent',

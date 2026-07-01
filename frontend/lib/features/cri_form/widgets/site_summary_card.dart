@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
+import 'package:novadis_cri/core/utils/duration_format.dart';
 import 'package:novadis_cri/data/models/site_summary_model.dart';
 
 class SiteSummaryCard extends StatelessWidget {
@@ -247,7 +248,7 @@ class SiteSummaryCard extends StatelessWidget {
                 _buildIndicator(
                   context,
                   'Durée moy.',
-                  '~${summary.averageDurationMinutes!.round()} min',
+                  '~${formatDurationMinutes(summary.averageDurationMinutes!)}',
                   AppTheme.textTertiary,
                   icon: Icons.timer_outlined,
                 ),

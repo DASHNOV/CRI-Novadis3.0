@@ -1,5 +1,7 @@
 // Modèles de données pour le Dashboard
 
+import 'package:novadis_cri/core/utils/duration_format.dart';
+
 /// Énumération des périodes de filtre
 enum DashboardPeriod {
   day('Jour', 1),
@@ -59,14 +61,8 @@ class DashboardKpis {
   });
 
   /// Durée moyenne formatée
-  String get formattedAverageDuration {
-    final hours = averageDurationMinutes ~/ 60;
-    final minutes = (averageDurationMinutes % 60).round();
-    if (hours > 0) {
-      return '${hours}h ${minutes}min';
-    }
-    return '${minutes}min';
-  }
+  String get formattedAverageDuration =>
+      formatDurationMinutes(averageDurationMinutes);
 
   /// Calcule le changement de tendance
   double? get completionRateTrend {
@@ -235,14 +231,8 @@ class TechnicianKpis {
     required this.escalationRate,
   });
 
-  String get formattedAverageDuration {
-    final hours = averageDurationMinutes ~/ 60;
-    final minutes = (averageDurationMinutes % 60).round();
-    if (hours > 0) {
-      return '${hours}h ${minutes}min';
-    }
-    return '${minutes}min';
-  }
+  String get formattedAverageDuration =>
+      formatDurationMinutes(averageDurationMinutes);
 
   factory TechnicianKpis.empty() {
     return const TechnicianKpis(
