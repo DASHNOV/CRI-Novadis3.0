@@ -8,7 +8,7 @@ Application de gestion des **Comptes Rendus d'Intervention** (CRI) — web et mo
 |--------|-------------|
 | Frontend | Flutter/Dart (web + Android) |
 | Backend | ASP.NET Core (.NET 10) |
-| Base de données | SQL Server via EF Core |
+| Base de données | PostgreSQL via Npgsql + EF Core |
 | Auth | Magic link OTP → JWT (access + refresh) |
 | CI/CD | GitHub Actions + Vercel + serveur Windows interne |
 
@@ -16,7 +16,7 @@ Application de gestion des **Comptes Rendus d'Intervention** (CRI) — web et mo
 
 - [Flutter](https://flutter.dev) stable (Dart ≥ 3.5)
 - [.NET 10 SDK](https://dotnet.microsoft.com)
-- SQL Server (local ou distant)
+- PostgreSQL 16 (local ou distant ; `docker-compose` fournit `postgres:16-alpine`)
 - Accès SMTP pour les magic links
 
 ## Installation

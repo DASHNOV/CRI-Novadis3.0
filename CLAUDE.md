@@ -3,7 +3,7 @@
 ## Stack
 - **Frontend**: Flutter/Dart (web + mobile) — `frontend/`
 - **Backend**: ASP.NET Core (.NET 8) — `backend/src/NovadisApi/`
-- **DB**: SQL Server (EF Core), migrations manuelles
+- **DB**: PostgreSQL (Npgsql + EF Core), migrations manuelles
 - **Auth**: Magic link OTP → JWT (access + refresh)
 
 ## Commandes

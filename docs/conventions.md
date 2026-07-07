@@ -54,7 +54,7 @@ features/[nom]/
 ### Backend — MVC
 
 ```
-Controllers/ → Services (interface + impl) → NovadisDbContext → SQL Server
+Controllers/ → Services (interface + impl) → NovadisDbContext → PostgreSQL
 ```
 
 - **DI** : `AddScoped<IInterface, Impl>()` dans `Program.cs`

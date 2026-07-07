@@ -35,7 +35,7 @@ CRI_Novadis2.0/
 │                                                             │
 │  Middleware → Controllers → Services                        │
 │                    │                                        │
-│              EF Core (SQL Server)                           │
+│              EF Core (PostgreSQL / Npgsql)                  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
