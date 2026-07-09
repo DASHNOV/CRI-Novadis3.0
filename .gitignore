@@ -1,2 +1,15 @@
 # Graphify — knowledge graph artifacts (régénérables via /graphify)
 graphify-out/
+
+# Artefacts de test Playwright MCP (traces, snapshots)
+.playwright-mcp/
+
+# Guides utilisateur exportés (binaires volumineux, régénérables)
+docs/Guide_CRI_Novadis.docx
+docs/Guide_CRI_Novadis.pdf
+
+# Variables d'environnement (secrets : ConnectionStrings, Jwt, Email)
+.env
+**/.env
+# Exception : le frontend ne contient que l'API_URL (pas de secret)
+!frontend/.env

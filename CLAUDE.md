@@ -39,6 +39,8 @@ dotnet run                     # écoute http://0.0.0.0:5200
 - Architecture : `docs/architecture.md`
 - Conventions : `docs/conventions.md`
 - API : `docs/api-summary.md`
+- Base de données (MCD/MLD) : `docs/database-mcd-mld.md`
+- Incidents résolus : `docs/resolved-issues.md`
 - Sécurité : `SECURITY.md`
 
 ## Config
