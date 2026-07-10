@@ -61,6 +61,13 @@ class _CriSelectionPageState extends ConsumerState<CriSelectionPage> {
         backgroundColor: AppTheme.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Actualiser',
+            onPressed: () => ref.invalidate(availableReportsProvider),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(112),
           child: Center(

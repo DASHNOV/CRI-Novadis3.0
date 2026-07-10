@@ -211,12 +211,6 @@ class SiteSummaryCard extends StatelessWidget {
           children: [
             _buildIndicator(
               context,
-              'Dernière visite',
-              summary.lastVisitStatus,
-              _getStatusColor(summary.lastVisitStatus),
-            ),
-            _buildIndicator(
-              context,
               'Interventions (6 mois)',
               summary.recurrenceLast6Months.toString(),
               summary.recurrenceLast6Months > 5 ? AppTheme.warning : AppTheme.success,

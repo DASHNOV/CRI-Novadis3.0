@@ -556,8 +556,11 @@ mixin PdfBuilderCommon {
           children: [
             pw.Text(label, style: _labelStyle),
             pw.SizedBox(height: 1),
+            // Valeur toujours présente (espace insécable si vide) pour que
+            // toutes les cellules d'une ligne aient la même hauteur et que les
+            // séparateurs verticaux descendent jusqu'au bas de la ligne.
             pw.Text(
-              value,
+              value.isEmpty ? ' ' : value,
               style: bold
                   ? pw.TextStyle(
                       fontSize: 10,
@@ -614,32 +617,15 @@ mixin PdfBuilderCommon {
           pw.SizedBox(height: 4),
           pw.SizedBox(
             height: totalHeight,
-            child: pw.Stack(
-              children: [
-                // Lignes horizontales en fond (taille fixe)
-                pw.Column(
-                  children: [
-                    for (var i = 0; i < lineCount; i++)
-                      pw.Container(
-                        height: lineHeight,
-                        decoration: const pw.BoxDecoration(
-                          border: pw.Border(
-                            bottom: pw.BorderSide(color: _lightGray, width: 0.5),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                // Texte superposé, tronqué si trop long
-                if (value.isNotEmpty)
-                  pw.Text(
+            width: double.infinity,
+            child: value.isNotEmpty
+                ? pw.Text(
                     value,
                     style: _valueStyle,
                     maxLines: lineCount,
                     overflow: pw.TextOverflow.clip,
-                  ),
-              ],
-            ),
+                  )
+                : pw.SizedBox(),
           ),
         ],
       ),

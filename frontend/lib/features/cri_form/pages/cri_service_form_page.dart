@@ -137,7 +137,46 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
     await ref.read(criServiceFormProvider.notifier).saveDraft();
   }
 
+  /// Champs FormBuilder rattachés à chaque étape (pour validation ciblée).
+  static const Map<int, List<String>> _stepFields = {
+    0: ['interventionDate', 'startTime', 'endTime', 'endDate', 'ticketNumber'],
+    1: ['clientName', 'address', 'ville', 'codePostal', 'pays', 'clientContact', 'phone', 'email'],
+    2: ['requestType', 'requestDescription', 'systemTypes'],
+    3: ['actionsPerformed'],
+    4: ['cybersecurityRecommendations'],
+    5: [],
+  };
+
+  /// Valide uniquement les champs de l'étape courante.
+  bool _validateCurrentStep() {
+    final fields = _formKey.currentState?.fields ?? {};
+    final names = _stepFields[_currentStep] ?? const <String>[];
+    var ok = true;
+    for (final name in names) {
+      final field = fields[name];
+      if (field != null && !field.validate()) {
+        ok = false;
+      }
+    }
+    return ok;
+  }
+
+  void _showStepValidationError() {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Veuillez remplir les champs obligatoires avant de continuer'),
+        backgroundColor: AppTheme.warning,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   void _onStepContinue() {
+    if (!_validateCurrentStep()) {
+      _showStepValidationError();
+      return;
+    }
     if (_currentStep < 5) {
       setState(() => _currentStep++);
       _autoSave();
@@ -323,7 +362,13 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                   currentStep: _currentStep,
                   onStepContinue: _onStepContinue,
                   onStepCancel: _onStepCancel,
-                  onStepTapped: (index) => setState(() => _currentStep = index),
+                  onStepTapped: (index) {
+                    if (index > _currentStep && !_validateCurrentStep()) {
+                      _showStepValidationError();
+                      return;
+                    }
+                    setState(() => _currentStep = index);
+                  },
                   controlsBuilder: (context, details) => buildCriFormControls(
                     context,
                     details,
@@ -705,7 +750,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             return Column(children: [field1, const SizedBox(height: 16), field2]);
           }),
           const SizedBox(height: 16),
-          Text('Adresse *', style: TextStyle(
+          Text('Adresse', style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -718,9 +763,6 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             decoration: const InputDecoration(
               hintText: 'Adresse',
               prefixIcon: Icon(Icons.home),
-            ),
-            validator: FormBuilderValidators.required(
-              errorText: 'Adresse requise',
             ),
             textCapitalization: TextCapitalization.sentences,
             maxLines: 2,

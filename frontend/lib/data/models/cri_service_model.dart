@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:novadis_cri/data/local/tables/cri_service_table.dart';
 import 'package:novadis_cri/data/local/app_database.dart';
 import 'package:drift/drift.dart';
@@ -529,13 +528,6 @@ class CriServiceModel {
     );
   }
 
-  /// Génère un numéro de ticket au format TICK-YYYY-NNNNN
-  static String _generateTicketNumber() {
-    final now = DateTime.now();
-    final random = Random().nextInt(100000).toString().padLeft(5, '0');
-    return 'TICK-${now.year}-$random';
-  }
-
   /// Crée un nouveau CRI vide avec valeurs par défaut
   factory CriServiceModel.empty({
     required String id,
@@ -547,7 +539,7 @@ class CriServiceModel {
       interventionDate: now,
       startTime: now,
       endTime: now.add(const Duration(hours: 1)),
-      ticketNumber: _generateTicketNumber(),
+      ticketNumber: '',
       clientName: '',
       site: '',
       requestType: ServiceRequestType.depannage,

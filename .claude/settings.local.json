@@ -157,7 +157,11 @@
       "Bash(powershell -NoProfile -Command 'Get-Service | Where-Object {$_.Name -like '\\\\''*postgres*'\\\\'' -or $_.DisplayName -like '\\\\''*postgres*'\\\\''} | Select-Object Name,Status,DisplayName | Format-Table -AutoSize')",
       "Bash(awk '/Entity\\\\\\(\"NovadisApi.Models.Site\"/,/ToTable\\\\\\(\"Sites\"\\\\\\)/' ./Data/Migrations/NovadisDbContextModelSnapshot.cs)",
       "Bash(certutil -hashfile import_sites.sql MD5)",
-      "Bash(flutter build *)"
+      "Bash(flutter build *)",
+      "PowerShell(flutter analyze *)",
+      "Skill(run)",
+      "PowerShell(flutter test *)",
+      "mcp__playwright__browser_close"
     ]
   }
 }

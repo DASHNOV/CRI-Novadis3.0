@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
 import 'package:novadis_cri/data/local/app_database.dart';
 import 'package:drift/drift.dart';
@@ -442,13 +441,6 @@ class CriProjetModel {
     );
   }
 
-  /// Génère un numéro de projet au format PRJ-YYYY-NNN
-  static String _generateProjectNumber() {
-    final now = DateTime.now();
-    final random = Random().nextInt(1000).toString().padLeft(3, '0');
-    return 'PRJ-${now.year}-$random';
-  }
-
   /// Crée un nouveau CRI vide avec valeurs par défaut
   factory CriProjetModel.empty({
     required String id,
@@ -463,7 +455,7 @@ class CriProjetModel {
       clientName: '',
       site: '',
       projectName: '',
-      projectNumber: _generateProjectNumber(),
+      projectNumber: '',
       projectPhase: ProjectPhase.etude,
       interventionType: ProjetInterventionType.installationMateriel,
       workDescription: '',

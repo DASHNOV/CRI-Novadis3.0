@@ -416,13 +416,6 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
         color: AppTheme.error,
         colorLight: AppTheme.errorLight,
       ),
-      _KpiStatCard(
-        icon: Icons.verified_outlined,
-        label: 'Résolus total',
-        value: _stats.totalResolu.toString(),
-        color: AppTheme.primaryContent,
-        colorLight: AppTheme.primary.withValues(alpha: 0.1),
-      ),
     ];
 
     if (isMobile) {

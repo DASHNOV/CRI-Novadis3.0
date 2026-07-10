@@ -6,7 +6,11 @@ import 'package:pdfx/pdfx.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
 
 /// Viewer PDF embarqué (in-app) — affiche un document depuis ses bytes.
-/// Utilisé sur mobile/desktop pour rester dans l'application.
+/// Utilisé sur mobile/desktop/web pour rester dans l'application.
+///
+/// Utilise [PdfView] (rastérisation d'une image par page) plutôt que
+/// [PdfViewPinch] : chaque page est rendue une seule fois → scroll fluide,
+/// et la page entière tient dans le viewport (pas de sur-zoom).
 class PdfViewerPage extends StatefulWidget {
   final Uint8List bytes;
   final String title;
@@ -22,14 +26,14 @@ class PdfViewerPage extends StatefulWidget {
 }
 
 class _PdfViewerPageState extends State<PdfViewerPage> {
-  late final PdfControllerPinch _controller;
+  late final PdfController _controller;
   int _currentPage = 1;
   int _totalPages = 0;
 
   @override
   void initState() {
     super.initState();
-    _controller = PdfControllerPinch(
+    _controller = PdfController(
       document: PdfDocument.openData(widget.bytes),
     );
   }
@@ -71,8 +75,16 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             ),
         ],
       ),
-      body: PdfViewPinch(
+      body: PdfView(
         controller: _controller,
+        scrollDirection: Axis.vertical,
+        // Rendu 2× pour un texte net une fois la page ajustée au viewport.
+        renderer: (PdfPage page) => page.render(
+          width: page.width * 2,
+          height: page.height * 2,
+          format: PdfPageImageFormat.png,
+          backgroundColor: '#FFFFFF',
+        ),
         onDocumentLoaded: (doc) {
           if (mounted) setState(() => _totalPages = doc.pagesCount);
         },
