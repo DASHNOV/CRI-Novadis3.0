@@ -170,10 +170,12 @@ Auth requise. Admin exporte tout, Technician exporte ses propres CRI.
 
 ## Documents exportés — `/api/exported-documents`
 
+Visibilité : **Admin voit/ouvre tous les documents** (tous techniciens), le DTO renvoie alors `userName`/`userEmail`. Technicien : uniquement les siens (filtre `UserId`). Même règle sur `download`/`rename`/`delete`/`mark-shared` (bypass admin).
+
 | Méthode | Route | Paramètres | Description |
 |---------|-------|-----------|-------------|
 | GET | `/` | `?fileType=&exportType=&skip=0&take=200` | Liste des exports (max 1000) |
-| GET | `/{id}/download` | — | Télécharger un export (binaire) |
+| GET | `/{id}/download` | — | Binaire brut — sert à la fois au téléchargement et à l'aperçu client (voir front) |
 | PATCH | `/{id}` | Body: `{ "filename": "string" }` | Renommer un export |
 | POST | `/{id}/mark-shared` | — | Marquer comme partagé |
 | DELETE | `/{id}` | — | Supprimer un export |

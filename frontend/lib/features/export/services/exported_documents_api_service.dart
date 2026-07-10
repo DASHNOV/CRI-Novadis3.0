@@ -6,6 +6,9 @@ import '../models/server_exported_document.dart';
 import 'xlsx_export_downloader_stub.dart'
     if (dart.library.io) 'xlsx_export_downloader_native.dart'
     if (dart.library.html) 'xlsx_export_downloader_web.dart';
+import 'document_opener_stub.dart'
+    if (dart.library.io) 'document_opener_native.dart'
+    if (dart.library.html) 'document_opener_web.dart';
 
 /// Client HTTP pour l'historique des documents exportés côté serveur.
 ///
@@ -79,6 +82,16 @@ class ExportedDocumentsApiService {
     } on DioException catch (e) {
       throw Exception(_extractServerError(e));
     }
+  }
+
+  /// Ouvre (prévisualise) un document : nouvel onglet sur web (preview PDF
+  /// native du navigateur), viewer système en natif. Ne télécharge pas le PDF.
+  Future<void> open(String id, String filename, String fileType) async {
+    final bytes = await downloadBytes(id);
+    if (bytes.isEmpty) {
+      throw Exception('Fichier vide');
+    }
+    await openDocumentBytes(bytes, filename, fileType);
   }
 
   /// Renomme un document.

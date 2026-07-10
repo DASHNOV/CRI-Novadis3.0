@@ -205,14 +205,24 @@ lib/
 │   ├── dashboard/                 # MainDashboard, SiteDashboard, TechnicianDashboard
 │   ├── cri_form/                  # Saisie CRI (Projet + Service)
 │   ├── history/                   # Historique (perso + global)
-│   ├── documents/                 # Exports historique + sélection
-│   ├── export/                    # Logique PDF/XLSX
+│   ├── documents/                 # Exports historique + sélection + PdfViewerPage (viewer in-app)
+│   ├── export/                    # Logique PDF/XLSX + opener multi-plateforme (document_opener_*)
 │   └── admin/                     # AdminScreen
 ├── screens/                       # RoleHomeScreen (routing par rôle)
 ├── models/                        # Stats DTOs
 ├── services/                      # stats_api_service
 └── utils/                         # permissions.dart
 ```
+
+### Page Documents — visibilité & aperçu
+
+- **Visibilité** : `DocumentsPage` lit `serverDocumentsProvider` (→ `GET /exported-documents`). Admin (`userRoleProvider == 'Admin'`) voit tous les exports + colonne « Utilisateur » (nom/email technicien) ; recherche par technicien incluse.
+- **Ouvrir vs Télécharger** (actions distinctes) :
+  - **Tap / « Ouvrir »** = aperçu, pas de téléchargement forcé.
+    - **PDF (toutes plateformes)** : affiché **in-app** dans `PdfViewerPage` (package `pdfx`, `PdfViewPinch` depuis bytes). Sur web, nécessite pdf.js dans `web/index.html` (ajouté via `dart run pdfx:install_web`, CDN jsDelivr).
+    - **xlsx** : non prévisualisable → opener système (`open_filex`) en natif, téléchargement sur web (`document_opener_*`).
+  - **« Télécharger »** : conserve le comportement historique (`deliverXlsx` : blob web / fichier natif).
+- Imports conditionnels : `document_opener_stub|web|native.dart` (même pattern que `xlsx_export_downloader_*`).
 
 ### Intercepteur Dio (JWT auto-refresh)
 

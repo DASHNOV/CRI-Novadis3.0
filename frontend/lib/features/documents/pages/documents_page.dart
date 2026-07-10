@@ -12,6 +12,7 @@ import '../../export/providers/export_providers.dart';
 import '../widgets/export_options_sheet.dart';
 import '../widgets/document_search_bar.dart';
 import '../widgets/empty_documents_state.dart';
+import 'pdf_viewer_page.dart';
 
 /// Page principale de l'inventaire des documents exportés (server-backed).
 ///
@@ -210,6 +211,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
                           isAdmin: isAdmin,
                           isSelected: selected.contains(sorted[i].id),
                           onTap: () => _openDocument(sorted[i]),
+                          onOpen: () => _openDocument(sorted[i]),
                           onLongPress: () => _toggleSelection(sorted[i].id),
                           onDownload: () => _downloadDocument(sorted[i]),
                           onRename: () => _renameDocument(sorted[i]),
@@ -228,6 +230,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
                       isAdmin: isAdmin,
                       selected: selected,
                       onTap: _openDocument,
+                      onOpen: _openDocument,
                       onLongPress: (doc) => _toggleSelection(doc.id),
                       onDownload: _downloadDocument,
                       onRename: _renameDocument,
@@ -381,7 +384,41 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
     ref.read(selectedServerDocumentsProvider.notifier).state = next;
   }
 
-  Future<void> _openDocument(ServerExportedDocument doc) => _downloadDocument(doc);
+  Future<void> _openDocument(ServerExportedDocument doc) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final api = ref.read(exportedDocumentsApiServiceProvider);
+
+    // PDF : viewer embarqué in-app sur toutes les plateformes (pdfx + pdf.js
+    // sur web). xlsx : non prévisualisable -> opener système / téléchargement.
+    final canEmbed = doc.fileType.toLowerCase() == 'pdf';
+
+    try {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Ouverture du document...')),
+      );
+      if (canEmbed) {
+        final bytes = await api.downloadBytes(doc.id);
+        if (bytes.isEmpty) throw Exception('Fichier vide');
+        if (!mounted) return;
+        await navigator.push(
+          MaterialPageRoute<void>(
+            builder: (_) => PdfViewerPage(bytes: bytes, title: doc.filename),
+          ),
+        );
+      } else {
+        await api.open(doc.id, doc.filename, doc.fileType);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Erreur à l\'ouverture: $e'),
+          backgroundColor: AppTheme.error,
+        ),
+      );
+    }
+  }
 
   Future<void> _downloadDocument(ServerExportedDocument doc) async {
     final messenger = ScaffoldMessenger.of(context);
@@ -532,6 +569,7 @@ class _DesktopDocumentTable extends StatelessWidget {
   final bool isAdmin;
   final Set<String> selected;
   final void Function(ServerExportedDocument) onTap;
+  final void Function(ServerExportedDocument) onOpen;
   final void Function(ServerExportedDocument) onLongPress;
   final void Function(ServerExportedDocument) onDownload;
   final void Function(ServerExportedDocument) onRename;
@@ -542,6 +580,7 @@ class _DesktopDocumentTable extends StatelessWidget {
     required this.isAdmin,
     required this.selected,
     required this.onTap,
+    required this.onOpen,
     required this.onLongPress,
     required this.onDownload,
     required this.onRename,
@@ -659,12 +698,14 @@ class _DesktopDocumentTable extends StatelessWidget {
                     icon: Icon(Icons.more_vert, color: AppTheme.textTertiary, size: 18),
                     onSelected: (value) {
                       switch (value) {
+                        case 'open': onOpen(doc); break;
                         case 'download': onDownload(doc); break;
                         case 'rename': onRename(doc); break;
                         case 'delete': onDelete(doc); break;
                       }
                     },
                     itemBuilder: (_) => const [
+                      PopupMenuItem(value: 'open', child: Row(children: [Icon(Icons.open_in_new_rounded, size: 18), SizedBox(width: 8), Text('Ouvrir')])),
                       PopupMenuItem(value: 'download', child: Row(children: [Icon(Icons.download_rounded, size: 18), SizedBox(width: 8), Text('Télécharger')])),
                       PopupMenuItem(value: 'rename', child: Row(children: [Icon(Icons.edit_rounded, size: 18), SizedBox(width: 8), Text('Renommer')])),
                       PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete_outline_rounded, size: 18), SizedBox(width: 8), Text('Supprimer')])),
@@ -686,6 +727,7 @@ class _ServerDocumentCard extends StatelessWidget {
   final bool isAdmin;
   final bool isSelected;
   final VoidCallback onTap;
+  final VoidCallback onOpen;
   final VoidCallback onLongPress;
   final VoidCallback onDownload;
   final VoidCallback onRename;
@@ -696,6 +738,7 @@ class _ServerDocumentCard extends StatelessWidget {
     required this.isAdmin,
     required this.isSelected,
     required this.onTap,
+    required this.onOpen,
     required this.onLongPress,
     required this.onDownload,
     required this.onRename,
@@ -823,6 +866,9 @@ class _ServerDocumentCard extends StatelessWidget {
                   icon: Icon(Icons.more_vert, color: AppTheme.textTertiary),
                   onSelected: (value) {
                     switch (value) {
+                      case 'open':
+                        onOpen();
+                        break;
                       case 'download':
                         onDownload();
                         break;
@@ -835,6 +881,14 @@ class _ServerDocumentCard extends StatelessWidget {
                     }
                   },
                   itemBuilder: (_) => [
+                    const PopupMenuItem(
+                      value: 'open',
+                      child: Row(children: [
+                        Icon(Icons.open_in_new_rounded, size: 18),
+                        SizedBox(width: 8),
+                        Text('Ouvrir'),
+                      ]),
+                    ),
                     const PopupMenuItem(
                       value: 'download',
                       child: Row(children: [
