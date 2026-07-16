@@ -22,7 +22,8 @@ void main() {
       expect(model.projectStatus, equals(ProjectStatus.enCours));
       expect(model.isDraft, isTrue);
       expect(model.syncStatus, equals('pending'));
-      expect(model.projectNumber, matches(RegExp(r'^PRJ-\d{4}-\d{3}$')));
+      // Numéro de projet vide pour un brouillon (génération auto retirée, cf. commit 4cbd407)
+      expect(model.projectNumber, isEmpty);
     });
 
     test('calculates duration correctly', () {
@@ -124,7 +125,8 @@ void main() {
       expect(model.priority, equals(ServicePriority.normale));
       expect(model.resolutionStatus, equals(ResolutionStatus.nonResolu));
       expect(model.isDraft, isTrue);
-      expect(model.ticketNumber, matches(RegExp(r'^TICK-\d{4}-\d{5}$')));
+      // Numéro de ticket vide pour un brouillon (génération auto retirée, cf. commit 4cbd407)
+      expect(model.ticketNumber, isEmpty);
     });
 
     test('calculates duration from start and end time', () {
