@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:novadis_cri/services/stats_api_service.dart';
+import 'package:novadis_cri/services/sync_service.dart';
 import 'package:novadis_cri/core/providers/main_nav_provider.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/data/local/app_database.dart';
@@ -73,23 +74,66 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
         return;
       }
 
-      // Charger techniciens, CRI et nombre de brouillons locaux en parallèle
-      final results = await Future.wait([
-        statsService.getAllCRIsWithTechnician(
-          technicienId: _selectedTechnicienId,
-          filter: _selectedFilter,
-        ),
-        statsService.getTechnicians(),
-        _loadLocalDrafts(),
-      ]);
+      // Tenter d'abord de repousser les CRI soumis hors ligne, pour qu'ils
+      // apparaissent directement côté serveur si le réseau est revenu.
+      try {
+        await ref.read(syncServiceProvider).syncPendingCris();
+      } catch (_) {}
+
+      // Les CRI locaux (brouillons + soumis non synchronisés) se chargent
+      // TOUJOURS, indépendamment du réseau : leur affichage ne doit jamais
+      // dépendre de la réussite de l'appel serveur.
+      final localDrafts = await _loadLocalDrafts();
+      final localPendingAll = await _loadLocalPending();
+
+      // Le serveur est best-effort : hors ligne, on affiche quand même les
+      // CRI locaux pending au lieu de tomber dans le catch et tout perdre.
+      var serverCris = <Map<String, dynamic>>[];
+      var technicians = _technicians;
+      var serverFailed = false;
+      try {
+        final results = await Future.wait([
+          statsService.getAllCRIsWithTechnician(
+            technicienId: _selectedTechnicienId,
+            filter: _selectedFilter,
+          ),
+          statsService.getTechnicians(),
+        ]);
+        serverCris = List<Map<String, dynamic>>.from(results[0] as List);
+        technicians = List<Map<String, dynamic>>.from(results[1] as List);
+      } catch (e) {
+        serverFailed = true;
+        debugPrint(
+            'Global history: serveur injoignable, affichage local uniquement: $e');
+      }
 
       if (mounted) {
+        // CRI soumis restés locaux (non synchronisés), absents du serveur
+        final serverIds = serverCris.map((c) => c['id']?.toString()).toSet();
+        final localPending = localPendingAll
+            .where((c) => !serverIds.contains(c['id']?.toString()))
+            .toList();
+
         setState(() {
-          _cris = List<Map<String, dynamic>>.from(results[0] as List);
-          _technicians = List<Map<String, dynamic>>.from(results[1] as List);
-          _draftCount = (results[2] as List).length;
+          _cris = [...localPending, ...serverCris];
+          _technicians = technicians;
+          _draftCount = localDrafts.length;
           _isLoading = false;
         });
+
+        if (serverFailed) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                  'Hors ligne : affichage des CRI enregistrés sur l\'appareil.'),
+              backgroundColor: AppTheme.warning,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              ),
+            ),
+          );
+        }
       }
     } catch (e, stackTrace) {
       debugPrint('Error loading global history: $e\n$stackTrace');
@@ -166,6 +210,71 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
     }
 
     return drafts;
+  }
+
+  /// Charge les CRI soumis restés en local (non synchronisés avec le serveur,
+  /// ex. soumission sur site sans réseau). Ils sont visibles uniquement sur
+  /// l'appareil où ils ont été créés, en attendant leur envoi automatique.
+  Future<List<Map<String, dynamic>>> _loadLocalPending() async {
+    final db = ref.read(appDatabaseProvider);
+
+    List<CriService> services = [];
+    try {
+      services = await db.getAllCriService();
+    } catch (e) {
+      debugPrint('Error loading local pending services: $e');
+    }
+
+    List<CriProjet> projets = [];
+    try {
+      projets = await db.getAllCriProjet();
+    } catch (e) {
+      debugPrint('Error loading local pending projets: $e');
+    }
+
+    final pending = <Map<String, dynamic>>[];
+
+    for (final s
+        in services.where((e) => !e.isDraft && e.syncStatus == 'pending')) {
+      pending.add({
+        'id': s.id,
+        '_isPending': true,
+        '_criType': 'service',
+        'clientName': s.clientName,
+        'clientSite': s.site,
+        'siteNom': s.site,
+        'category': s.requestType,
+        'interventionType': s.requestType,
+        'workDescription': s.requestDescription,
+        'interventionDate': s.interventionDate.toIso8601String(),
+        'technicianFirstName': s.technicianName,
+        'technicianLastName': '',
+        'createdAt': (s.updatedAt ?? s.createdAt).toIso8601String(),
+        'clientSignature': s.clientSignature,
+      });
+    }
+
+    for (final p
+        in projets.where((e) => !e.isDraft && e.syncStatus == 'pending')) {
+      pending.add({
+        'id': p.id,
+        '_isPending': true,
+        '_criType': 'projet',
+        'clientName': p.clientName,
+        'clientSite': p.site,
+        'siteNom': p.site,
+        'category': p.interventionType,
+        'interventionType': p.interventionType,
+        'workDescription': p.workDescription,
+        'interventionDate': p.interventionDate.toIso8601String(),
+        'technicianFirstName': p.technicianName,
+        'technicianLastName': '',
+        'createdAt': (p.updatedAt ?? p.createdAt).toIso8601String(),
+        'clientSignature': p.clientSignature,
+      });
+    }
+
+    return pending;
   }
 
   Future<void> _deleteRemoteCri(Map<String, dynamic> cri) async {
@@ -944,11 +1053,13 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
         : '';
     final hasSigned = cri['clientSignature'] != null;
     final isDraft = cri['_isDraft'] == true;
+    final isPending = cri['_isPending'] == true;
 
     final currentUserId = ref.read(userIdProvider);
     final criOwnerId = cri['technicianId']?.toString();
     final isAdmin = ref.read(permissionsProvider).hasPermission(Permission.deleteAnyCri);
     final canDeleteRemote = !isDraft &&
+        !isPending &&
         (isAdmin ||
             (currentUserId != null &&
                 criOwnerId != null &&
@@ -1032,7 +1143,8 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                         ),
                       ),
                     ),
-                    _buildStatusBadge(hasSigned, isDraft: isDraft),
+                    _buildStatusBadge(hasSigned,
+                        isDraft: isDraft, isPending: isPending),
                     if (isDraft) ...[
                       const SizedBox(width: AppTheme.space4),
                       SizedBox(
@@ -1136,12 +1248,18 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
     );
   }
 
-  Widget _buildStatusBadge(bool hasSigned, {bool isDraft = false}) {
+  Widget _buildStatusBadge(bool hasSigned,
+      {bool isDraft = false, bool isPending = false}) {
     final Color color;
     final Color bgColor;
     final String label;
     final IconData iconData;
-    if (isDraft) {
+    if (isPending) {
+      color = AppTheme.info;
+      bgColor = AppTheme.infoLight;
+      label = 'Non synchronisé';
+      iconData = Icons.cloud_off_rounded;
+    } else if (isDraft) {
       color = const Color(0xFF92400E);
       bgColor = AppTheme.warningLight.withValues(alpha: 0.7);
       label = 'Brouillon';

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:novadis_cri/services/stats_api_service.dart';
+import 'package:novadis_cri/services/sync_service.dart';
 import 'package:novadis_cri/core/providers/main_nav_provider.dart';
 import 'package:novadis_cri/core/widgets/content_container.dart';
 import 'package:novadis_cri/data/local/app_database.dart';
@@ -69,9 +70,47 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
       if (_selectedFilter == 'drafts') {
         cris = await _loadLocalDrafts();
       } else {
+        // Tenter d'abord de repousser les CRI soumis hors ligne
+        try {
+          await ref.read(syncServiceProvider).syncPendingCris();
+        } catch (_) {}
+
         final statsService = ref.read(statsApiServiceProvider);
-        cris =
-            await statsService.getPersonalCRIs(filter: _selectedFilter);
+
+        // Serveur best-effort : hors ligne, on retombe sur les CRI locaux au
+        // lieu de partir en erreur et de perdre l'affichage.
+        var serverCris = <Map<String, dynamic>>[];
+        var serverFailed = false;
+        try {
+          serverCris =
+              await statsService.getPersonalCRIs(filter: _selectedFilter);
+        } catch (e) {
+          serverFailed = true;
+          debugPrint(
+              'Personal history: serveur injoignable, affichage local: $e');
+        }
+
+        // Ajouter les CRI soumis restés locaux (non synchronisés) en tête
+        // de liste pour qu'ils restent visibles même sans réseau.
+        if (_selectedFilter == 'all') {
+          final serverIds = serverCris.map((c) => c['id']?.toString()).toSet();
+          final localPending = (await _loadLocalPending())
+              .where((c) => !serverIds.contains(c['id']?.toString()))
+              .toList();
+          cris = [...localPending, ...serverCris];
+        } else {
+          cris = serverCris;
+        }
+
+        if (serverFailed && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Hors ligne : affichage des CRI enregistrés sur l\'appareil.'),
+              backgroundColor: AppTheme.warning,
+            ),
+          );
+        }
       }
 
       // Rafraîchir les compteurs (pending/draft) sur les filtres globaux.
@@ -143,6 +182,55 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
     drafts.sort((a, b) => (b['createdAt'] as String)
         .compareTo(a['createdAt'] as String));
     return drafts;
+  }
+
+  /// Charge les CRI soumis restés en local (non synchronisés avec le serveur,
+  /// ex. soumission sur site sans réseau). La clé `_isPending` permet à la
+  /// carte d'afficher le badge « Non synchronisé ».
+  Future<List<Map<String, dynamic>>> _loadLocalPending() async {
+    final db = ref.read(appDatabaseProvider);
+    final services = await db.getAllCriService();
+    final projets = await db.getAllCriProjet();
+
+    final pending = <Map<String, dynamic>>[];
+
+    for (final s
+        in services.where((e) => !e.isDraft && e.syncStatus == 'pending')) {
+      pending.add({
+        'id': s.id,
+        '_isPending': true,
+        '_criType': 'service',
+        'clientName': s.clientName,
+        'clientSite': s.site,
+        'category': s.requestType,
+        'interventionType': s.requestType,
+        'workDescription': s.requestDescription,
+        'interventionDate': s.interventionDate.toIso8601String(),
+        'createdAt': (s.updatedAt ?? s.createdAt).toIso8601String(),
+        'clientSignature': s.clientSignature,
+      });
+    }
+
+    for (final p
+        in projets.where((e) => !e.isDraft && e.syncStatus == 'pending')) {
+      pending.add({
+        'id': p.id,
+        '_isPending': true,
+        '_criType': 'projet',
+        'clientName': p.clientName,
+        'clientSite': p.site,
+        'category': p.interventionType,
+        'interventionType': p.interventionType,
+        'workDescription': p.workDescription,
+        'interventionDate': p.interventionDate.toIso8601String(),
+        'createdAt': (p.updatedAt ?? p.createdAt).toIso8601String(),
+        'clientSignature': p.clientSignature,
+      });
+    }
+
+    pending.sort((a, b) =>
+        (b['createdAt'] as String).compareTo(a['createdAt'] as String));
+    return pending;
   }
 
   void _onFilterChanged(String filter) {
@@ -544,6 +632,7 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
     final category = cri['category'] ?? '';
     final interventionType = cri['interventionType'] ?? '';
     final isDraft = cri['_isDraft'] == true;
+    final isPending = cri['_isPending'] == true;
 
     final createdAt = cri['createdAt'] != null
         ? DateFormat(
@@ -557,7 +646,12 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
     final Color statusColor;
     final Color statusBg;
     final IconData statusIcon;
-    if (isDraft) {
+    if (isPending) {
+      statusLabel = 'Non synchronisé';
+      statusColor = AppTheme.info;
+      statusBg = AppTheme.infoLight;
+      statusIcon = Icons.cloud_off_rounded;
+    } else if (isDraft) {
       statusLabel = 'Brouillon';
       statusColor = const Color(0xFF92400E);
       statusBg = AppTheme.warningLight.withValues(alpha: 0.7);
@@ -614,7 +708,8 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
                 cri: criModel,
                 initialClientSignature: cri['clientSignature']?.toString(),
                 onSignatureChanged: _loadCRIs,
-                canToggleSignature: true,
+                // Un CRI non synchronisé n'existe pas encore côté serveur
+                canToggleSignature: !isPending,
               ),
             );
           },
