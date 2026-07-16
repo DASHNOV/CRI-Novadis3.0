@@ -8,6 +8,7 @@ import 'package:novadis_cri/screens/admin/global_dashboard_screen.dart';
 import 'package:novadis_cri/screens/admin/global_history_screen.dart';
 import 'package:novadis_cri/features/admin/admin_screen.dart';
 import 'package:novadis_cri/features/documents/pages/documents_page.dart';
+import 'package:novadis_cri/services/sync_service.dart';
 
 /// Écran principal pour les administrateurs
 class AdminMainScreen extends ConsumerStatefulWidget {
@@ -19,6 +20,13 @@ class AdminMainScreen extends ConsumerStatefulWidget {
 
 class _AdminMainScreenState extends ConsumerState<AdminMainScreen> {
   int _currentIndex = 2; // Vue Globale par défaut pour l'admin
+
+  @override
+  void initState() {
+    super.initState();
+    // Repousse les CRI soumis hors ligne (démarrage + retour de connectivité)
+    ref.read(syncServiceProvider).start();
+  }
 
   final List<Widget> _screens = const [
     PersonalHomeScreen(),

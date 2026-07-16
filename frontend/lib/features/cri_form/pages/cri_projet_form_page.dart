@@ -268,6 +268,9 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
         SnackBar(
           content: Text(errorMsg ?? 'CRI Projet enregistré avec succès'),
           backgroundColor: errorMsg != null ? AppTheme.warning : AppTheme.success,
+          duration: errorMsg != null
+              ? const Duration(seconds: 8)
+              : const Duration(seconds: 4),
         ),
       );
       context.pop();

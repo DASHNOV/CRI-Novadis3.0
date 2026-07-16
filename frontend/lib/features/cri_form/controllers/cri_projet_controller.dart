@@ -350,11 +350,13 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
         submittedCri = submittedCri.copyWith(syncStatus: 'synced');
         await _db.updateCriProjet(submittedCri.toDb());
       } catch (e) {
+        // Marqué pending → repoussé automatiquement par SyncService
         state = state.copyWith(
           currentCri: submittedCri,
           isSaving: false,
           isDirty: false,
-          errorMessage: 'CRI sauvegardé localement. Synchronisation distante échouée: $e',
+          errorMessage:
+              'Pas de réseau : CRI enregistré sur l\'appareil. Il sera envoyé au serveur automatiquement dès le retour de la connexion.',
         );
         return true;
       }

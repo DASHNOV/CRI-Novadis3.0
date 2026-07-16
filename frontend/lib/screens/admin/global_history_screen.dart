@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -153,6 +155,26 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
     }
   }
 
+  /// La colonne `technicianName` des lignes locales stocke la liste des
+  /// techniciens encodée en JSON (ex. `["Rémy Denimal"]`). Cette méthode en
+  /// extrait un nom d'affichage lisible.
+  String _displayTechnicianName(String raw) {
+    final s = raw.trim();
+    if (s.isEmpty) return '';
+    if (s.startsWith('[')) {
+      try {
+        final list = jsonDecode(s);
+        if (list is List) {
+          return list
+              .map((e) => e?.toString().trim() ?? '')
+              .where((e) => e.isNotEmpty)
+              .join(', ');
+        }
+      } catch (_) {}
+    }
+    return s;
+  }
+
   /// Charge les brouillons locaux (CRI Service + Projet). Les brouillons sont
   /// stockés uniquement sur l'appareil courant — un admin ne verra que ceux
   /// créés sur cette installation.
@@ -185,7 +207,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
         'siteNom': s.site,
         'category': s.requestType,
         'interventionType': s.requestType,
-        'technicianFirstName': s.technicianName,
+        'technicianFirstName': _displayTechnicianName(s.technicianName),
         'technicianLastName': '',
         'createdAt': (s.updatedAt ?? s.createdAt).toIso8601String(),
         'clientSignature': s.clientSignature,
@@ -202,7 +224,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
         'siteNom': p.site,
         'category': p.interventionType,
         'interventionType': p.interventionType,
-        'technicianFirstName': p.technicianName,
+        'technicianFirstName': _displayTechnicianName(p.technicianName),
         'technicianLastName': '',
         'createdAt': (p.updatedAt ?? p.createdAt).toIso8601String(),
         'clientSignature': p.clientSignature,
@@ -247,7 +269,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
         'interventionType': s.requestType,
         'workDescription': s.requestDescription,
         'interventionDate': s.interventionDate.toIso8601String(),
-        'technicianFirstName': s.technicianName,
+        'technicianFirstName': _displayTechnicianName(s.technicianName),
         'technicianLastName': '',
         'createdAt': (s.updatedAt ?? s.createdAt).toIso8601String(),
         'clientSignature': s.clientSignature,
@@ -267,7 +289,7 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
         'interventionType': p.interventionType,
         'workDescription': p.workDescription,
         'interventionDate': p.interventionDate.toIso8601String(),
-        'technicianFirstName': p.technicianName,
+        'technicianFirstName': _displayTechnicianName(p.technicianName),
         'technicianLastName': '',
         'createdAt': (p.updatedAt ?? p.createdAt).toIso8601String(),
         'clientSignature': p.clientSignature,

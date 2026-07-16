@@ -7,6 +7,7 @@ import 'package:novadis_cri/features/cri_form/cri_form_screen.dart';
 import 'package:novadis_cri/screens/technician/personal_history_screen.dart';
 import 'package:novadis_cri/screens/technician/profile_screen.dart';
 import 'package:novadis_cri/features/documents/pages/documents_page.dart';
+import 'package:novadis_cri/services/sync_service.dart';
 
 /// Écran principal pour les techniciens
 class TechnicianMainScreen extends ConsumerStatefulWidget {
@@ -19,6 +20,13 @@ class TechnicianMainScreen extends ConsumerStatefulWidget {
 
 class _TechnicianMainScreenState extends ConsumerState<TechnicianMainScreen> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Repousse les CRI soumis hors ligne (démarrage + retour de connectivité)
+    ref.read(syncServiceProvider).start();
+  }
 
   final List<Widget> _screens = const [
     PersonalHomeScreen(),

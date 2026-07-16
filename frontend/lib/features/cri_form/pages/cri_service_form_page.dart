@@ -287,11 +287,18 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
     if (!mounted) return;
 
     if (success) {
+      // Si la synchro serveur a échoué (hors ligne), avertir clairement au
+      // lieu d'afficher un faux succès.
+      final syncWarning = ref.read(criServiceFormProvider).errorMessage;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('CRI Service enregistré avec succès'),
-          backgroundColor: AppTheme.success,
+        SnackBar(
+          content: Text(syncWarning ?? 'CRI Service enregistré avec succès'),
+          backgroundColor:
+              syncWarning != null ? AppTheme.warning : AppTheme.success,
+          duration: syncWarning != null
+              ? const Duration(seconds: 8)
+              : const Duration(seconds: 4),
         ),
       );
       context.pop();
