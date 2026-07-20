@@ -109,6 +109,31 @@ class CriRemoteRepository {
     }
   }
 
+  /// Récupère un CRI depuis le serveur et le décode depuis la colonne JSON
+  /// `data`. Renvoie un [CriServiceModel] ou [CriProjetModel] selon le type,
+  /// ou `null` si introuvable / non décodable.
+  Future<dynamic> fetchCriById(String id) async {
+    try {
+      final response = await _dio.get('/CRI/$id');
+      final item = response.data['data'];
+      if (item == null) return null;
+
+      final String? type = item['interventionType']?.toString();
+      final String? jsonData = item['data']?.toString();
+      if (jsonData == null || jsonData.isEmpty) return null;
+
+      final Map<String, dynamic> modelData = jsonDecode(jsonData);
+      if (type == 'Project') {
+        return CriProjetModel.fromJson(modelData);
+      }
+      return CriServiceModel.fromJson(modelData);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> saveCriProjet(CriProjetModel cri) async {
     try {
       final data = {

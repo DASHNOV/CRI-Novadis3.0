@@ -4,6 +4,7 @@ import 'package:novadis_cri/data/models/cri_service_model.dart';
 import 'package:novadis_cri/data/local/app_database.dart';
 import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 import 'package:novadis_cri/data/local/tables/cri_service_table.dart';
+import 'package:novadis_cri/core/utils/cri_reference.dart';
 
 /// État du formulaire CRI Service
 class CriServiceFormState {
@@ -71,10 +72,18 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
           currentCri: CriServiceModel.fromDb(dbCri),
           isLoading: false,
         );
+        return;
+      }
+
+      // Fallback serveur : un CRI soumis peut ne pas exister en local
+      // (ex. modification d'un CRI déjà synchronisé sur un autre appareil).
+      final remote = await _remoteRepo.fetchCriById(id);
+      if (remote is CriServiceModel) {
+        state = state.copyWith(currentCri: remote, isLoading: false);
       } else {
         state = state.copyWith(
           isLoading: false,
-          errorMessage: 'CRI introuvable localement',
+          errorMessage: 'CRI introuvable',
         );
       }
     } catch (e) {
@@ -367,7 +376,19 @@ class CriServiceFormNotifier extends StateNotifier<CriServiceFormState> {
     if (state.currentCri == null) return false;
     state = state.copyWith(isSaving: true);
     try {
-      var submittedCri = state.currentCri!.copyWith(
+      final base = state.currentCri!;
+      // Si le numéro de commande n'a pas été renseigné, générer une référence
+      // de secours CRI<date>_<acronymeSite><nomClient>.
+      final ticketNumber = base.ticketNumber.trim().isNotEmpty
+          ? base.ticketNumber
+          : CriReference.generate(
+              date: base.interventionDate,
+              siteName: base.site,
+              clientName: base.clientName,
+            );
+
+      var submittedCri = base.copyWith(
+        ticketNumber: ticketNumber,
         updatedAt: DateTime.now(),
         isDraft: false,
         syncStatus: 'pending',

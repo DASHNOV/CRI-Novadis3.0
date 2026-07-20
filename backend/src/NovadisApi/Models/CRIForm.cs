@@ -36,7 +36,12 @@ namespace NovadisApi.Models
         [MaxLength(20)]
         public string? ClientPhone { get; set; }
 
-        [EmailAddress]
+        // Regex alignée sur la validation frontend (form_validators.dart) :
+        // pas de points consécutifs/en bordure, TLD >= 2 lettres.
+        // RegularExpression laisse passer null et chaîne vide (email optionnel).
+        [RegularExpression(
+            @"^[a-zA-Z0-9!#$%&*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&*+/=?^_`{|}~-]+)*@[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$",
+            ErrorMessage = "Format d'email invalide")]
         [MaxLength(255)]
         public string? ClientEmail { get; set; }
 

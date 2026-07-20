@@ -93,7 +93,14 @@ class CriFormValidators {
         return required ? (errorText ?? 'L\'email est requis') : null;
       }
 
-      final regex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+      // Partie locale sans points en début/fin ni points consécutifs,
+      // domaine avec labels séparés par des points et TLD >= 2 lettres.
+      final regex = RegExp(
+        r'^[a-zA-Z0-9!#$%&*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&*+/=?^_`{|}~-]+)*'
+        r'@[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?'
+        r'(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)*'
+        r'\.[a-zA-Z]{2,}$',
+      );
 
       if (!regex.hasMatch(value)) {
         return errorText ?? 'Email invalide';

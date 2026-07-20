@@ -161,7 +161,18 @@
       "PowerShell(flutter analyze *)",
       "Skill(run)",
       "PowerShell(flutter test *)",
-      "mcp__playwright__browser_close"
+      "mcp__playwright__browser_close",
+      "Bash(git fetch *)",
+      "Bash(git rev-list *)",
+      "Bash(git stash *)",
+      "Bash(git -C \"C:/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0\" add frontend/test/models/cri_models_test.dart)",
+      "Bash(git -C C:/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0 commit -m ' *)",
+      "Bash(git -C \"C:/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0\" push origin main)",
+      "Bash(git -C C:/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0 stash push -- .claude/settings.local.json)",
+      "Bash(git -C C:/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0 checkout dev)",
+      "Bash(git -C C:/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0 merge main)",
+      "Bash(git -C C:/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0 push origin dev)",
+      "Bash(git -C C:/Users/rdenimal/Documents/App_Novadis/CRI_Novadis/CRI_Novadis2.0 checkout main)"
     ]
   }
 }

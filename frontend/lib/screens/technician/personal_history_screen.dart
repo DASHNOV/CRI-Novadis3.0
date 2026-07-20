@@ -98,6 +98,15 @@ class _PersonalHistoryScreenState extends ConsumerState<PersonalHistoryScreen> {
               .where((c) => !serverIds.contains(c['id']?.toString()))
               .toList();
           cris = [...localPending, ...serverCris];
+
+          // Dédup défensive par id : évite tout doublon résiduel entre
+          // local (pending) et serveur en cas d'id normalisé différemment.
+          final seenIds = <String>{};
+          cris = cris.where((c) {
+            final id = c['id']?.toString();
+            if (id == null) return true;
+            return seenIds.add(id);
+          }).toList();
         } else {
           cris = serverCris;
         }

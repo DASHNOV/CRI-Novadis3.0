@@ -306,7 +306,14 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
         isDirty: state.isDirty,
         onSaveDraft: () => ref.read(criProjetFormProvider.notifier).saveDraft(),
       ),
-      body: FormBuilder(
+      body: Column(
+        children: [
+          if (widget.criId != null &&
+              state.currentCri != null &&
+              !state.currentCri!.isDraft)
+            _buildSubmittedEditBanner(),
+          Expanded(
+            child: FormBuilder(
         key: _formKey,
         child: ContentContainer(
           maxWidth: 900,
@@ -365,7 +372,37 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
           ),
         ),
       ),
+            ),
+        ],
+      ),
       bottomNavigationBar: CriFormAutoSaveBar(lastAutoSave: state.lastAutoSave),
+    );
+  }
+
+  /// Bannière d'avertissement affichée lors de l'édition d'un CRI déjà soumis.
+  Widget _buildSubmittedEditBanner() {
+    return Container(
+      width: double.infinity,
+      color: AppTheme.warning.withValues(alpha: 0.15),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          const Icon(Icons.warning_amber_rounded,
+              color: AppTheme.warning, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Ce CRI a déjà été soumis. Vos modifications seront enregistrées '
+              'sur le CRI existant.',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -989,6 +1026,10 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
         if (value == null || value.isEmpty) {
           return 'Sélectionnez au moins un logiciel';
         }
+        final autre = value.where((e) => e.software == ProjetSoftware.autre);
+        if (autre.any((e) => (e.customName ?? '').trim().isEmpty)) {
+          return 'Précisez le nom du logiciel pour « Autre »';
+        }
         return null;
       },
       builder: (field) {
@@ -1065,39 +1106,29 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
               ),
               const SizedBox(height: 8),
               ...selected.map((entry) {
+                final isAutre = entry.software == ProjetSoftware.autre;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        width: 120,
-                        child: Text(
-                          entry.software.label,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextFormField(
-                          key: ValueKey(
-                              'version-${entry.software.name}'),
-                          initialValue: entry.version ?? '',
+                      // Pour "Autre" : saisie manuelle du nom du logiciel.
+                      if (isAutre) ...[
+                        TextFormField(
+                          key: const ValueKey('custom-name-autre'),
+                          initialValue: entry.customName ?? '',
                           decoration: const InputDecoration(
-                            hintText: 'Ex: 5.4.2',
+                            labelText: 'Nom du logiciel *',
+                            hintText: 'Précisez le logiciel utilisé',
                             isDense: true,
-                            prefixIcon: Icon(Icons.label_outline),
+                            prefixIcon: Icon(Icons.edit_outlined),
                           ),
                           onChanged: (value) {
                             final list = selected.map((e) {
                               if (e.software == entry.software) {
                                 return e.copyWith(
-                                    version: value.isEmpty
-                                        ? null
-                                        : value);
+                                    customName:
+                                        value.isEmpty ? null : value);
                               }
                               return e;
                             }).toList();
@@ -1107,6 +1138,50 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
                             field.didChange(list);
                           },
                         ),
+                        const SizedBox(height: 8),
+                      ],
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            child: Text(
+                              entry.displayName,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextFormField(
+                              key: ValueKey(
+                                  'version-${entry.software.name}'),
+                              initialValue: entry.version ?? '',
+                              decoration: const InputDecoration(
+                                hintText: 'Ex: 5.4.2',
+                                isDense: true,
+                                prefixIcon: Icon(Icons.label_outline),
+                              ),
+                              onChanged: (value) {
+                                final list = selected.map((e) {
+                                  if (e.software == entry.software) {
+                                    return e.copyWith(
+                                        version: value.isEmpty
+                                            ? null
+                                            : value);
+                                  }
+                                  return e;
+                                }).toList();
+                                ref
+                                    .read(criProjetFormProvider.notifier)
+                                    .updateSoftwares(list);
+                                field.didChange(list);
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -1218,7 +1293,6 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             state.currentCri?.technicianNames.length ?? 1,
             (index) {
               final names = state.currentCri?.technicianNames ?? [''];
-              final sigs = state.currentCri?.technicianSignatures ?? [null];
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1273,17 +1347,6 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
                       ref.read(criProjetFormProvider.notifier).updateTechnicianInfo(technicianName: value, index: index);
                     },
                   ),
-                  const SizedBox(height: 16),
-                  SignaturePadWidget(
-                    label: index == 0 ? 'Signature technicien *' : 'Signature technicien ${index + 1}',
-                    initialSignaturePath: index < sigs.length ? sigs[index] : null,
-                    savedSignatureBase64: index == 0
-                        ? ref.watch(savedSignatureProvider).valueOrNull
-                        : null,
-                    onSignatureSaved: (path) {
-                      ref.read(criProjetFormProvider.notifier).updateTechnicianSignature(path, index: index);
-                    },
-                  ),
                 ],
               );
             },
@@ -1295,6 +1358,18 @@ class _CriProjetFormPageState extends ConsumerState<CriProjetFormPage> {
             },
             icon: const Icon(Icons.person_add),
             label: const Text('Ajouter un technicien'),
+          ),
+          const SizedBox(height: 24),
+          // Une seule signature suffit, même avec plusieurs techniciens.
+          SignaturePadWidget(
+            label: 'Signature technicien *',
+            initialSignaturePath: state.currentCri?.technicianSignature,
+            savedSignatureBase64: ref.watch(savedSignatureProvider).valueOrNull,
+            onSignatureSaved: (path) {
+              ref
+                  .read(criProjetFormProvider.notifier)
+                  .updateTechnicianSignature(path, index: 0);
+            },
           ),
           const SizedBox(height: 24),
           SignaturePadWidget(

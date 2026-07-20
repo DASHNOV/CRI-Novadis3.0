@@ -116,7 +116,8 @@ enum ProjetSoftware {
   ocularis('Ocularis'),
   qvms('QVMS'),
   galaxy('Galaxy'),
-  appvision('AppVision');
+  appvision('AppVision'),
+  autre('Autre');
 
   final String label;
   const ProjetSoftware(this.label);
@@ -131,22 +132,44 @@ enum ProjetSoftware {
 }
 
 /// Logiciel sélectionné + version éventuellement saisie.
+/// Quand [software] == [ProjetSoftware.autre], [customName] porte le nom
+/// du logiciel saisi manuellement.
 class SoftwareEntry {
   final ProjetSoftware software;
   final String? version;
+  final String? customName;
 
-  const SoftwareEntry({required this.software, this.version});
+  const SoftwareEntry({
+    required this.software,
+    this.version,
+    this.customName,
+  });
 
-  SoftwareEntry copyWith({ProjetSoftware? software, String? version}) {
+  SoftwareEntry copyWith({
+    ProjetSoftware? software,
+    String? version,
+    String? customName,
+  }) {
     return SoftwareEntry(
       software: software ?? this.software,
       version: version ?? this.version,
+      customName: customName ?? this.customName,
     );
+  }
+
+  /// Nom à afficher : le nom saisi si "Autre", sinon le label de l'enum.
+  String get displayName {
+    if (software == ProjetSoftware.autre) {
+      final name = customName?.trim() ?? '';
+      return name.isEmpty ? ProjetSoftware.autre.label : name;
+    }
+    return software.label;
   }
 
   Map<String, dynamic> toJson() => {
         'software': software.name,
         'version': version,
+        'customName': customName,
       };
 
   factory SoftwareEntry.fromJson(Map<String, dynamic> json) {
@@ -154,6 +177,7 @@ class SoftwareEntry {
       software: ProjetSoftware.fromString(json['software'] as String?) ??
           ProjetSoftware.amadeus5,
       version: json['version'] as String?,
+      customName: json['customName'] as String?,
     );
   }
 }

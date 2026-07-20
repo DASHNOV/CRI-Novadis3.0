@@ -178,8 +178,22 @@ namespace NovadisApi.Controllers
             if (cri == null)
                 return NotFound(ApiResponse<CRIForm>.ErrorResponse("CRI introuvable"));
 
-            if (cri.TechnicianId != userId.Value && !User.IsInRole("Admin"))
-                return Forbid();
+            var isOwner = cri.TechnicianId == userId.Value;
+            var alreadySubmitted = cri.Status == "Submitted";
+
+            if (alreadySubmitted)
+            {
+                // Un CRI déjà soumis ne peut être modifié que par son propriétaire
+                // (pas de dérogation Admin sur l'édition post-soumission).
+                if (!isOwner)
+                    return Forbid();
+            }
+            else
+            {
+                // Brouillon / CRI non soumis : propriétaire ou administrateur.
+                if (!isOwner && !User.IsInRole("Admin"))
+                    return Forbid();
+            }
 
             // Mise à jour des champs
             cri.InterventionType = criUpdate.InterventionType;

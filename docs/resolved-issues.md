@@ -18,6 +18,19 @@
 
 <!-- Ajouter les incidents résolus ci-dessous, du plus récent au plus ancien. -->
 
+## [2026-07-20] Lot d'évolutions CRI : logiciel « Autre », édition post-soumission, signature unique, nommage auto, validation email
+- **Contexte** : 5 demandes fonctionnelles / vérifications de cohérence.
+- **Logiciel « Autre » (CRI Projet)** : ajout du membre `autre` à `enum ProjetSoftware` + champ `customName` sur `SoftwareEntry` (`cri_projet_table.dart`). Saisie manuelle conditionnelle dans `_buildSoftwaresSection` (`cri_projet_form_page.dart`), validée (nom requis si « Autre » coché). Rendu PDF via `SoftwareEntry.displayName` (`pdf_builder_common.dart`). Aucun changement DB (transite par colonne JSON `Data`).
+- **Édition d'un CRI soumis** : autorisée **au seul propriétaire**. Back : garde ajoutée dans `CRIController.UpdateCRI` — si `Status == "Submitted"`, refuser sauf propriétaire (pas de dérogation Admin) ; `UpdatedAt` sert de trace. Front : bouton « Modifier » dans `CriDetailsDialog` (`canEdit`/`onEdit`) affiché si propriétaire ; bannière d'avertissement dans les 2 form pages quand `!isDraft` ; `loadCri` fait désormais un **fallback serveur** (`CriRemoteRepository.fetchCriById`) car un CRI soumis peut ne pas exister en base locale.
+- **Signature unique multi-techniciens** (option retenue : une seule signature suffit) : suppression du `SignaturePadWidget` par technicien dans la boucle ; un unique pad après la liste des noms (`cri_service_form_page.dart`, `cri_projet_form_page.dart`). Liste `technicianNames` conservée. PDF : noms empilés + une seule signature (`_buildSignatureBlock`). Back inchangé (déjà un seul `TechnicianSignature`).
+- **Nommage auto numéro de commande** : si `ticketNumber`/`projectNumber` vide à la soumission → génération `CRI<AAAAMMJJ>_<acronymeSite><nomClient>` (`core/utils/cri_reference.dart`, acronyme dérivé du nom du site, mots vides ignorés). Appliqué dans les `submit()` des 2 contrôleurs, **sans écraser** une saisie manuelle.
+- **Validation email** : regex durcie (TLD ≥ 2, pas de points consécutifs ni en bordure) alignée front (`form_validators.dart`) **et** back (`[RegularExpression]` sur `CRIForm.ClientEmail`, remplace `[EmailAddress]` trop permissif).
+- **Prévention** :
+  - Toute liste à choix fermés destinée à évoluer doit prévoir un membre `autre` + champ libre (pattern `ProjetInterventionType`).
+  - Front et back doivent partager **la même** regex de validation (éviter la divergence `[EmailAddress]` .NET « loose » vs regex front).
+  - `loadCri` ne doit jamais supposer la présence locale d'un CRI soumis — toujours prévoir le fallback serveur.
+  - Ne jamais écraser une valeur saisie par l'utilisateur lors d'une génération automatique (garde `isNotEmpty`).
+
 ## [2026-07-16] CRI soumis hors-ligne invisible dans « Tous les CRI » / « Mes Documents »
 - **Symptôme** : soumission d'un CRI sans réseau → message orange OK, CRI bien en base locale (visible à l'export, PDF exportable), mais **absent** de « Tous les CRI » (admin) et « Mes Documents » (technicien). Les listes n'affichaient que les CRI serveur de la dernière session en ligne.
 - **Cause** : dans les deux écrans d'historique, la fusion des CRI locaux `pending` était placée **après** l'appel serveur dans le **même flux** — `global_history_screen` via un `Future.wait([getAllCRIsWithTechnician, getTechnicians, drafts, pending])`, `personal_history_screen` via `getPersonalCRIs` puis fusion. `getAllCRIsWithTechnician` / `getPersonalCRIs` lèvent une `DioException` hors-ligne (cf. `stats_api_service.dart`) → `Future.wait` rejette / le `try` part au `catch` **avant** la fusion locale, qui n'est donc jamais atteinte. La visibilité du local était de fait **conditionnée à la réussite de l'appel serveur**.

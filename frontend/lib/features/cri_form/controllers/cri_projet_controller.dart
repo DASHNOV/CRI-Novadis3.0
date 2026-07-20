@@ -5,6 +5,7 @@ import 'package:novadis_cri/data/local/app_database.dart';
 import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 import 'package:novadis_cri/data/local/tables/cri_projet_table.dart';
 import 'package:novadis_cri/features/auth/presentation/providers/user_name_provider.dart';
+import 'package:novadis_cri/core/utils/cri_reference.dart';
 
 /// État du formulaire CRI Projet
 class CriProjetFormState {
@@ -83,11 +84,19 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
           isLoading: false,
         );
         loadTechnicians();
+        return;
+      }
+
+      // Fallback serveur : un CRI soumis peut ne pas exister en local
+      // (ex. modification d'un CRI déjà synchronisé sur un autre appareil).
+      final remote = await _remoteRepo.fetchCriById(id);
+      if (remote is CriProjetModel) {
+        state = state.copyWith(currentCri: remote, isLoading: false);
+        loadTechnicians();
       } else {
-        // Todo: Load from remote if not in local
         state = state.copyWith(
           isLoading: false,
-          errorMessage: 'CRI introuvable localement',
+          errorMessage: 'CRI introuvable',
         );
       }
     } catch (e) {
@@ -330,7 +339,19 @@ class CriProjetFormNotifier extends StateNotifier<CriProjetFormState> {
     state = state.copyWith(isSaving: true);
 
     try {
-      var submittedCri = state.currentCri!.copyWith(
+      final base = state.currentCri!;
+      // Si le numéro de commande n'a pas été renseigné, générer une référence
+      // de secours CRI<date>_<acronymeSite><nomClient>.
+      final projectNumber = base.projectNumber.trim().isNotEmpty
+          ? base.projectNumber
+          : CriReference.generate(
+              date: base.interventionDate,
+              siteName: base.site,
+              clientName: base.clientName,
+            );
+
+      var submittedCri = base.copyWith(
+        projectNumber: projectNumber,
         updatedAt: DateTime.now(),
         isDraft: false,
         syncStatus: 'pending',

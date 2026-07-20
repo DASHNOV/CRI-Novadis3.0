@@ -112,6 +112,43 @@ void main() {
     });
   });
 
+  group('SoftwareEntry', () {
+    test('displayName uses enum label for known software', () {
+      const entry = SoftwareEntry(software: ProjetSoftware.milestone);
+      expect(entry.displayName, equals('Milestone'));
+    });
+
+    test('displayName uses customName when software is autre', () {
+      const entry = SoftwareEntry(
+        software: ProjetSoftware.autre,
+        customName: 'Genetec',
+      );
+      expect(entry.displayName, equals('Genetec'));
+    });
+
+    test('displayName falls back to "Autre" label when customName is empty', () {
+      const entry = SoftwareEntry(
+        software: ProjetSoftware.autre,
+        customName: '   ',
+      );
+      expect(entry.displayName, equals('Autre'));
+    });
+
+    test('serializes customName to JSON and back', () {
+      const original = SoftwareEntry(
+        software: ProjetSoftware.autre,
+        version: '2.1',
+        customName: 'Genetec',
+      );
+
+      final restored = SoftwareEntry.fromJson(original.toJson());
+
+      expect(restored.software, equals(ProjetSoftware.autre));
+      expect(restored.version, equals('2.1'));
+      expect(restored.customName, equals('Genetec'));
+    });
+  });
+
   group('CriServiceModel', () {
     test('creates empty model with default values', () {
       final model = CriServiceModel.empty(

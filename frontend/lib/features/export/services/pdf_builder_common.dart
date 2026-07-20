@@ -18,7 +18,6 @@ mixin PdfBuilderCommon {
   static const _blue = PdfColor.fromInt(0xFF0066CC);
   static const _black = PdfColor.fromInt(0xFF000000);
   static const _gray = PdfColor.fromInt(0xFF666666);
-  static const _lightGray = PdfColor.fromInt(0xFFE0E0E0);
 
   // ─── Styles ───
   static final _headerStyle = pw.TextStyle(
@@ -730,17 +729,13 @@ mixin PdfBuilderCommon {
                     style: _labelStyle,
                   ),
                   pw.SizedBox(height: 2),
+                  // Liste de tous les intervenants (une seule signature partagée).
                   ...effectiveNames.asMap().entries.map((entry) {
                     final i = entry.key;
                     final name = entry.value;
-                    final sigBytes = i < techSignatureBytesList.length
-                        ? techSignatureBytesList[i]
-                        : null;
                     return pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        if (i > 0)
-                          pw.Divider(color: _lightGray, thickness: 0.5),
                         pw.Text(
                           name,
                           style: pw.TextStyle(
@@ -753,12 +748,18 @@ mixin PdfBuilderCommon {
                             'Mail : $techEmail',
                             style: _smallStyle,
                           ),
-                        pw.SizedBox(height: 2),
-                        pw.Text('Signature :', style: _labelStyle),
-                        _buildSignatureFromBytes(sigBytes),
                       ],
                     );
                   }),
+                  pw.SizedBox(height: 2),
+                  pw.Text('Signature :', style: _labelStyle),
+                  // Une seule signature suffit pour tous les techniciens.
+                  _buildSignatureFromBytes(
+                    techSignatureBytesList.firstWhere(
+                      (b) => b != null,
+                      orElse: () => null,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -845,7 +846,7 @@ mixin PdfBuilderCommon {
           return pw.Padding(
             padding: const pw.EdgeInsets.only(bottom: 1),
             child: pw.Text(
-              '${s.software.label} (v. $version)',
+              '${s.displayName} (v. $version)',
               style: _valueStyle,
             ),
           );

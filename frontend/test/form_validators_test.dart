@@ -135,6 +135,28 @@ void main() {
         expect(validator('invalid@.com'), isNotNull);
         expect(validator('@example.com'), isNotNull);
       });
+
+      test('rejects previously accepted false positives', () {
+        final validator = CriFormValidators.email();
+        // TLD à 1 seul caractère
+        expect(validator('a@b.c'), isNotNull);
+        // points consécutifs dans le domaine
+        expect(validator('a@b..com'), isNotNull);
+        // point en début/fin de partie locale
+        expect(validator('.user@example.com'), isNotNull);
+        expect(validator('user.@example.com'), isNotNull);
+        // points consécutifs dans la partie locale
+        expect(validator('us..er@example.com'), isNotNull);
+        // tiret en bordure de label de domaine
+        expect(validator('user@-example.com'), isNotNull);
+        expect(validator('user@example-.com'), isNotNull);
+      });
+
+      test('accepts valid multi-label domains', () {
+        final validator = CriFormValidators.email();
+        expect(validator('user@mail.example.co.uk'), isNull);
+        expect(validator('user@sub-domain.example.com'), isNull);
+      });
     });
 
     group('notFutureDate', () {

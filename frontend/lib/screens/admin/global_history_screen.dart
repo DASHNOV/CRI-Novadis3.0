@@ -1112,6 +1112,8 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
             final canToggle = currentUserId != null &&
                 criOwnerId != null &&
                 currentUserId == criOwnerId;
+            // Un CRI déjà soumis n'est modifiable que par son propriétaire.
+            final canEdit = canToggle;
 
             final criModel = CriModel(
               id: cri['id'].toString(),
@@ -1143,6 +1145,17 @@ class _GlobalHistoryScreenState extends ConsumerState<GlobalHistoryScreen> {
                 canDelete: canDeleteRemote,
                 onDeleted: () {
                   if (mounted) _loadData();
+                },
+                canEdit: canEdit,
+                onEdit: () {
+                  // Type local (_criType) sinon dérivé du type serveur.
+                  final type = cri['_criType'] ??
+                      (interventionType == 'Project' ? 'projet' : 'service');
+                  context
+                      .push('/cri/edit/${cri['id']}?type=$type')
+                      .then((_) {
+                    if (mounted) _loadData();
+                  });
                 },
               ),
             );

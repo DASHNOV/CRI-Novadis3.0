@@ -356,7 +356,14 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             PriorityChip(priority: state.currentCri!.priority, showIcon: true),
         ],
       ),
-      body: FormBuilder(
+      body: Column(
+        children: [
+          if (widget.criId != null &&
+              state.currentCri != null &&
+              !state.currentCri!.isDraft)
+            _buildSubmittedEditBanner(),
+          Expanded(
+            child: FormBuilder(
         key: _formKey,
         child: ContentContainer(
           maxWidth: 900,
@@ -416,7 +423,37 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
         ),
         ),
       ),
+            ),
+        ],
+      ),
       bottomNavigationBar: CriFormAutoSaveBar(lastAutoSave: state.lastAutoSave),
+    );
+  }
+
+  /// Bannière d'avertissement affichée lors de l'édition d'un CRI déjà soumis.
+  Widget _buildSubmittedEditBanner() {
+    return Container(
+      width: double.infinity,
+      color: AppTheme.warning.withValues(alpha: 0.15),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          const Icon(Icons.warning_amber_rounded,
+              color: AppTheme.warning, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Ce CRI a déjà été soumis. Vos modifications seront enregistrées '
+              'sur le CRI existant.',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1396,7 +1433,6 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             state.currentCri?.technicianNames.length ?? 1,
             (index) {
               final names = state.currentCri?.technicianNames ?? [''];
-              final sigs = state.currentCri?.technicianSignatures ?? [null];
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1440,17 +1476,6 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                       ref.read(criServiceFormProvider.notifier).updateTechnicianName(value, index: index);
                     },
                   ),
-                  const SizedBox(height: 16),
-                  SignaturePadWidget(
-                    label: index == 0 ? 'Signature technicien *' : 'Signature technicien ${index + 1}',
-                    initialSignaturePath: index < sigs.length ? sigs[index] : null,
-                    savedSignatureBase64: index == 0
-                        ? ref.watch(savedSignatureProvider).valueOrNull
-                        : null,
-                    onSignatureSaved: (path) {
-                      ref.read(criServiceFormProvider.notifier).updateTechnicianSignature(path, index: index);
-                    },
-                  ),
                 ],
               );
             },
@@ -1462,6 +1487,18 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
             },
             icon: const Icon(Icons.person_add),
             label: const Text('Ajouter un technicien'),
+          ),
+          const SizedBox(height: 24),
+          // Une seule signature suffit, même avec plusieurs techniciens.
+          SignaturePadWidget(
+            label: 'Signature technicien *',
+            initialSignaturePath: state.currentCri?.technicianSignature,
+            savedSignatureBase64: ref.watch(savedSignatureProvider).valueOrNull,
+            onSignatureSaved: (path) {
+              ref
+                  .read(criServiceFormProvider.notifier)
+                  .updateTechnicianSignature(path, index: 0);
+            },
           ),
           const SizedBox(height: 24),
           SignaturePadWidget(

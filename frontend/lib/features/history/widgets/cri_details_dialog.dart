@@ -34,6 +34,13 @@ class CriDetailsDialog extends ConsumerStatefulWidget {
   /// Appelé après une suppression réussie (avant fermeture du dialogue).
   final VoidCallback? onDeleted;
 
+  /// Autorise l'affichage du bouton « Modifier ». Réservé au propriétaire du
+  /// CRI, même une fois celui-ci soumis.
+  final bool canEdit;
+
+  /// Appelé quand l'utilisateur demande la modification du CRI.
+  final VoidCallback? onEdit;
+
   const CriDetailsDialog({
     super.key,
     required this.cri,
@@ -42,6 +49,8 @@ class CriDetailsDialog extends ConsumerStatefulWidget {
     this.canToggleSignature = false,
     this.canDelete = false,
     this.onDeleted,
+    this.canEdit = false,
+    this.onEdit,
   });
 
   @override
@@ -189,6 +198,16 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
                         style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
+                    if (widget.canEdit)
+                      IconButton(
+                        icon: Icon(Icons.edit_outlined,
+                            color: AppTheme.primaryContent),
+                        tooltip: 'Modifier',
+                        onPressed: () {
+                          Navigator.pop(context);
+                          widget.onEdit?.call();
+                        },
+                      ),
                     if (widget.canDelete)
                       _isDeleting
                           ? const Padding(
