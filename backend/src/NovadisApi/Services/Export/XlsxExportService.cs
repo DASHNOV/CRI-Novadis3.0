@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using NovadisApi.Data;
@@ -192,7 +193,7 @@ namespace NovadisApi.Services.Export
             row++;
             SectionHeader(ws, row++, "Description des travaux");
             var descr = ws.Range(row, 1, row, 4).Merge();
-            descr.Value = cri.WorkDescription ?? "-";
+            descr.Value = StripMarkdown(cri.WorkDescription) ?? "-";
             descr.Style.Alignment.WrapText = true;
             descr.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
             ws.Row(row).Height = 60;
@@ -992,6 +993,29 @@ namespace NovadisApi.Services.Export
             if (resolutionStatus == "nonResolu" || projectStatus == "suspendu") return (DangerBg, DangerFg);
             if (resolutionStatus == "partiellementResolu" || resolutionStatus == "enAttente" || projectStatus == "enCours") return (WarningBg, WarningFg);
             return (NeutralBg, NeutralFg);
+        }
+
+        /// <summary>
+        /// Retire la syntaxe Markdown (gras, italique, titres, puces) pour
+        /// obtenir du texte brut lisible dans une cellule Excel.
+        /// </summary>
+        private static string? StripMarkdown(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return input;
+
+            var text = input;
+            // Puces / listes numérotées en début de ligne
+            text = Regex.Replace(text, @"(?m)^\s*[-*+]\s+", "• ");
+            text = Regex.Replace(text, @"(?m)^\s*\d+\.\s+", "");
+            // Titres (# ..)
+            text = Regex.Replace(text, @"(?m)^\s*#{1,6}\s*", "");
+            // Gras / italique (**, __, *, _)
+            text = Regex.Replace(text, @"(\*\*|__)(.+?)\1", "$2");
+            text = Regex.Replace(text, @"(\*|_)(.+?)\1", "$2");
+            // Code inline
+            text = text.Replace("`", "");
+
+            return text.Trim();
         }
 
         private static string FormatAddress(CRIForm cri)

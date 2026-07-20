@@ -10,12 +10,10 @@ import 'package:novadis_cri/data/local/tables/cri_service_table.dart';
 import 'package:novadis_cri/features/cri_form/controllers/cri_service_controller.dart';
 import 'package:novadis_cri/features/cri_form/controllers/cri_projet_controller.dart';
 import 'package:novadis_cri/features/cri_form/widgets/photo_picker.dart';
+import 'package:novadis_cri/features/cri_form/widgets/rich_markdown_field.dart';
 import 'package:novadis_cri/features/cri_form/widgets/signature_pad.dart';
 import 'package:novadis_cri/services/user_api_service.dart';
 import 'package:novadis_cri/features/cri_form/widgets/priority_chip.dart';
-import 'package:novadis_cri/data/repositories/site_summary_repository.dart';
-import 'package:novadis_cri/data/models/site_summary_model.dart';
-import 'package:novadis_cri/features/cri_form/widgets/site_summary_card.dart';
 import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
 import 'package:novadis_cri/data/models/site_model.dart';
 import 'package:novadis_cri/features/cri_form/widgets/site_selector.dart';
@@ -41,7 +39,6 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
   bool _isMultiDayInitialized = false;
 
 
-  SiteSummaryModel? _siteSummary;
 
   // Controllers pour auto-complétion des champs à la sélection d'un site
   final _addressController = TextEditingController();
@@ -64,23 +61,6 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
     _codePostalController.dispose();
     _paysController.dispose();
     super.dispose();
-  }
-
-  Future<void> _fetchSiteSummary(String siteName) async {
-    if (siteName.trim().length < 3) {
-      setState(() => _siteSummary = null);
-      return;
-    }
-
-    try {
-      final repo = ref.read(siteSummaryRepositoryProvider);
-      final summary = await repo.getSummary(siteName.trim());
-      if (mounted) {
-        setState(() => _siteSummary = summary);
-      }
-    } catch (e) {
-      debugPrint('Error fetching summary: $e');
-    }
   }
 
   void _initForm() {
@@ -126,9 +106,6 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
     _formKey.currentState?.fields['ville']?.didChange(site.ville ?? '');
     _formKey.currentState?.fields['codePostal']?.didChange(site.codePostal ?? '');
     _formKey.currentState?.fields['pays']?.didChange(site.pays ?? '');
-
-    // Fetch site summary
-    _fetchSiteSummary(site.nomDuSite);
   }
 
   Future<void> _autoSave() async {
@@ -367,60 +344,34 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
         key: _formKey,
         child: ContentContainer(
           maxWidth: 900,
-          child: Stack(
-          children: [
-            Positioned.fill(
-              child: Padding(
-                padding: EdgeInsets.only(top: _siteSummary != null ? 120 : 0),
-                child: Stepper(
-                  currentStep: _currentStep,
-                  onStepContinue: _onStepContinue,
-                  onStepCancel: _onStepCancel,
-                  onStepTapped: (index) {
-                    if (index > _currentStep && !_validateCurrentStep()) {
-                      _showStepValidationError();
-                      return;
-                    }
-                    setState(() => _currentStep = index);
-                  },
-                  controlsBuilder: (context, details) => buildCriFormControls(
-                    context,
-                    details,
-                    currentStep: _currentStep,
-                    lastStep: 5,
-                    isSaving: state.isSaving,
-                    onSubmit: _submit,
-                  ),
-                  steps: [
-                    _buildGeneralStep(state, theme),
-                    _buildClientStep(state, theme),
-                    _buildRequestStep(state, theme),
-                    _buildInterventionStep(state, theme),
-                    _buildSecurityStep(state, theme),
-                    _buildValidationStep(state, theme),
-                  ],
-                ),
-              ),
+          child: Stepper(
+            currentStep: _currentStep,
+            onStepContinue: _onStepContinue,
+            onStepCancel: _onStepCancel,
+            onStepTapped: (index) {
+              if (index > _currentStep && !_validateCurrentStep()) {
+                _showStepValidationError();
+                return;
+              }
+              setState(() => _currentStep = index);
+            },
+            controlsBuilder: (context, details) => buildCriFormControls(
+              context,
+              details,
+              currentStep: _currentStep,
+              lastStep: 5,
+              isSaving: state.isSaving,
+              onSubmit: _submit,
             ),
-            if (_siteSummary != null)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  color: AppTheme.background.withValues(alpha: 0.95),
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  child: SiteSummaryCard(
-                    summary: _siteSummary!,
-                    onDismiss: () => setState(() => _siteSummary = null),
-                    onSeeHistory: () {
-                      context.push('/history?site=${Uri.encodeQueryComponent(_siteSummary!.siteName)}');
-                    },
-                  ),
-                ),
-              ),
-          ],
-        ),
+            steps: [
+              _buildGeneralStep(state, theme),
+              _buildClientStep(state, theme),
+              _buildRequestStep(state, theme),
+              _buildInterventionStep(state, theme),
+              _buildSecurityStep(state, theme),
+              _buildValidationStep(state, theme),
+            ],
+          ),
         ),
       ),
             ),
@@ -1275,17 +1226,13 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
                   fontWeight: FontWeight.w600,
                 )),
           const SizedBox(height: 8),
-          FormBuilderTextField(
+          RichMarkdownField(
             name: 'actionsPerformed',
+            label: 'Travail Effectué',
             initialValue: state.currentCri?.actionsPerformed ?? '',
-            decoration: const InputDecoration(
-              hintText: 'Actions réalisées',
-              prefixIcon: Icon(Icons.build),
-              alignLabelWithHint: true,
-            ),
-            maxLines: 4,
+            hintText: 'Actions réalisées',
+            prefixIcon: Icons.build,
             validator: FormBuilderValidators.required(errorText: 'Requis'),
-            textCapitalization: TextCapitalization.sentences,
             onChanged: (value) {
               ref
                   .read(criServiceFormProvider.notifier)
@@ -1504,6 +1451,7 @@ class _CriServiceFormPageState extends ConsumerState<CriServiceFormPage> {
           SignaturePadWidget(
             label: 'Signature client',
             initialSignaturePath: state.currentCri?.clientSignature,
+            contextMarkdown: state.currentCri?.actionsPerformed,
             onSignatureSaved: (path) {
               ref
                   .read(criServiceFormProvider.notifier)

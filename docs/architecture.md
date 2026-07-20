@@ -224,6 +224,17 @@ lib/
   - **« Télécharger »** : conserve le comportement historique (`deliverXlsx` : blob web / fichier natif).
 - Imports conditionnels : `document_opener_stub|web|native.dart` (même pattern que `xlsx_export_downloader_*`).
 
+### Éditeur riche « Travail Effectué » (Markdown)
+
+- Champ `workDescription` (Projet) / `actionsPerformed` (Service) saisi via `RichMarkdownField` (`cri_form/widgets/rich_markdown_field.dart`).
+  - Barre d'outils : gras `**`, italique `*`, puces `- `, titre `## ` ; bouton plein écran (onglets Édition / Aperçu via `MarkdownBody`).
+  - Enveloppe un `FormBuilderTextField` (contrôleur partagé) → validation par étape inchangée. Stockage = **chaîne Markdown** dans le champ existant (rétrocompatible, aucun changement DB/API).
+- **Rendu** :
+  - PDF : `pdf_builder_common._buildRichTextBlock` parse le Markdown (package `markdown`) → widgets `pw` (gras/italique/listes/titres), hauteur fixe + clip.
+  - Écran (détails/historique) : `MarkdownBody` (`flutter_markdown`).
+  - XLSX (backend) : `XlsxExportService.StripMarkdown` retire la syntaxe → texte brut.
+- **Signature client** : `SignaturePadWidget.contextMarkdown` affiche le travail effectué (lecture seule, scrollable) dans la popup de signature, avant que le client signe.
+
 ### Intercepteur Dio (JWT auto-refresh)
 
 **Request** : lecture du token → ajout header `Authorization: Bearer <token>`

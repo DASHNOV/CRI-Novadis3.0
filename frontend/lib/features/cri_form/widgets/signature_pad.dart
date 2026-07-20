@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:signature/signature.dart';
 import 'package:novadis_cri/core/utils/file_utils.dart';
 
@@ -18,6 +19,13 @@ class SignaturePadWidget extends StatefulWidget {
   final double penStrokeWidth;
   final String? savedSignatureBase64;
 
+  /// Contenu (Markdown) affiché en lecture seule dans la popup de signature,
+  /// p.ex. le « Travail effectué » que le client valide avant de signer.
+  final String? contextMarkdown;
+
+  /// Titre de l'encart contextuel affiché au-dessus de la zone de signature.
+  final String contextTitle;
+
   const SignaturePadWidget({
     super.key,
     required this.label,
@@ -27,6 +35,8 @@ class SignaturePadWidget extends StatefulWidget {
     this.penColor = Colors.black,
     this.penStrokeWidth = 3.0,
     this.savedSignatureBase64,
+    this.contextMarkdown,
+    this.contextTitle = 'Travail effectué',
   });
 
   @override
@@ -168,6 +178,8 @@ class _SignaturePadWidgetState extends State<SignaturePadWidget> {
       builder: (context) => _SignatureDialog(
         label: widget.label,
         controller: _controller,
+        contextMarkdown: widget.contextMarkdown,
+        contextTitle: widget.contextTitle,
         onClear: () {
           _controller.clear();
         },
@@ -313,6 +325,8 @@ class _SignaturePadWidgetState extends State<SignaturePadWidget> {
 class _SignatureDialog extends StatelessWidget {
   final String label;
   final SignatureController controller;
+  final String? contextMarkdown;
+  final String contextTitle;
   final VoidCallback onClear;
   final VoidCallback onSave;
   final VoidCallback onCancel;
@@ -320,6 +334,8 @@ class _SignatureDialog extends StatelessWidget {
   const _SignatureDialog({
     required this.label,
     required this.controller,
+    this.contextMarkdown,
+    this.contextTitle = 'Travail effectué',
     required this.onClear,
     required this.onSave,
     required this.onCancel,
@@ -329,6 +345,8 @@ class _SignatureDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
+    final hasContext =
+        contextMarkdown != null && contextMarkdown!.trim().isNotEmpty;
 
     return Dialog(
       insetPadding: const EdgeInsets.all(16),
@@ -347,6 +365,37 @@ class _SignatureDialog extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
+
+            // Rappel du travail effectué (lecture seule) avant signature
+            if (hasContext) ...[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  contextTitle,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                width: double.infinity,
+                constraints: BoxConstraints(maxHeight: size.height * 0.25),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  child: MarkdownBody(data: contextMarkdown!),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // Zone de signature
             Container(

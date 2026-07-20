@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:novadis_cri/core/config/api_config.dart';
@@ -7,11 +8,10 @@ import 'package:novadis_cri/core/storage/storage_service.dart';
 import 'package:novadis_cri/core/theme/app_theme.dart';
 import 'package:novadis_cri/data/models/cri_model.dart';
 import 'package:novadis_cri/data/models/cri_photo_model.dart';
-import 'package:novadis_cri/data/models/site_summary_model.dart';
+import 'package:novadis_cri/data/models/cri_projet_model.dart';
+import 'package:novadis_cri/data/models/cri_service_model.dart';
 import 'package:novadis_cri/data/repositories/cri_remote_repository.dart';
-import 'package:novadis_cri/data/repositories/site_summary_repository.dart';
 import 'package:novadis_cri/features/cri_form/widgets/photo_picker.dart';
-import 'package:novadis_cri/features/cri_form/widgets/site_summary_card.dart';
 import 'package:novadis_cri/services/stats_api_service.dart';
 
 class CriDetailsDialog extends ConsumerStatefulWidget {
@@ -63,7 +63,10 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
   bool _isDeleting = false;
   List<CriPhotoModel> _photos = [];
   String? _authToken;
-  Future<SiteSummaryModel?>? _siteSummaryFuture;
+
+  /// CRI complet récupéré du serveur (CriServiceModel | CriProjetModel | null).
+  /// Porte le motif + le travail effectué détaillés, absents de la liste.
+  dynamic _detail;
 
   CriModel get cri => widget.cri;
 
@@ -71,21 +74,23 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
   void initState() {
     super.initState();
     _loadPhotoData();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_siteSummaryFuture == null && cri.site.trim().isNotEmpty) {
-      final repo = ref.read(siteSummaryRepositoryProvider);
-      _siteSummaryFuture = repo.getSummary(cri.site.trim());
-    }
+    _loadDetail();
   }
 
   Future<void> _loadPhotoData() async {
     final token = await ref.read(storageServiceProvider).getAccessToken();
     final photos = await ref.read(criRemoteRepositoryProvider).fetchCriPhotos(cri.id);
     if (mounted) setState(() { _authToken = token; _photos = photos; });
+  }
+
+  Future<void> _loadDetail() async {
+    try {
+      final detail =
+          await ref.read(criRemoteRepositoryProvider).fetchCriById(cri.id);
+      if (mounted && detail != null) setState(() => _detail = detail);
+    } catch (_) {
+      // CRI hors-ligne / introuvable : on garde le repli sur cri.description.
+    }
   }
 
   bool get _isSigned => _clientSignature != null;
@@ -238,11 +243,6 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
                   controller: scrollController,
                   padding: const EdgeInsets.all(16),
                   children: [
-                    // Résumé du site
-                    _buildSiteSummary(),
-
-                    const SizedBox(height: 24),
-
                     if (widget.canToggleSignature) ...[
                       _buildSignatureToggle(),
                       const SizedBox(height: 24),
@@ -263,21 +263,7 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
                     _buildInfoTile(Icons.calendar_today_outlined, 'Date', DateFormat('dd/MM/yyyy').format(cri.date)),
 
                     const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceVariant,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Description :', style: TextStyle(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text(cri.description),
-                        ],
-                      ),
-                    ),
+                    _buildDescriptionSection(),
 
                     if (_photos.isNotEmpty) ...[
                       const SizedBox(height: 24),
@@ -354,43 +340,48 @@ class _CriDetailsDialogState extends ConsumerState<CriDetailsDialog> {
     );
   }
 
-  Widget _buildSiteSummary() {
-    if (cri.site.trim().isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppTheme.border),
-          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        ),
-        child: const Text('Aucun historique serveur pour ce site.'),
+  /// Bloc « Motif de l'intervention » (Service uniquement) + « Travail effectué ».
+  /// Utilise le détail serveur si disponible, sinon repli sur cri.description.
+  Widget _buildDescriptionSection() {
+    String? motif;
+    String workDone;
+    final detail = _detail;
+    if (detail is CriServiceModel) {
+      motif = detail.requestDescription;
+      workDone = detail.actionsPerformed;
+    } else if (detail is CriProjetModel) {
+      workDone = detail.workDescription;
+    } else {
+      workDone = cri.description;
+    }
+
+    Widget field(String label, String value) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          MarkdownBody(data: value.trim().isEmpty ? '—' : value),
+        ],
       );
     }
 
-    return FutureBuilder<SiteSummaryModel?>(
-      future: _siteSummaryFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (snapshot.hasData && snapshot.data != null) {
-          return SiteSummaryCard(
-            summary: snapshot.data!,
-            onDismiss: () {},
-            onSeeHistory: () {},
-          );
-        }
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(color: AppTheme.border),
-            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-          ),
-          child: const Text('Aucun historique serveur pour ce site.'),
-        );
-      },
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (motif != null) ...[
+            field('Motif de l\'intervention :', motif),
+            const SizedBox(height: 16),
+          ],
+          field('Travail effectué :', workDone),
+        ],
+      ),
     );
   }
 

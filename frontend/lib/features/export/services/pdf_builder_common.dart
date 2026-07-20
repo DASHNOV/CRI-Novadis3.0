@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:markdown/markdown.dart' as md;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/foundation.dart' show debugPrint;
@@ -196,7 +197,7 @@ mixin PdfBuilderCommon {
               ]),
               pw.SizedBox(height: 6),
               _buildTableSection([
-                _buildLinedTextBlock(
+                _buildRichTextBlock(
                   'Travail Effectué :',
                   cri.actionsPerformed,
                   lineCount: 10,
@@ -356,7 +357,7 @@ mixin PdfBuilderCommon {
 
               // ─── Travail Effectué (grande section avec lignes) ───
               _buildTableSection([
-                _buildLinedTextBlock(
+                _buildRichTextBlock(
                   'Travail Effectué :',
                   cri.workDescription,
                   lineCount: 15,
@@ -595,16 +596,18 @@ mixin PdfBuilderCommon {
     );
   }
 
-  /// Bloc avec label + texte + lignes horizontales (style formulaire papier).
-  /// La hauteur est fixe (lineCount × 18 px) — le texte est superposé sur les
-  /// lignes et tronqué s'il dépasse l'espace disponible.
-  pw.Widget _buildLinedTextBlock(
+  /// Bloc « Travail Effectué » rendu depuis du Markdown (gras, italique,
+  /// listes, titres). Hauteur fixe (lineCount × 18 px) avec clipping pour
+  /// préserver la mise en page mono-page ; le texte brut hérité reste valide
+  /// (le Markdown le rend à l'identique).
+  pw.Widget _buildRichTextBlock(
     String label,
     String value, {
     int lineCount = 15,
   }) {
     const lineHeight = 18.0;
     final totalHeight = lineCount * lineHeight;
+    final content = value.trim();
 
     return pw.Container(
       width: double.infinity,
@@ -617,17 +620,152 @@ mixin PdfBuilderCommon {
           pw.SizedBox(
             height: totalHeight,
             width: double.infinity,
-            child: value.isNotEmpty
-                ? pw.Text(
-                    value,
-                    style: _valueStyle,
-                    maxLines: lineCount,
-                    overflow: pw.TextOverflow.clip,
-                  )
-                : pw.SizedBox(),
+            child: content.isEmpty
+                ? pw.SizedBox()
+                : pw.ClipRect(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: _markdownToPdfWidgets(content),
+                    ),
+                  ),
           ),
         ],
       ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // MARKDOWN → widgets PDF
+  // ════════════════════════════════════════════════════════════════
+
+  /// Parse une chaîne Markdown en une liste de widgets PDF (blocs).
+  List<pw.Widget> _markdownToPdfWidgets(String data) {
+    final document = md.Document(
+      encodeHtml: false,
+      extensionSet: md.ExtensionSet.gitHubFlavored,
+    );
+    final nodes = document.parseLines(const LineSplitter().convert(data));
+    final widgets = <pw.Widget>[];
+    for (final node in nodes) {
+      _appendBlock(node, widgets);
+    }
+    return widgets;
+  }
+
+  void _appendBlock(md.Node node, List<pw.Widget> out) {
+    if (node is md.Text) {
+      out.add(pw.Text(node.text, style: _valueStyle));
+      return;
+    }
+    if (node is! md.Element) return;
+
+    switch (node.tag) {
+      case 'h1':
+      case 'h2':
+      case 'h3':
+      case 'h4':
+      case 'h5':
+      case 'h6':
+        out.add(pw.Padding(
+          padding: const pw.EdgeInsets.only(top: 2, bottom: 2),
+          child: pw.RichText(
+            text: _inlineSpan(node, bold: true, fontSize: 11),
+          ),
+        ));
+        break;
+      case 'ul':
+        for (final li in node.children ?? const <md.Node>[]) {
+          if (li is md.Element) out.add(_bulletLine('•', li));
+        }
+        break;
+      case 'ol':
+        var i = 1;
+        for (final li in node.children ?? const <md.Node>[]) {
+          if (li is md.Element) out.add(_bulletLine('${i++}.', li));
+        }
+        break;
+      case 'p':
+      default:
+        out.add(pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 2),
+          child: pw.RichText(text: _inlineSpan(node)),
+        ));
+    }
+  }
+
+  pw.Widget _bulletLine(String marker, md.Element li) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 1, left: 4),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text('$marker ', style: _valueStyle),
+          pw.Expanded(child: pw.RichText(text: _inlineSpan(li))),
+        ],
+      ),
+    );
+  }
+
+  pw.TextSpan _inlineSpan(
+    md.Element element, {
+    bool bold = false,
+    bool italic = false,
+    double? fontSize,
+  }) {
+    final spans = <pw.TextSpan>[];
+    for (final child in element.children ?? const <md.Node>[]) {
+      _appendInline(child, spans,
+          bold: bold, italic: italic, fontSize: fontSize);
+    }
+    return pw.TextSpan(children: spans);
+  }
+
+  void _appendInline(
+    md.Node node,
+    List<pw.TextSpan> out, {
+    required bool bold,
+    required bool italic,
+    double? fontSize,
+  }) {
+    if (node is md.Text) {
+      out.add(pw.TextSpan(
+        text: node.text,
+        style: _spanStyle(bold: bold, italic: italic, fontSize: fontSize),
+      ));
+      return;
+    }
+    if (node is! md.Element) return;
+
+    if (node.tag == 'br') {
+      out.add(const pw.TextSpan(text: '\n'));
+      return;
+    }
+    final nextBold = bold || node.tag == 'strong';
+    final nextItalic = italic || node.tag == 'em';
+    final children = node.children;
+    if (children == null || children.isEmpty) {
+      out.add(pw.TextSpan(
+        text: node.textContent,
+        style: _spanStyle(bold: nextBold, italic: nextItalic, fontSize: fontSize),
+      ));
+      return;
+    }
+    for (final child in children) {
+      _appendInline(child, out,
+          bold: nextBold, italic: nextItalic, fontSize: fontSize);
+    }
+  }
+
+  pw.TextStyle _spanStyle({
+    required bool bold,
+    required bool italic,
+    double? fontSize,
+  }) {
+    return pw.TextStyle(
+      fontSize: fontSize ?? 9,
+      color: _black,
+      fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+      fontStyle: italic ? pw.FontStyle.italic : pw.FontStyle.normal,
     );
   }
 
