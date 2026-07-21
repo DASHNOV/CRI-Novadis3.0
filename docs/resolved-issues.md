@@ -18,6 +18,12 @@
 
 <!-- Ajouter les incidents résolus ci-dessous, du plus récent au plus ancien. -->
 
+## [2026-07-21] Vulnérabilité Microsoft.Kiota.Abstractions 1.15.2 (CVE-2026-44503)
+- **Symptôme** : `dotnet restore/test` émet `warning NU1903` — `Microsoft.Kiota.Abstractions 1.15.2` a une vulnérabilité de gravité élevée (GHSA-7j59-v9qr-6fq9).
+- **Cause** : faille du `RedirectHandler` Kiota (< 1.22.0) — ne supprime pas les en-têtes sensibles (`Cookie`, `Proxy-Authorization`, en-têtes custom) lors d'une redirection cross-host/scheme → risque de fuite de cookies/credentials. Paquets Kiota tirés **en transitif** par `Microsoft.Graph 5.65.0` (utilisé par `EmailService` pour l'envoi de mails via Graph SendMail). Le SDK Graph, même en dernière 5.x (5.105.0 → Graph.Core 3.2.5), n'épingle encore que Kiota **1.21.1** < 1.22.0.
+- **Correctif** : `backend/src/NovadisApi/NovadisApi.csproj` — bump `Microsoft.Graph` 5.65.0 → **5.105.0** (baseline Kiota 1.21.1 cohérente) + bloc de `PackageReference` directes épinglant **toute la famille Kiota à 1.22.2** (Abstractions, Authentication.Azure, Http.HttpClientLibrary, Serialization.{Json,Form,Text,Multipart}). Build 0 erreur, 47/47 tests OK, `NU1903` disparu.
+- **Prévention** : pour neutraliser une vuln dans une dépendance **transitive**, ajouter une `PackageReference` directe vers la version patchée (override NuGet) — ne pas attendre que le paquet parent l'adopte. Épingler la **famille entière** en lockstep pour éviter les mismatch de version binaire. À retirer une fois que le SDK Graph montera nativement à Kiota ≥ 1.22.0.
+
 ## [2026-07-20] Lot d'évolutions CRI : logiciel « Autre », édition post-soumission, signature unique, nommage auto, validation email
 - **Contexte** : 5 demandes fonctionnelles / vérifications de cohérence.
 - **Logiciel « Autre » (CRI Projet)** : ajout du membre `autre` à `enum ProjetSoftware` + champ `customName` sur `SoftwareEntry` (`cri_projet_table.dart`). Saisie manuelle conditionnelle dans `_buildSoftwaresSection` (`cri_projet_form_page.dart`), validée (nom requis si « Autre » coché). Rendu PDF via `SoftwareEntry.displayName` (`pdf_builder_common.dart`). Aucun changement DB (transite par colonne JSON `Data`).
