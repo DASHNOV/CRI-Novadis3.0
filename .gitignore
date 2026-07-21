@@ -1,6 +1,9 @@
 # Graphify — knowledge graph artifacts (régénérables via /graphify)
 graphify-out/
 
+# Claude Code — préférences locales machine-spécifiques
+.claude/settings.local.json
+
 # Artefacts de test Playwright MCP (traces, snapshots)
 .playwright-mcp/
 
